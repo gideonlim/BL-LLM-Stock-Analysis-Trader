@@ -1,0 +1,53 @@
+name: Generate Signals
+
+# Runs before market open to generate fresh signals.
+# US market opens 9:30 AM ET. This runs at 9:00 AM ET (Mon-Fri).
+# Cron is in UTC: 9:00 AM ET = 13:00 UTC (EST) or 14:00 UTC (EDT).
+# Using 13:00 UTC to cover EST; during EDT it runs at 9:00 AM EDT.
+on:
+  schedule:
+    - cron: "0 13 * * 1-5"   # 9:00 AM ET, weekdays
+  workflow_dispatch:           # allow manual trigger
+
+permissions:
+  contents: write              # needed to commit signal files
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60        # large stock universe can take a while
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate signals
+        run: python quant_bot.py --all-stocks --top-n 200
+        # Adjust --top-n to control how many stocks to analyze.
+        # 200 is a good balance of coverage vs runtime (~15-30 min).
+        # Use --top-n 1000 for full universe (takes ~60 min).
+
+      - name: Upload signals as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signals
+          path: signals/
+          retention-days: 7
+
+      - name: Commit signals to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add signals/ -f
+          git diff --cached --quiet && echo "No new signals" && exit 0
+          git commit -m "chore: generate signals $(date +%Y-%m-%d)"
+          git push

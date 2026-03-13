@@ -1,0 +1,45 @@
+name: Monitor Positions
+
+# Checks existing positions for health issues every 2 hours
+# during market hours (10 AM - 3 PM ET, Mon-Fri).
+# Handles: orphaned brackets, emergency losses, stale SL/TP, gap detection.
+on:
+  schedule:
+    # Every 2 hours during market: 10 AM, 12 PM, 2 PM ET
+    - cron: "0 14 * * 1-5"    # 10:00 AM ET
+    - cron: "0 16 * * 1-5"    # 12:00 PM ET
+    - cron: "0 18 * * 1-5"    #  2:00 PM ET
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Monitor positions
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
+          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+        run: python -m trading_bot_bl --monitor-only
+
+      - name: Upload monitor logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-logs-${{ github.run_number }}
+          path: execution_logs/monitor_*.json
+          retention-days: 14

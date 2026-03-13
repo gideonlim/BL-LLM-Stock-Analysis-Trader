@@ -1,0 +1,80 @@
+name: Execute Trades
+
+# Runs after market opens to execute signals via Alpaca.
+# US market opens 9:30 AM ET. This runs at 10:15 AM ET (Mon-Fri)
+# to let the opening volatility settle before entering positions.
+# 10:15 AM ET = 14:15 UTC (EST) or 15:15 UTC (EDT).
+on:
+  schedule:
+    - cron: "15 14 * * 1-5"   # 10:15 AM ET, weekdays
+  workflow_dispatch:           # allow manual trigger
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Pull latest commit (may include freshly generated signals)
+          ref: ${{ github.ref }}
+
+      - name: Pull latest changes
+        run: git pull --rebase origin ${{ github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check signals exist
+        run: |
+          if ! ls signals/signals_*.json 1>/dev/null 2>&1; then
+            echo "::error::No signal files found. Run generate_signals first."
+            exit 1
+          fi
+          echo "Latest signals:"
+          ls -la signals/signals_*.json | tail -3
+
+      - name: Execute trades
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
+          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+          MAX_EXPOSURE_PCT: ${{ vars.MAX_EXPOSURE_PCT || '80.0' }}
+          MAX_POSITION_PCT: ${{ vars.MAX_POSITION_PCT || '15.0' }}
+          MAX_POSITIONS: ${{ vars.MAX_POSITIONS || '15' }}
+          DAILY_LOSS_LIMIT_PCT: ${{ vars.DAILY_LOSS_LIMIT_PCT || '3.0' }}
+          MIN_COMPOSITE_SCORE: ${{ vars.MIN_COMPOSITE_SCORE || '20.0' }}
+          MIN_CONFIDENCE_SCORE: ${{ vars.MIN_CONFIDENCE_SCORE || '2' }}
+          MAX_ENTRY_SLIPPAGE_PCT: ${{ vars.MAX_ENTRY_SLIPPAGE_PCT || '1.5' }}
+          USE_BLACK_LITTERMAN: ${{ vars.USE_BLACK_LITTERMAN || 'true' }}
+          BL_TAU: ${{ vars.BL_TAU || '0.05' }}
+          # LLM views (optional — leave ANTHROPIC_API_KEY empty to disable)
+          LLM_VIEWS_ENABLED: ${{ vars.LLM_VIEWS_ENABLED || 'false' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -m trading_bot_bl
+
+      - name: Upload execution logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: execution-logs-${{ github.run_number }}
+          path: execution_logs/
+          retention-days: 30
+
+      - name: Commit execution logs
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add execution_logs/ -f
+          git diff --cached --quiet && echo "No new logs" && exit 0
+          git commit -m "chore: execution log $(date +%Y-%m-%d_%H%M)"
+          git push

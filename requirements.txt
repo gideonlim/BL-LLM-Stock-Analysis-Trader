@@ -1,0 +1,17 @@
+# ── Analysis Bot ──────────────────────────────────
+yfinance>=0.2.30
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0
+lxml>=4.9
+tqdm>=4.60             # optional, nicer progress bars
+
+# ── Trading Bot (shared) ─────────────────────────
+alpaca-py>=0.21.0
+python-dotenv>=1.0
+
+# ── Trading Bot BL (Black-Litterman + LLM) ───────
+# Core BL: uses only numpy/pandas (no extra deps)
+# LLM views (optional — only needed with --llm-views):
+anthropic>=0.40.0      # optional, for Claude LLM views
+# openai>=1.0.0        # optional, alternative LLM provider
