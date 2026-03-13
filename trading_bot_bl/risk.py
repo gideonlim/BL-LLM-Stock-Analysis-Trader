@@ -188,6 +188,22 @@ class RiskManager:
                 ),
             )
 
+        # ── Minimum position size ──────────────────────────────────
+        if (
+            intent.side == "buy"
+            and self.limits.min_position_pct > 0
+        ):
+            min_notional = equity * self.limits.min_position_pct / 100
+            if intent.notional < min_notional:
+                return RiskVerdict(
+                    approved=False,
+                    reason=(
+                        f"Notional ${intent.notional:,.0f} below "
+                        f"minimum {self.limits.min_position_pct}% "
+                        f"of equity (${min_notional:,.0f})"
+                    ),
+                )
+
         # ── Signal quality ────────────────────────────────────────
         quality_issue = self.check_signal_quality(intent.signal)
         if quality_issue:
@@ -262,6 +278,25 @@ class RiskManager:
                     f"too small to execute"
                 ),
             )
+
+        # Re-check minimum position size AFTER adjustment.
+        # The initial check (above) catches obviously small intents,
+        # but cash/exposure limits can shrink a $12k intent to $1.8k.
+        if (
+            intent.side == "buy"
+            and self.limits.min_position_pct > 0
+        ):
+            min_notional = equity * self.limits.min_position_pct / 100
+            if adjusted < min_notional:
+                return RiskVerdict(
+                    approved=False,
+                    reason=(
+                        f"Adjusted notional ${adjusted:,.0f} below "
+                        f"minimum {self.limits.min_position_pct}% "
+                        f"of equity (${min_notional:,.0f}) after "
+                        f"risk limits"
+                    ),
+                )
 
         if adjusted < intent.notional:
             log.info(

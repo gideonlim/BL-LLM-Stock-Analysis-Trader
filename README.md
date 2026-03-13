@@ -1,15 +1,25 @@
-# Quant Analysis Bot
+# Quant Analysis Bot + Automated Trading
 
-A Python tool that automatically discovers which trading strategy works best for each stock by backtesting 11 strategies across multiple timeframes, then generates daily buy/sell/hold signals.
+A two-stage system: (1) a quant analysis bot that backtests 11 trading strategies across multiple timeframes and generates daily signals, and (2) a Black-Litterman portfolio-optimized trading bot that executes those signals via Alpaca with bracket orders, limit entry, and position monitoring.
 
 ## Quick Start
 
 ```bash
 pip install -r requirements.txt
-python quant_bot.py
+
+# Step 1: Generate signals
+python quant_bot.py --all-stocks --top-n 200
+
+# Step 2: Execute trades (configure trading_bot_bl/.env first)
+python -m trading_bot_bl --dry-run    # preview orders
+python -m trading_bot_bl              # paper trading (default)
 ```
 
-That's it. The bot will analyze the default stocks (AAPL, GOOG, NFLX, GLD, TEM, ASTS, WTI), backtest every strategy, and output today's signals.
+See [trading_bot_bl/README.md](trading_bot_bl/README.md) for full setup (Alpaca API keys, .env configuration, GitHub Actions automation).
+
+## Signal Generation Only
+
+The quant bot works standalone. It will analyze stocks, backtest every strategy, and output today's signals:
 
 ## Scan the Entire Market
 
@@ -175,6 +185,31 @@ Edit the `tickers` list in `DEFAULT_CONFIG` at the top of the script, or pass `-
 | 1000 | ~50 minutes |
 
 Times depend on your internet speed and Yahoo Finance rate limits. The stock universe fetch (with `--all-stocks`) adds a few extra minutes on the first run but is cached afterward.
+
+## Automated Trading (trading_bot_bl)
+
+The trading bot reads signals from the `signals/` directory and executes them via Alpaca:
+
+- **Black-Litterman portfolio optimization** ranks and sizes positions
+- **Limit orders** with 1.5% slippage cap (no market orders)
+- **Live price fetching** with SL/TP recalculation
+- **Position monitoring** (orphaned brackets, emergency losses, trailing stops)
+- **Risk management** (circuit breaker, exposure caps, min/max position sizes)
+- **Optional LLM-enhanced views** (ICLR 2025 repeated sampling method)
+
+Default config targets ~8 positions at 10-12% each on a $100k account.
+
+See [trading_bot_bl/README.md](trading_bot_bl/README.md) for details.
+
+## GitHub Actions
+
+Three workflows automate the full pipeline on weekday market hours:
+
+1. **generate_signals.yml** — 9:00 AM ET: generate signals, commit to repo
+2. **execute_trades.yml** — 10:15 AM ET: execute trades via Alpaca
+3. **monitor_positions.yml** — every 2h during market: position health checks
+
+Requires GitHub Secrets: `ALPACA_API_KEY`, `ALPACA_API_SECRET`. See [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) for full architecture documentation.
 
 ## Requirements
 

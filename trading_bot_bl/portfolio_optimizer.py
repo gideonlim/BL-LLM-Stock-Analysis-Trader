@@ -144,6 +144,10 @@ def optimize_with_black_litterman(
         return None
 
     # ── Convert BL weights to ranked intents ──────────────────
+    # BL weights are used for RANKING (which stocks to buy first)
+    # but the quant bot's suggested notional is the position size
+    # floor. BL can scale up to its optimal weight, but never
+    # below the original signal's suggested size.
     ranked: list[RankedIntent] = []
 
     for intent in intents:
@@ -152,16 +156,19 @@ def optimize_with_black_litterman(
         bl_return = bl_result.posterior_returns.get(ticker, 0.0)
         eq_return = bl_result.equilibrium_returns.get(ticker, 0.0)
 
-        # Resize notional based on BL optimal weight
-        # BL weight × equity gives the target position size
+        # Use the LARGER of BL's optimal weight or the quant
+        # bot's original suggested size (from Kelly sizing).
+        # BL spreads weights thinly across many stocks; the
+        # quant bot's Kelly size is a better per-position floor.
         bl_notional = bl_weight * portfolio_equity
-        if bl_notional > 1.0:
-            intent.notional = round(bl_notional, 2)
-            intent.reason = (
-                f"{intent.reason} "
-                f"[BL: weight={bl_weight:.1%}, "
-                f"return={bl_return:+.1%}]"
-            )
+        original_notional = intent.notional  # from Kelly sizing
+        final_notional = max(bl_notional, original_notional)
+        intent.notional = round(final_notional, 2)
+        intent.reason = (
+            f"{intent.reason} "
+            f"[BL: weight={bl_weight:.1%}, "
+            f"return={bl_return:+.1%}]"
+        )
 
         ranked.append(RankedIntent(
             intent=intent,

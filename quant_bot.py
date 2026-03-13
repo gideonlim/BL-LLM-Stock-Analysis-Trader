@@ -1196,21 +1196,24 @@ def generate_daily_signal(df: pd.DataFrame, ticker: str,
     else:
         take_profit_price = 0.0
 
-    # ── Position sizing: full Kelly, floored and capped by confidence ──────
+    # ── Position sizing: half-Kelly, floored and capped by confidence ──────
+    # Full Kelly is theoretically optimal but assumes perfect edge
+    # estimation. In practice backtest stats have estimation error,
+    # so half-Kelly gives ~75% of the growth with ~50% of the drawdown.
     win_rate_f = result.win_rate  # 0-1
     pf = max(result.profit_factor, 0.01)
     # Kelly f* = (win_rate * pf - loss_rate) / pf
     loss_rate = 1 - win_rate_f
     kelly_f = max((win_rate_f * pf - loss_rate) / pf, 0.0)
-    kelly_pct = kelly_f * 100  # full Kelly as a percentage
+    half_kelly_pct = kelly_f * 0.5 * 100  # half-Kelly as a percentage
     # Only size if the strategy has a genuine edge (Kelly > 0).
-    # Floor: ensure every position with an edge is meaningful (min 3%).
-    # Cap: limit by confidence level to prevent over-concentration.
+    # Floor: ensure every position with an edge is meaningful (min 5%).
+    # Cap: limit by confidence to prevent over-concentration.
     if kelly_f > 0:
-        min_size = 3.0
-        max_size = {"HIGH": 20.0, "MEDIUM": 12.0, "LOW": 6.0}.get(confidence, 5.0)
+        min_size = 5.0
+        max_size = {"HIGH": 12.0, "MEDIUM": 10.0, "LOW": 7.0}.get(confidence, 5.0)
         suggested_position_size_pct = round(
-            min(max(kelly_pct, min_size), max_size), 2
+            min(max(half_kelly_pct, min_size), max_size), 2
         )
     else:
         suggested_position_size_pct = 0.0

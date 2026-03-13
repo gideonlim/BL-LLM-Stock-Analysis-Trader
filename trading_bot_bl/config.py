@@ -76,7 +76,7 @@ class RiskLimits:
     max_portfolio_exposure_pct: float = 80.0
 
     # Max % of account equity in any single stock
-    max_position_pct: float = 15.0
+    max_position_pct: float = 12.0
 
     # Daily loss circuit breaker: stop trading if portfolio
     # drops more than this % from day's starting equity
@@ -89,7 +89,12 @@ class RiskLimits:
     min_confidence_score: int = 2
 
     # Max number of concurrent positions (existing + new)
-    max_positions: int = 15
+    max_positions: int = 8
+
+    # Minimum position size as % of equity.  Orders below this
+    # threshold are skipped — too small to be worth the bracket
+    # order overhead (commissions, monitoring, slippage).
+    min_position_pct: float = 2.0
 
     # Only execute signals that are BUY or SELL/SHORT (skip HOLD)
     skip_hold_signals: bool = True
@@ -185,7 +190,7 @@ class TradingConfig:
                 os.getenv("MAX_EXPOSURE_PCT", "80.0")
             ),
             max_position_pct=float(
-                os.getenv("MAX_POSITION_PCT", "15.0")
+                os.getenv("MAX_POSITION_PCT", "12.0")
             ),
             daily_loss_limit_pct=float(
                 os.getenv("DAILY_LOSS_LIMIT_PCT", "3.0")
@@ -197,7 +202,10 @@ class TradingConfig:
                 os.getenv("MIN_CONFIDENCE_SCORE", "2")
             ),
             max_positions=int(
-                os.getenv("MAX_POSITIONS", "15")
+                os.getenv("MAX_POSITIONS", "8")
+            ),
+            min_position_pct=float(
+                os.getenv("MIN_POSITION_PCT", "2.0")
             ),
         )
         return cls(
@@ -284,6 +292,10 @@ class TradingConfig:
                 config.order_type = overrides["order_type"]
             if "paper" in overrides:
                 config.alpaca.paper = overrides["paper"]
+            if "max_entry_slippage_pct" in overrides:
+                config.max_entry_slippage_pct = float(
+                    overrides["max_entry_slippage_pct"]
+                )
             if "history_lookback_days" in overrides:
                 config.history_lookback_days = int(
                     overrides["history_lookback_days"]
@@ -321,6 +333,10 @@ class TradingConfig:
             if "llm_max_tickers" in overrides:
                 config.llm_max_tickers = int(
                     overrides["llm_max_tickers"]
+                )
+            if "llm_temperature" in overrides:
+                config.llm_temperature = float(
+                    overrides["llm_temperature"]
                 )
             if "llm_weight" in overrides:
                 config.llm_weight = float(
