@@ -9,6 +9,9 @@ on:
     - cron: "15 14 * * 1-5"   # 10:15 AM ET, weekdays
   workflow_dispatch:           # allow manual trigger
 
+permissions:
+  contents: write              # needed to commit execution logs
+
 jobs:
   execute:
     runs-on: ubuntu-latest
