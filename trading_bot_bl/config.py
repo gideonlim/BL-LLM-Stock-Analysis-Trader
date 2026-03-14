@@ -117,6 +117,9 @@ class RiskLimits:
     # Max % loss on an orphaned position before force-closing
     orphan_max_loss_pct: float = 5.0
 
+    # Max days to hold a position before time-based exit
+    max_hold_days: int = 10
+
 
 @dataclass
 class TradingConfig:
@@ -158,6 +161,14 @@ class TradingConfig:
 
     # Days of return history for BL covariance estimation
     bl_lookback_days: int = 60
+
+    # Regime-sensitive covariance: blend short-term EWMA and
+    # long-term Ledoit-Wolf based on volatility regime
+    bl_regime_sensitive: bool = True
+
+    # Max portfolio weight per GICS sector (0-1). Prevents
+    # concentration in a single sector. 0.40 = max 40% in tech
+    bl_max_sector_pct: float = 0.40
 
     # ── LLM view generation ────────────────────────────────────
     # Enable LLM-enhanced views (requires API key)
@@ -228,6 +239,12 @@ class TradingConfig:
             bl_tau=float(os.getenv("BL_TAU", "0.05")),
             bl_lookback_days=int(
                 os.getenv("BL_LOOKBACK_DAYS", "60")
+            ),
+            bl_regime_sensitive=os.getenv(
+                "BL_REGIME_SENSITIVE", "true"
+            ).lower() in ("true", "1", "yes"),
+            bl_max_sector_pct=float(
+                os.getenv("BL_MAX_SECTOR_PCT", "0.40")
             ),
             llm_views_enabled=os.getenv(
                 "LLM_VIEWS_ENABLED", "false"
@@ -315,6 +332,14 @@ class TradingConfig:
             if "bl_lookback_days" in overrides:
                 config.bl_lookback_days = int(
                     overrides["bl_lookback_days"]
+                )
+            if "bl_regime_sensitive" in overrides:
+                config.bl_regime_sensitive = bool(
+                    overrides["bl_regime_sensitive"]
+                )
+            if "bl_max_sector_pct" in overrides:
+                config.bl_max_sector_pct = float(
+                    overrides["bl_max_sector_pct"]
                 )
 
             # LLM view overrides

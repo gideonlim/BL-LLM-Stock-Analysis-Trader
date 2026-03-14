@@ -27,6 +27,13 @@ class Signal:
     total_trades: int
     generated_at: str = ""
     notes: str = ""
+    # Extended fields (v2) — used by BL view estimation
+    sortino: float = 0.0
+    profit_factor: float = 0.0
+    annual_return_pct: float = 0.0
+    annual_excess_pct: float = 0.0
+    max_drawdown_pct: float = 0.0
+    vol_20: float = 0.0
 
 
 @dataclass

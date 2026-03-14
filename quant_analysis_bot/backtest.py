@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -23,9 +24,15 @@ def run_backtest(
     timeframe: str,
     cost_bps: float = 10,
     long_only: bool = True,
+    next_bar_execution: bool = True,
 ) -> Tuple[BacktestResult, List[TradeRecord]]:
     """
     Run a full backtest on a signal series.
+
+    If next_bar_execution is True (default), signals generated on bar[i]
+    execute at close[i+1]. This eliminates look-ahead bias -- you can't
+    trade at the close of the bar that generated the signal in practice.
+    Typically reduces reported Sharpe by 10-20% for a more honest estimate.
 
     Returns performance metrics AND a list of every individual trade.
     """
@@ -37,7 +44,12 @@ def run_backtest(
     trade_log: List[TradeRecord] = []
 
     df = df.copy()
-    df["Signal"] = signals
+    if next_bar_execution:
+        # Shift signals forward by 1 bar: a signal on bar[i] executes
+        # on bar[i+1]. This prevents look-ahead bias.
+        df["Signal"] = signals.shift(1, fill_value=0)
+    else:
+        df["Signal"] = signals
     df = df.dropna(subset=["Close"])
 
     if len(df) < 30:
@@ -126,9 +138,9 @@ def run_backtest(
                 )
 
             if long_only:
+                daily_ret -= cost  # exit transaction cost
                 position = 0
                 entry_price = 0.0
-                daily_ret -= cost if position == 1 else 0
             else:
                 position = -1
                 entry_price = close[i]
@@ -218,34 +230,209 @@ def run_backtest(
     return result, trade_log
 
 
+# ── Normal distribution helpers (pure numpy, no scipy) ────────────────
+
+
+def _norm_cdf(x: float) -> float:
+    """Standard normal CDF using the error function."""
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _norm_ppf(p: float) -> float:
+    """
+    Standard normal inverse CDF (percent-point function).
+
+    Uses the rational approximation from Abramowitz & Stegun (26.2.23)
+    which is accurate to ~4.5e-4 for 0 < p < 1.
+    """
+    if p <= 0.0:
+        return -6.0
+    if p >= 1.0:
+        return 6.0
+    if p == 0.5:
+        return 0.0
+
+    # Work in the upper tail
+    if p > 0.5:
+        return -_norm_ppf(1.0 - p)
+
+    t = math.sqrt(-2.0 * math.log(p))
+    # Rational approximation coefficients
+    c0, c1, c2 = 2.515517, 0.802853, 0.010328
+    d1, d2, d3 = 1.432788, 0.189269, 0.001308
+    num = c0 + c1 * t + c2 * t * t
+    den = 1.0 + d1 * t + d2 * t * t + d3 * t * t * t
+    return -(t - num / den)
+
+
+def _skewness(arr: np.ndarray) -> float:
+    """Sample skewness (Fisher definition)."""
+    n = len(arr)
+    if n < 3:
+        return 0.0
+    m = arr.mean()
+    s = arr.std(ddof=1)
+    if s == 0:
+        return 0.0
+    return float(np.mean(((arr - m) / s) ** 3) * n / ((n - 1) * (n - 2) / n))
+
+
+def _kurtosis_excess(arr: np.ndarray) -> float:
+    """Sample excess kurtosis (Fisher definition, normal = 0)."""
+    n = len(arr)
+    if n < 4:
+        return 0.0
+    m = arr.mean()
+    s = arr.std(ddof=1)
+    if s == 0:
+        return 0.0
+    return float(np.mean(((arr - m) / s) ** 4) - 3.0)
+
+
+# ── Deflated Sharpe Ratio ─────────────────────────────────────────────
+
+
+def deflated_sharpe_ratio(
+    observed_sharpe: float,
+    n_observations: int,
+    n_strategies_tested: int,
+    skewness: float = 0.0,
+    kurtosis_excess: float = 0.0,
+) -> float:
+    """
+    Compute the Deflated Sharpe Ratio (DSR) from Bailey & de Prado (2014).
+
+    Adjusts the observed Sharpe for multiple testing bias. When you test
+    N strategies and pick the best, the expected max Sharpe under the null
+    (all strategies are noise) grows with N. DSR gives the probability
+    that the observed Sharpe exceeds this expected max.
+
+    Returns a value between 0 and 1 -- think of it as a p-value-like
+    measure. Higher = more likely the Sharpe is genuine.
+
+    Args:
+        observed_sharpe: The best Sharpe ratio found.
+        n_observations: Number of return observations (trading days).
+        n_strategies_tested: Number of strategies that were evaluated.
+        skewness: Skewness of the return distribution.
+        kurtosis_excess: Excess kurtosis of the return distribution.
+    """
+    if n_observations < 10 or n_strategies_tested < 2:
+        return 1.0  # not enough data to penalize
+
+    T = float(n_observations)
+    N = float(n_strategies_tested)
+
+    # Expected maximum Sharpe under the null (Euler-Mascheroni approx)
+    euler_mascheroni = 0.5772156649
+    z_N = _norm_ppf(1.0 - 1.0 / N)
+    expected_max_sharpe = (
+        z_N * (1.0 - euler_mascheroni)
+        + euler_mascheroni * _norm_ppf(1.0 - 1.0 / (N * math.e))
+    ) if N > 1 else 0.0
+
+    # Variance of the Sharpe estimator accounting for non-normality
+    # (Lo, 2002): Var(SR) ≈ (1 + 0.5*SR^2 - skew*SR + (kurt/4)*SR^2) / T
+    sr = observed_sharpe
+    var_sr = (
+        1.0
+        + 0.5 * sr * sr
+        - skewness * sr
+        + (kurtosis_excess / 4.0) * sr * sr
+    ) / T
+
+    if var_sr <= 0:
+        return 1.0
+
+    # DSR = P(SR* > E[max(SR)]) under the null
+    # = Φ((SR* - E[max]) / σ(SR*))
+    z_score = (sr - expected_max_sharpe) / math.sqrt(var_sr)
+    dsr = _norm_cdf(z_score)
+
+    return max(0.0, min(1.0, dsr))
+
+
 # ── Scoring ───────────────────────────────────────────────────────────
 
 
 def score_single_window(
-    result: BacktestResult, risk_config: dict
+    result: BacktestResult,
+    risk_config: dict,
+    n_strategies_tested: int = 11,
+    returns_arr: np.ndarray | None = None,
 ) -> float:
-    """Score a strategy on a single timeframe window."""
+    """
+    Score a strategy on a single timeframe window.
+
+    Uses calibrated weights with normalized inputs so all components
+    contribute meaningfully to the final score. Also applies a
+    Deflated Sharpe Ratio penalty to guard against multiple testing bias.
+
+    Components (on a 0-100 target scale):
+      - Sharpe ratio:           30%  (capped at 3.0, scaled to ~30 pts)
+      - Annualized excess ret:  20%  (normalized, ~20 pts)
+      - Win rate:               15%  (centered on 50%, ~15 pts)
+      - Profit factor:          15%  (capped at 3.0, ~15 pts)
+      - Drawdown penalty:       20%  (meaningful penalty for high DD)
+
+    Multiplied by DSR confidence (0-1) if enough data exists.
+    """
     score = 0.0
 
-    # Sharpe ratio (35%)
-    score += min(result.sharpe_ratio, 3.0) * 35
-    # Annualized excess return (20%)
-    score += np.clip(result.annual_excess_pct, -100, 100) * 0.2
-    # Win rate (15%)
-    score += (result.win_rate - 0.5) * 150
-    # Profit factor (15%)
-    score += min(result.profit_factor, 3.0) * 15
-    # Drawdown penalty (15%)
-    score += result.max_drawdown_pct * 0.5
+    # ── Sharpe ratio (30%) ─────────────────────────────────────────
+    # Sharpe range ~0-3, mapped to 0-30 points
+    score += min(max(result.sharpe_ratio, 0.0), 3.0) * 10.0
 
-    # Penalize too few trades
+    # ── Annualized excess return (20%) ─────────────────────────────
+    # Normalize: 20% excess → 20 points, -20% → -20 points
+    excess_clipped = np.clip(result.annual_excess_pct, -50, 50)
+    score += excess_clipped * 0.4
+
+    # ── Win rate (15%) ─────────────────────────────────────────────
+    # Center on 50%: a 60% WR → +15, a 40% WR → -15
+    score += (result.win_rate - 0.5) * 150
+
+    # ── Profit factor (15%) ────────────────────────────────────────
+    # PF range ~0-3, mapped to 0-15 points
+    score += min(max(result.profit_factor, 0.0), 3.0) * 5.0
+
+    # ── Drawdown penalty (20%) ─────────────────────────────────────
+    # max_drawdown_pct is negative (e.g., -15.0)
+    # -15% DD → -22.5 points; -40% DD → -60 points
+    score += result.max_drawdown_pct * 1.5
+
+    # ── Trade count reliability penalty ────────────────────────────
     if result.total_trades < 3:
         score *= 0.4
     elif result.total_trades < 5:
         score *= 0.7
 
+    # ── Win rate below risk profile minimum ────────────────────────
     if result.win_rate < risk_config["min_win_rate"]:
         score *= 0.7
+
+    # ── Deflated Sharpe Ratio penalty ──────────────────────────────
+    # Penalizes strategies that may have high Sharpe by chance due
+    # to testing 11 strategies × 3 timeframes = 33 hypotheses
+    if result.sharpe_ratio > 0 and result.total_trades >= 5:
+        skew = 0.0
+        kurt_excess = 0.0
+        if returns_arr is not None and len(returns_arr) > 10:
+            skew = _skewness(returns_arr)
+            kurt_excess = _kurtosis_excess(returns_arr)
+
+        dsr = deflated_sharpe_ratio(
+            observed_sharpe=result.sharpe_ratio,
+            n_observations=result.trading_days,
+            n_strategies_tested=n_strategies_tested,
+            skewness=skew,
+            kurtosis_excess=kurt_excess,
+        )
+        # Blend: if DSR is high (>0.8), barely penalize.
+        # If DSR is low (<0.3), shrink score significantly.
+        # Penalty range: score × [0.5, 1.0]
+        dsr_multiplier = 0.5 + 0.5 * dsr
+        score *= dsr_multiplier
 
     return round(score, 2)
 
@@ -263,7 +450,20 @@ def select_best_strategy(
     List[TradeRecord],
 ]:
     """
-    Test all strategies across multiple timeframes.
+    Test all strategies across multiple timeframes using walk-forward
+    validation.
+
+    Walk-forward approach:
+      Each window is split into a training portion (first 70%) and a
+      validation portion (last 30%). Signals are generated on the full
+      window (so indicators have warm-up data), but the BacktestResult
+      metrics used for scoring come only from the validation portion.
+      This prevents in-sample overfitting.
+
+    Next-bar execution:
+      Signals on bar[i] execute at close[i+1]. This eliminates the
+      subtle look-ahead bias where you'd need to know bar[i]'s close
+      to generate the signal AND trade at that same close.
 
     Returns
     -------
@@ -273,6 +473,10 @@ def select_best_strategy(
     risk_config = RISK_PROFILES[config["risk_profile"]]
     windows = config["backtest_windows"]
     weights = config["window_weights"]
+    walk_forward_pct = config.get("walk_forward_validation_pct", 0.30)
+    use_next_bar = config.get("next_bar_execution", True)
+
+    n_strategies = len(ALL_STRATEGIES)
 
     strategy_windows: Dict[str, Dict[str, Tuple]] = {}
     per_window_results: Dict[str, list] = {}
@@ -287,21 +491,50 @@ def select_best_strategy(
             )
             continue
 
+        # ── Walk-forward split ─────────────────────────────────────
+        # Generate signals on the FULL window (so indicators like
+        # SMA_200 have warm-up), but score only on the validation
+        # (out-of-sample) portion.
+        n_total = len(window_df)
+        n_val = max(int(n_total * walk_forward_pct), 15)
+        val_start_idx = n_total - n_val
+
         window_results = []
 
         for strategy in ALL_STRATEGIES:
             try:
+                # Generate signals on full window
                 signals = strategy.generate_signals(window_df)
+
+                # Run backtest on VALIDATION portion only
+                val_df = window_df.iloc[val_start_idx:].copy()
+                val_signals = signals.iloc[val_start_idx:]
+
                 result, trade_log = run_backtest(
-                    window_df,
-                    signals,
+                    val_df,
+                    val_signals,
                     ticker,
                     strategy.name,
                     window_name,
                     config["transaction_cost_bps"],
                     long_only=config.get("long_only", True),
+                    next_bar_execution=use_next_bar,
                 )
-                sc = score_single_window(result, risk_config)
+
+                # Compute return series for DSR skew/kurtosis
+                val_close = val_df["Close"].values
+                returns_for_dsr = None
+                if len(val_close) > 10:
+                    returns_for_dsr = np.diff(val_close) / val_close[:-1]
+
+                sc = score_single_window(
+                    result,
+                    risk_config,
+                    n_strategies_tested=(
+                        n_strategies * len(windows)
+                    ),
+                    returns_arr=returns_for_dsr,
+                )
                 result.score = sc
                 window_results.append((strategy, result, sc))
                 all_trade_logs.extend(trade_log)

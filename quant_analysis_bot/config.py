@@ -33,6 +33,10 @@ DEFAULT_CONFIG: dict = {
         "6mo": 0.30,
         "12mo": 0.20,
     },
+    # Walk-forward validation: score on last N% of each window (OOS)
+    "walk_forward_validation_pct": 0.30,
+    # Next-bar execution: signals on bar[i] execute at close[i+1]
+    "next_bar_execution": True,
 }
 
 RISK_PROFILES: dict = {

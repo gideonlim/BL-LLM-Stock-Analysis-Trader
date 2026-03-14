@@ -106,6 +106,95 @@ def ledoit_wolf_shrinkage(returns: np.ndarray) -> np.ndarray:
     return shrunk_cov
 
 
+# ── Regime-Sensitive Covariance ──────────────────────────────────
+
+def regime_sensitive_covariance(
+    returns: np.ndarray,
+    short_window: int = 20,
+    long_window: int = 60,
+) -> np.ndarray:
+    """
+    Build a covariance matrix that adapts to the current volatility
+    regime by blending short-term EWMA and long-term Ledoit-Wolf
+    estimates.
+
+    In high-volatility regimes (realized vol > 1.5× long-term avg),
+    the short-term EWMA covariance receives more weight so the model
+    reacts faster to changing correlations and risk levels. In calm
+    markets the stable long-term estimate dominates.
+
+    The regime weight uses a smooth sigmoid transition to avoid
+    sudden flips between regimes.
+
+    Args:
+        returns: T×N matrix of daily returns. Must have at least
+                 long_window rows.
+        short_window: Lookback for the short-term EWMA estimate.
+        long_window: Lookback for the long-term Ledoit-Wolf estimate.
+
+    Returns:
+        N×N blended covariance matrix.
+    """
+    t, n = returns.shape
+
+    if t < long_window:
+        # Not enough data — fall back to plain Ledoit-Wolf
+        return ledoit_wolf_shrinkage(returns)
+
+    # ── Long-term: Ledoit-Wolf on full window ────────────────────
+    long_cov = ledoit_wolf_shrinkage(returns[-long_window:])
+
+    # ── Short-term: exponentially-weighted covariance ─────────────
+    short_ret = returns[-short_window:]
+    # EWMA halflife = short_window / 2, so lambda ≈ 0.97 for 20d
+    halflife = max(short_window // 2, 5)
+    lam = 1 - np.log(2) / halflife
+    weights = np.array([lam ** i for i in range(short_window)])
+    weights = weights[::-1]  # oldest first
+    weights /= weights.sum()
+
+    demeaned = short_ret - short_ret.mean(axis=0)
+    short_cov = (demeaned * weights[:, np.newaxis]).T @ demeaned
+
+    # Regularize short-term cov (can be noisy with few obs)
+    short_cov = 0.9 * short_cov + 0.1 * np.diag(np.diag(short_cov))
+
+    # ── Regime detection ─────────────────────────────────────────
+    # Compare recent realized vol to long-term average vol
+    recent_vol = np.sqrt(
+        np.mean(returns[-short_window:] ** 2, axis=0)
+    ).mean()
+    longterm_vol = np.sqrt(
+        np.mean(returns[-long_window:] ** 2, axis=0)
+    ).mean()
+
+    if longterm_vol > 0:
+        vol_ratio = recent_vol / longterm_vol
+    else:
+        vol_ratio = 1.0
+
+    # Smooth sigmoid: maps vol_ratio to blend weight
+    # ratio=1.0 → w≈0.25 (mostly long-term)
+    # ratio=1.5 → w≈0.50 (equal blend)
+    # ratio=2.0 → w≈0.73 (mostly short-term)
+    # ratio=0.7 → w≈0.12 (very stable → trust long-term)
+    short_weight = 1.0 / (1.0 + np.exp(-4.0 * (vol_ratio - 1.25)))
+    short_weight = float(np.clip(short_weight, 0.10, 0.80))
+
+    blended = (
+        short_weight * short_cov
+        + (1 - short_weight) * long_cov
+    )
+
+    log.info(
+        f"  BL: regime covariance — vol_ratio={vol_ratio:.2f}, "
+        f"short_weight={short_weight:.0%} "
+        f"({'high-vol' if vol_ratio > 1.3 else 'normal'} regime)"
+    )
+
+    return blended
+
+
 # ── Equilibrium Returns ──────────────────────────────────────────
 
 def compute_equilibrium_returns(
@@ -246,34 +335,65 @@ def _estimate_view_return(signal) -> float:
     """
     Estimate the annualized expected return for a signal's view.
 
-    Uses the signal's Sharpe ratio and realized volatility when
-    available. Falls back to confidence-based estimates.
+    Uses a multi-source approach with shrinkage toward a conservative
+    base rate, so the BL model receives grounded return estimates
+    rather than naive backtest numbers.
+
+    Priority:
+      1. Backtest annual_return_pct (available from v2 signals),
+         shrunk toward 8% base rate using confidence as the blend
+      2. Sharpe × realized vol (vol_20 from signal)
+      3. Sharpe × implied vol (from SL distance)
+      4. Confidence-based lookup table (worst case)
+
+    All estimates are capped at 60% annual to prevent extreme views
+    from dominating the BL posterior.
     """
-    # Best case: Sharpe × implied_vol gives excess return
+    base_rate = 0.08  # conservative annual expected return
+
+    # Confidence blend factor: how much to trust backtest vs base
+    # HIGH (5-6) → trust backtest 70-80%
+    # MEDIUM (3-4) → trust backtest 40-55%
+    # LOW (0-2) → trust backtest 15-30%
+    conf = getattr(signal, "confidence_score", 0)
+    blend = min(0.80, 0.15 + conf * 0.11)
+
+    # ── Source 1: actual backtest annual return ──────────────────
+    annual_ret = getattr(signal, "annual_return_pct", 0.0)
+    if annual_ret != 0.0:
+        # Convert from percentage to fraction (15.0 → 0.15)
+        raw = annual_ret / 100.0
+        # Shrink toward base rate
+        view = blend * raw + (1 - blend) * base_rate
+        return float(np.clip(view, 0.02, 0.60))
+
+    # ── Source 2: Sharpe × realized 20-day vol ───────────────────
+    vol_20 = getattr(signal, "vol_20", 0.0)
+    if signal.sharpe > 0 and vol_20 > 0:
+        # vol_20 is already annualised (from quant bot)
+        annual_vol = vol_20 / 100.0 if vol_20 > 1 else vol_20
+        raw = signal.sharpe * annual_vol + 0.05
+        view = blend * raw + (1 - blend) * base_rate
+        return float(np.clip(view, 0.02, 0.60))
+
+    # ── Source 3: Sharpe × implied vol from SL distance ──────────
     if signal.sharpe > 0 and signal.current_price > 0:
-        # Estimate vol from stop loss distance as a proxy
         if signal.stop_loss_price > 0:
             sl_distance = abs(
                 signal.current_price - signal.stop_loss_price
             ) / signal.current_price
-            # ATR-based SL is ~1.5 ATR; daily vol ≈ SL_pct / 1.5
             daily_vol = sl_distance / 1.5
             annual_vol = daily_vol * np.sqrt(252)
-            # Expected return = Sharpe × vol + risk-free
-            annual_return = signal.sharpe * annual_vol + 0.05
-            return float(np.clip(annual_return, 0.02, 0.60))
+            raw = signal.sharpe * annual_vol + 0.05
+            view = blend * raw + (1 - blend) * base_rate
+            return float(np.clip(view, 0.02, 0.60))
 
-    # Fallback: confidence-based graduated view
+    # ── Source 4: confidence-based fallback ───────────────────────
     confidence_returns = {
-        6: 0.25,  # HIGH: 25% expected
-        5: 0.20,
-        4: 0.15,
-        3: 0.12,  # MEDIUM: 12%
-        2: 0.08,
-        1: 0.05,
-        0: 0.03,  # LOW: 3%
+        6: 0.25, 5: 0.20, 4: 0.15,
+        3: 0.12, 2: 0.08, 1: 0.05, 0: 0.03,
     }
-    return confidence_returns.get(signal.confidence_score, 0.08)
+    return confidence_returns.get(conf, 0.08)
 
 
 def _confidence_to_omega(confidence_score: int) -> float:
@@ -460,12 +580,15 @@ def optimize_weights(
     risk_aversion: float = 2.5,
     max_weight: float = 0.15,
     min_weight: float = 0.0,
+    sector_map: dict[str, str] | None = None,
+    max_sector_pct: float = 0.40,
 ) -> dict[str, float]:
     """
     Compute optimal portfolio weights from posterior returns.
 
     Uses the analytical solution: w* = (δΣ)⁻¹ × E[R]
-    then clamps and normalizes to respect position limits.
+    then clamps and normalizes to respect position limits and
+    optional sector concentration constraints.
 
     Args:
         posterior_returns: N-length BL posterior returns (daily).
@@ -474,6 +597,9 @@ def optimize_weights(
         risk_aversion: δ parameter.
         max_weight: Maximum weight per asset.
         min_weight: Minimum weight per asset (0 = allow zero).
+        sector_map: Ticker → sector string. If provided, sector
+            concentration constraints are applied.
+        max_sector_pct: Maximum total weight per sector (0-1).
 
     Returns:
         Dict of ticker → optimal weight.
@@ -492,11 +618,15 @@ def optimize_weights(
     # Cap per-stock weight
     raw_weights = np.minimum(raw_weights, max_weight)
 
+    # ── Sector concentration constraint ──────────────────────────
+    if sector_map and max_sector_pct < 1.0:
+        raw_weights = _apply_sector_constraints(
+            raw_weights, tickers, sector_map, max_sector_pct,
+        )
+
     # Normalize to sum to target exposure (max 80%)
     total = raw_weights.sum()
     if total > 0:
-        # Scale to sum to 1, then individual weights serve as
-        # relative allocations — executor will apply exposure cap
         raw_weights = raw_weights / total
 
     weights = {
@@ -505,6 +635,90 @@ def optimize_weights(
     }
 
     return weights
+
+
+def _apply_sector_constraints(
+    weights: np.ndarray,
+    tickers: list[str],
+    sector_map: dict[str, str],
+    max_sector_pct: float,
+) -> np.ndarray:
+    """
+    Iteratively trim weights so no sector exceeds max_sector_pct
+    of total portfolio weight.
+
+    When a sector is overweight, the excess is removed
+    proportionally from the sector's constituents (largest
+    positions trimmed first). Runs up to 5 iterations to
+    converge — typically settles in 2.
+
+    Args:
+        weights: N-length weight array (pre-normalization).
+        tickers: Ordered ticker list.
+        sector_map: Ticker → sector string.
+        max_sector_pct: Maximum sector weight as fraction of total.
+
+    Returns:
+        Adjusted weight array.
+    """
+    w = weights.copy()
+
+    for iteration in range(5):
+        total = w.sum()
+        if total <= 0:
+            break
+
+        # Group tickers by sector
+        sector_weights: dict[str, float] = {}
+        sector_indices: dict[str, list[int]] = {}
+        for i, t in enumerate(tickers):
+            sec = sector_map.get(t, "Unknown")
+            sector_weights[sec] = sector_weights.get(sec, 0) + w[i]
+            sector_indices.setdefault(sec, []).append(i)
+
+        violated = False
+        for sec, sec_w in sector_weights.items():
+            if sec_w > max_sector_pct * total:
+                violated = True
+                target = max_sector_pct * total
+                excess = sec_w - target
+                indices = sector_indices[sec]
+
+                # Trim proportionally from sector constituents
+                sec_total = sum(w[i] for i in indices)
+                if sec_total > 0:
+                    for i in indices:
+                        trim = excess * (w[i] / sec_total)
+                        w[i] = max(0.0, w[i] - trim)
+
+                log.debug(
+                    f"  BL: sector '{sec}' trimmed by "
+                    f"{excess:.4f} (iter {iteration + 1})"
+                )
+
+        if not violated:
+            break
+
+    # Log sector allocation summary
+    total = w.sum()
+    if total > 0 and sector_map:
+        sector_final: dict[str, float] = {}
+        for i, t in enumerate(tickers):
+            sec = sector_map.get(t, "Unknown")
+            sector_final[sec] = (
+                sector_final.get(sec, 0) + w[i] / total
+            )
+        sorted_sectors = sorted(
+            sector_final.items(), key=lambda x: -x[1]
+        )
+        top = [
+            f"{s}={pct:.0%}"
+            for s, pct in sorted_sectors[:5]
+            if pct > 0.01
+        ]
+        log.info(f"  BL: sector allocation — {', '.join(top)}")
+
+    return w
 
 
 # ── Main BL Pipeline ──────────────────────────────────────────────
@@ -520,16 +734,18 @@ def run_black_litterman(
     max_position_pct: float = 15.0,
     lookback_days: int = 60,
     llm_weight: float = 0.3,
+    regime_sensitive: bool = True,
+    max_sector_pct: float = 0.40,
 ) -> BLResult | None:
     """
     Full Black-Litterman pipeline.
 
-    1. Fetch returns and build covariance matrix (Ledoit-Wolf)
+    1. Fetch returns and build covariance matrix
     2. Compute equilibrium returns from market-cap weights
     3. Convert signals to views (P, Q, Ω)
     4. Optionally integrate LLM views
     5. Compute posterior returns
-    6. Optimize portfolio weights
+    6. Optimize portfolio weights (with sector constraints)
 
     Args:
         signals: List of Signal objects from quant bot.
@@ -543,6 +759,10 @@ def run_black_litterman(
         max_position_pct: Max weight per stock (%).
         lookback_days: Days of return history for covariance.
         llm_weight: Weight for LLM views when blending (0-1).
+        regime_sensitive: If True, use regime-adaptive covariance
+            that blends short-term EWMA and long-term Ledoit-Wolf.
+        max_sector_pct: Maximum portfolio weight per sector (0-1).
+            Set to 1.0 to disable sector constraints.
 
     Returns:
         BLResult with posterior returns and optimal weights,
@@ -577,9 +797,17 @@ def run_black_litterman(
     available_tickers = list(returns.columns)
     n = len(available_tickers)
 
-    # Ledoit-Wolf shrinkage for robust covariance
-    cov_matrix = ledoit_wolf_shrinkage(returns.values)
-    log.info(f"  BL: covariance matrix {n}×{n} (Ledoit-Wolf)")
+    # Covariance estimation
+    if regime_sensitive:
+        cov_matrix = regime_sensitive_covariance(returns.values)
+        log.info(
+            f"  BL: covariance matrix {n}×{n} (regime-sensitive)"
+        )
+    else:
+        cov_matrix = ledoit_wolf_shrinkage(returns.values)
+        log.info(
+            f"  BL: covariance matrix {n}×{n} (Ledoit-Wolf)"
+        )
 
     # ── 2. Equilibrium returns ────────────────────────────────
     if risk_aversion is None:
@@ -667,10 +895,17 @@ def run_black_litterman(
         )
 
     # ── 6. Optimize weights ───────────────────────────────────
+    # Fetch sector data for diversification constraints
+    sector_map = None
+    if max_sector_pct < 1.0:
+        sector_map = _fetch_sectors(available_tickers)
+
     weights = optimize_weights(
         posterior, cov_matrix, available_tickers,
         risk_aversion=risk_aversion,
         max_weight=max_position_pct / 100,
+        sector_map=sector_map,
+        max_sector_pct=max_sector_pct,
     )
 
     # Portfolio-level metrics
@@ -815,3 +1050,45 @@ def _fetch_market_caps(
             caps[t] = 1.0
 
     return caps
+
+
+def _fetch_sectors(
+    tickers: list[str],
+) -> dict[str, str]:
+    """
+    Fetch GICS sector classification for each ticker via yfinance.
+
+    Returns a dict of ticker → sector string (e.g. "Technology",
+    "Healthcare"). Tickers that fail to fetch get "Unknown".
+
+    The data is fetched from yfinance's Ticker.info which caches
+    internally, so repeated calls in the same session are fast.
+    """
+    sectors: dict[str, str] = {}
+    try:
+        import yfinance as yf
+        for ticker in tickers:
+            try:
+                info = yf.Ticker(ticker).info
+                sector = info.get("sector", "Unknown")
+                if sector:
+                    sectors[ticker] = sector
+                else:
+                    sectors[ticker] = "Unknown"
+            except Exception:
+                sectors[ticker] = "Unknown"
+    except ImportError:
+        log.warning("yfinance not installed — no sector data")
+        return {}
+
+    # Log sector distribution
+    sector_counts: dict[str, int] = {}
+    for s in sectors.values():
+        sector_counts[s] = sector_counts.get(s, 0) + 1
+    sorted_counts = sorted(
+        sector_counts.items(), key=lambda x: -x[1]
+    )
+    top = [f"{s}({c})" for s, c in sorted_counts[:5]]
+    log.info(f"  BL: sectors fetched — {', '.join(top)}")
+
+    return sectors

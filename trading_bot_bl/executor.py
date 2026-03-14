@@ -79,6 +79,18 @@ def load_latest_signals(signals_dir: Path) -> list[Signal]:
                     total_trades=s.get("total_trades", 0),
                     generated_at=s.get("generated_at", ""),
                     notes=s.get("notes", ""),
+                    sortino=s.get("sortino", 0.0),
+                    profit_factor=s.get("profit_factor", 0.0),
+                    annual_return_pct=s.get(
+                        "annual_return_pct", 0.0
+                    ),
+                    annual_excess_pct=s.get(
+                        "annual_excess_pct", 0.0
+                    ),
+                    max_drawdown_pct=s.get(
+                        "max_drawdown_pct", 0.0
+                    ),
+                    vol_20=s.get("vol_20", 0.0),
                 )
             )
         except (KeyError, TypeError) as e:

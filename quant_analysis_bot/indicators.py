@@ -7,6 +7,9 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 
+# Tiny constant to prevent division-by-zero on flat-price data.
+_EPS = 1e-10
+
 
 def sma(series: pd.Series, period: int) -> pd.Series:
     return series.rolling(window=period, min_periods=period).mean()
@@ -22,7 +25,7 @@ def rsi(series: pd.Series, period: int = 14) -> pd.Series:
     loss = -delta.where(delta < 0, 0.0)
     avg_gain = gain.ewm(com=period - 1, min_periods=period).mean()
     avg_loss = loss.ewm(com=period - 1, min_periods=period).mean()
-    rs = avg_gain / avg_loss
+    rs = avg_gain / avg_loss.replace(0, _EPS)
     return 100 - (100 / (1 + rs))
 
 
@@ -80,7 +83,8 @@ def stochastic(
     highest_high = high.rolling(
         window=k_period, min_periods=k_period
     ).max()
-    k = 100 * (close - lowest_low) / (highest_high - lowest_low)
+    denom = (highest_high - lowest_low).replace(0, _EPS)
+    k = 100 * (close - lowest_low) / denom
     d = sma(k, d_period)
     return k, d
 
@@ -94,13 +98,13 @@ def vwap(
     typical_price = (high + low + close) / 3
     cum_tp_vol = (typical_price * volume).cumsum()
     cum_vol = volume.cumsum()
-    return cum_tp_vol / cum_vol
+    return cum_tp_vol / cum_vol.replace(0, _EPS)
 
 
 def zscore(series: pd.Series, period: int = 20) -> pd.Series:
     mean = sma(series, period)
     std = series.rolling(window=period, min_periods=period).std()
-    return (series - mean) / std
+    return (series - mean) / std.replace(0, _EPS)
 
 
 def rate_of_change(series: pd.Series, period: int = 10) -> pd.Series:
@@ -122,8 +126,9 @@ def adx(
     minus_dm = minus_dm.where(
         (minus_dm > plus_dm) & (minus_dm > 0), 0.0
     )
-    atr_val = atr(high, low, close, period)
+    atr_val = atr(high, low, close, period).replace(0, _EPS)
     plus_di = 100 * ema(plus_dm, period) / atr_val
     minus_di = 100 * ema(minus_dm, period) / atr_val
-    dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di)
+    di_sum = (plus_di + minus_di).replace(0, _EPS)
+    dx = 100 * (plus_di - minus_di).abs() / di_sum
     return ema(dx, period)

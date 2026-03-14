@@ -127,6 +127,12 @@ def optimize_with_black_litterman(
         config.risk.max_position_pct if config else 15.0
     )
     llm_weight = config.llm_weight if config else 0.3
+    regime_sensitive = (
+        config.bl_regime_sensitive if config else True
+    )
+    max_sector_pct = (
+        config.bl_max_sector_pct if config else 0.40
+    )
 
     bl_result = run_black_litterman(
         signals=signals,
@@ -138,6 +144,8 @@ def optimize_with_black_litterman(
         max_position_pct=max_pos_pct,
         lookback_days=lookback,
         llm_weight=llm_weight,
+        regime_sensitive=regime_sensitive,
+        max_sector_pct=max_sector_pct,
     )
 
     if bl_result is None:

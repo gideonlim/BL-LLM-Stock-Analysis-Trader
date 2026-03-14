@@ -109,12 +109,16 @@ def monitor_positions(
         market_value = pos.get("market_value", 0.0)
         unrealized_pnl = pos.get("unrealized_pnl", 0.0)
         qty = pos.get("qty", 0.0)
+        entry_date = pos.get("entry_date")  # ISO date str or None
 
         if not current_price or entry_price <= 0:
             log.debug(
                 f"  {ticker}: no price data, skipping monitor"
             )
             continue
+
+        # Fetch ATR for volatility-aware stop management
+        atr = _fetch_atr(ticker)
 
         pnl_pct = (
             (current_price - entry_price) / entry_price * 100
@@ -329,7 +333,53 @@ def monitor_positions(
             log.info(f"  TP OVERSHOOT: {alert.message}")
             report.alerts.append(alert)
 
-        # ── Check 5: Stale brackets ───────────────────────────
+        # ── Check 5: Breakeven stop ──────────────────────────
+        # Once the position is up enough (1× ATR or 3%), move
+        # SL to breakeven to prevent a winner becoming a loser.
+        if has_stop_loss and pnl_pct > 0:
+            be_sl = _calculate_breakeven_stop(
+                entry_price, current_price, sl_price, atr
+            )
+            if be_sl is not None and be_sl > sl_price:
+                alert = PositionAlert(
+                    ticker=ticker,
+                    alert_type="breakeven_stop",
+                    severity="info",
+                    message=(
+                        f"{ticker} up {pnl_pct:.1f}% — "
+                        f"moving SL to breakeven "
+                        f"${be_sl:.2f} (was ${sl_price:.2f})"
+                    ),
+                    current_price=current_price,
+                    entry_price=entry_price,
+                    stop_loss_price=sl_price,
+                    unrealized_pnl_pct=round(pnl_pct, 2),
+                )
+
+                if dry_run:
+                    alert.action_taken = (
+                        "DRY RUN: would move SL to breakeven"
+                    )
+                else:
+                    success = _replace_stop_loss(
+                        broker, ticker, sl_order_id,
+                        be_sl, qty,
+                    )
+                    if success:
+                        sl_price = be_sl  # update for later checks
+                    alert.action_taken = (
+                        f"SL moved to breakeven ${be_sl:.2f}"
+                        if success
+                        else "Failed to move SL to breakeven"
+                    )
+
+                log.info(
+                    f"  BREAKEVEN SL: {alert.message} "
+                    f"-> {alert.action_taken}"
+                )
+                report.alerts.append(alert)
+
+        # ── Check 6: Stale brackets / trailing stop ──────────
         # Price moved significantly from entry but hasn't triggered
         # either leg. The original SL/TP may be too far away.
         if (
@@ -374,7 +424,8 @@ def monitor_positions(
             # lock in gains (trailing stop behavior)
             if pnl_pct > limits.stale_bracket_pct:
                 new_sl = _calculate_trailing_stop(
-                    entry_price, current_price, sl_price
+                    entry_price, current_price, sl_price,
+                    atr=atr,
                 )
                 if new_sl and new_sl > sl_price:
                     alert = PositionAlert(
@@ -383,9 +434,14 @@ def monitor_positions(
                         severity="info",
                         message=(
                             f"{ticker} up {pnl_pct:.1f}% — "
-                            f"suggest tightening SL from "
+                            f"tightening SL from "
                             f"${sl_price:.2f} to ${new_sl:.2f} "
-                            f"to lock in gains"
+                            f"(ATR={atr:.2f})"
+                            if atr > 0 else
+                            f"{ticker} up {pnl_pct:.1f}% — "
+                            f"tightening SL from "
+                            f"${sl_price:.2f} to ${new_sl:.2f} "
+                            f"(%-based trail)"
                         ),
                         current_price=current_price,
                         entry_price=entry_price,
@@ -415,6 +471,48 @@ def monitor_positions(
                     )
                     report.alerts.append(alert)
                     report.stale_count += 1
+
+        # ── Check 7: Time-based exit ────────────────────────
+        # Close positions that have exceeded max hold period.
+        # Stale positions tie up capital for better opportunities.
+        if _check_time_exit(
+            ticker, entry_date, limits.max_hold_days
+        ):
+            alert = PositionAlert(
+                ticker=ticker,
+                alert_type="time_exit",
+                severity="warning",
+                message=(
+                    f"{ticker} exceeded max hold period "
+                    f"({limits.max_hold_days} days). "
+                    f"P&L: {pnl_pct:+.1f}%"
+                ),
+                current_price=current_price,
+                entry_price=entry_price,
+                stop_loss_price=sl_price,
+                take_profit_price=tp_price,
+                unrealized_pnl_pct=round(pnl_pct, 2),
+            )
+
+            if dry_run:
+                alert.action_taken = (
+                    "DRY RUN: would close stale position"
+                )
+                log.warning(
+                    f"  TIME EXIT (dry): {alert.message}"
+                )
+            else:
+                result = broker.close_position(ticker)
+                alert.action_taken = (
+                    f"Time-exit close: {result.status}"
+                )
+                report.actions.append(result)
+                log.warning(
+                    f"  TIME EXIT: {alert.message} "
+                    f"-> {result.status}"
+                )
+
+            report.alerts.append(alert)
 
     log.info(f"  Monitor: {report.summary()}")
     return report
@@ -526,25 +624,194 @@ def _calculate_trailing_stop(
     entry_price: float,
     current_price: float,
     current_sl: float,
+    atr: float = 0.0,
 ) -> float | None:
     """
-    Calculate a new trailing stop loss price.
+    Calculate a new trailing stop loss price using a two-tier
+    approach:
 
-    Strategy: move SL to breakeven + 50% of unrealized gain.
-    Only returns a value if the new SL is higher than current.
+    1. **ATR-based trail** (preferred): Trail by 2× ATR below
+       current price. This adapts to the stock's actual
+       volatility — wide-ranging stocks get wider trailing
+       stops, tight stocks get tighter ones.
+
+    2. **Percentage-based fallback**: If ATR is unavailable,
+       trail at entry + 50% of unrealized gain (locks in half
+       the profit).
+
+    Both tiers enforce a floor at breakeven (entry_price) to
+    prevent a winning trade from becoming a loser.
+
+    Only returns a value if the new SL is strictly higher than
+    the current SL — trailing stops never widen downward.
+
+    Args:
+        entry_price: Original entry price.
+        current_price: Latest market price.
+        current_sl: Current stop loss price.
+        atr: 14-day Average True Range. If 0, uses %-based trail.
+
+    Returns:
+        New SL price (rounded), or None if no improvement.
     """
     gain = current_price - entry_price
     if gain <= 0:
         return None
 
-    # New SL = entry + 50% of gain (lock in half the profit)
-    new_sl = entry_price + gain * 0.5
+    if atr > 0:
+        # ATR-based: trail 2× ATR below current price
+        new_sl = current_price - 2.0 * atr
+        # Floor at breakeven
+        new_sl = max(new_sl, entry_price)
+    else:
+        # Percentage fallback: entry + 50% of gain
+        new_sl = entry_price + gain * 0.5
+
     new_sl = round(new_sl, 2)
 
     if new_sl <= current_sl:
         return None  # don't widen the stop
 
     return new_sl
+
+
+def _calculate_breakeven_stop(
+    entry_price: float,
+    current_price: float,
+    current_sl: float,
+    atr: float = 0.0,
+    breakeven_threshold_atr: float = 1.0,
+    breakeven_threshold_pct: float = 3.0,
+) -> float | None:
+    """
+    Move stop loss to breakeven once price has moved enough in
+    our favor.
+
+    The "enough" threshold is defined as:
+    - 1× ATR above entry (if ATR available), OR
+    - 3% above entry (fallback)
+
+    Once triggered, the SL moves to entry_price (breakeven).
+    This ensures a winning trade cannot become a loser.
+
+    Args:
+        entry_price: Original entry price.
+        current_price: Latest market price.
+        current_sl: Current stop loss price.
+        atr: 14-day ATR (0 if unavailable).
+        breakeven_threshold_atr: ATRs above entry to trigger.
+        breakeven_threshold_pct: Percentage threshold (fallback).
+
+    Returns:
+        entry_price as new SL, or None if conditions not met.
+    """
+    if current_sl >= entry_price:
+        return None  # already at or above breakeven
+
+    gain = current_price - entry_price
+    if gain <= 0:
+        return None
+
+    if atr > 0:
+        threshold = atr * breakeven_threshold_atr
+    else:
+        threshold = entry_price * breakeven_threshold_pct / 100
+
+    if gain >= threshold:
+        return round(entry_price, 2)
+
+    return None
+
+
+def _check_time_exit(
+    ticker: str,
+    entry_date: str | None,
+    max_hold_days: int = 10,
+) -> bool:
+    """
+    Check if a position has exceeded its maximum hold period.
+
+    Stale positions tie up capital that could be deployed to
+    better opportunities. If a stock hasn't hit TP or SL within
+    max_hold_days, it's a candidate for closing.
+
+    Args:
+        ticker: Stock symbol (for logging).
+        entry_date: ISO date string of when position was opened.
+        max_hold_days: Maximum days to hold.
+
+    Returns:
+        True if position has exceeded max hold period.
+    """
+    if not entry_date:
+        return False
+
+    from datetime import datetime, date
+
+    try:
+        if "T" in entry_date:
+            entry = datetime.fromisoformat(entry_date).date()
+        else:
+            entry = date.fromisoformat(entry_date[:10])
+
+        days_held = (date.today() - entry).days
+        if days_held > max_hold_days:
+            log.info(
+                f"  {ticker}: held {days_held} days "
+                f"(max {max_hold_days}) — time exit candidate"
+            )
+            return True
+    except (ValueError, TypeError):
+        pass
+
+    return False
+
+
+def _fetch_atr(ticker: str) -> float:
+    """
+    Fetch the current 14-day ATR for a ticker via yfinance.
+
+    Returns 0.0 if data is unavailable. Used by the trailing
+    stop and breakeven stop calculations to adapt to the
+    stock's actual volatility.
+    """
+    try:
+        import yfinance as yf
+        import numpy as np
+        from datetime import datetime, timedelta
+
+        end = datetime.now()
+        start = end - timedelta(days=30)
+        data = yf.download(
+            ticker,
+            start=start.strftime("%Y-%m-%d"),
+            end=end.strftime("%Y-%m-%d"),
+            progress=False,
+            auto_adjust=True,
+        )
+        if data.empty or len(data) < 15:
+            return 0.0
+
+        high = data["High"].values
+        low = data["Low"].values
+        close = data["Close"].values
+
+        # True Range
+        tr = np.maximum(
+            high[1:] - low[1:],
+            np.maximum(
+                np.abs(high[1:] - close[:-1]),
+                np.abs(low[1:] - close[:-1]),
+            ),
+        )
+        # 14-period ATR (simple moving average of TR)
+        if len(tr) >= 14:
+            atr = float(np.mean(tr[-14:]))
+            return round(atr, 4)
+        return 0.0
+
+    except Exception:
+        return 0.0
 
 
 def write_monitor_log(

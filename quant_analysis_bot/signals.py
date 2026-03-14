@@ -112,12 +112,29 @@ def generate_daily_signal(
     now = datetime.now()
     current_price = round(float(latest["Close"]), 2)
 
-    # ── Stop loss: ATR-based, else drawdown-derived ───────────────────
+    # ── Stop loss: volatility-adaptive ATR-based ──────────────────────
+    # The ATR multiplier adjusts with the volatility regime so that
+    # high-vol stocks get wider stops (avoid whipsaw) and low-vol
+    # stocks get tighter stops (capture gains faster).
     atr_val = float(latest.get("ATR_14", 0) or 0)
     if atr_val > 0 and current_price > 0:
+        # Volatility regime adjustment
+        # vol_20 > 0.4 → HIGH → widen stops (mult 2.0)
+        # vol_20 0.2-0.4 → MEDIUM → standard (mult 1.5)
+        # vol_20 < 0.2 → LOW → tighten stops (mult 1.2)
+        if vol_20 > 0.4:
+            atr_mult = 2.0
+        elif vol_20 > 0.2:
+            atr_mult = 1.5
+        else:
+            atr_mult = 1.2
+
         stop_loss_pct = round(
             min(
-                max((atr_val * 1.5 / current_price) * 100, 1.5),
+                max(
+                    (atr_val * atr_mult / current_price) * 100,
+                    1.5,
+                ),
                 12.0,
             ),
             2,
@@ -139,8 +156,23 @@ def generate_daily_signal(
     else:
         stop_loss_price = 0.0
 
-    # ── Take profit: 2:1 reward/risk ──────────────────────────────────
-    take_profit_pct = round(stop_loss_pct * 2.0, 2)
+    # ── Take profit: dynamic reward/risk ratio ────────────────────────
+    # R:R scales with trend strength and confidence:
+    #   Strong bullish + HIGH confidence → 3:1 (let winners run)
+    #   Neutral or MEDIUM confidence → 2:1 (standard)
+    #   Bearish or LOW confidence → 1.5:1 (take profits quicker)
+    if trend == "BULLISH" and confidence_score >= 4:
+        rr_ratio = 3.0
+    elif trend == "BEARISH" or confidence_score <= 1:
+        rr_ratio = 1.5
+    else:
+        rr_ratio = 2.0
+
+    # ADX boost: very strong trend (>30) bumps ratio by 0.5
+    if adx_val > 30 and trend == "BULLISH":
+        rr_ratio = min(rr_ratio + 0.5, 3.5)
+
+    take_profit_pct = round(stop_loss_pct * rr_ratio, 2)
     if signal_val > 0:
         take_profit_price = round(
             current_price * (1 + take_profit_pct / 100), 2
