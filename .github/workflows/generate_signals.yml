@@ -31,9 +31,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Generate signals
-        run: python quant_bot.py --all-stocks --top-n 200
+        run: python -m quant_analysis_bot --all-stocks --top-n 900
         # Adjust --top-n to control how many stocks to analyze.
-        # 200 is a good balance of coverage vs runtime (~15-30 min).
+        # 200 is a good balance of coverage vs runtime (~10-20 min).
+        # 900 if there is a lot fo time, runtime (~15-25 min).
         # Use --top-n 1000 for full universe (takes ~60 min).
 
       - name: Upload signals as artifact
