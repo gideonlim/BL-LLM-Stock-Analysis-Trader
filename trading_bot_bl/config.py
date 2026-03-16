@@ -76,14 +76,14 @@ class RiskLimits:
     max_portfolio_exposure_pct: float = 80.0
 
     # Max % of account equity in any single stock
-    max_position_pct: float = 12.0
+    max_position_pct: float = 10.0
 
     # Daily loss circuit breaker: stop trading if portfolio
     # drops more than this % from day's starting equity
     daily_loss_limit_pct: float = 3.0
 
     # Minimum composite score to consider executing a signal
-    min_composite_score: float = 20.0
+    min_composite_score: float = 15.0
 
     # Minimum confidence score (0-6) to execute
     min_confidence_score: int = 2
@@ -104,7 +104,7 @@ class RiskLimits:
 
     # ── Position monitoring thresholds ──────────────────────────
     # Auto-close positions that lost more than this % from entry
-    emergency_loss_pct: float = 10.0
+    emergency_loss_pct: float = 8.0
 
     # Replace stale brackets if price moved > this % from entry
     # without triggering SL or TP
@@ -119,6 +119,10 @@ class RiskLimits:
 
     # Max days to hold a position before time-based exit
     max_hold_days: int = 10
+
+    # Minimum backtest trades for a signal to be considered
+    # reliable enough to execute
+    min_backtest_trades: int = 3
 
 
 @dataclass
@@ -141,7 +145,7 @@ class TradingConfig:
     # 0 = market order (fills at any price).
     # 1.5 = limit order at signal_price × 1.015 (won't fill if
     # stock gaps up more than 1.5% from the signal price).
-    max_entry_slippage_pct: float = 1.5
+    max_entry_slippage_pct: float = 1.0
 
     # Dry run mode: log what would be done without submitting
     dry_run: bool = False
@@ -169,6 +173,25 @@ class TradingConfig:
     # Max portfolio weight per GICS sector (0-1). Prevents
     # concentration in a single sector. 0.40 = max 40% in tech
     bl_max_sector_pct: float = 0.40
+
+    # ── Market sentiment ───────────────────────────────────────
+    # Enable market-wide sentiment indicators (VIX + put/call)
+    # to modify position sizing.  Set to False to disable.
+    market_sentiment_enabled: bool = True
+
+    # VIX thresholds for fear / greed regime classification
+    sentiment_fear_vix: float = 25.0
+    sentiment_greed_vix: float = 15.0
+
+    # Put/call ratio thresholds
+    sentiment_fear_pc: float = 0.95
+    sentiment_greed_pc: float = 0.65
+
+    # Position-size multiplier during extreme fear (contrarian)
+    sentiment_fear_size_mult: float = 1.10
+
+    # Position-size multiplier during extreme greed (defensive)
+    sentiment_greed_size_mult: float = 0.90
 
     # ── LLM view generation ────────────────────────────────────
     # Enable LLM-enhanced views (requires API key)
@@ -201,13 +224,13 @@ class TradingConfig:
                 os.getenv("MAX_EXPOSURE_PCT", "80.0")
             ),
             max_position_pct=float(
-                os.getenv("MAX_POSITION_PCT", "12.0")
+                os.getenv("MAX_POSITION_PCT", "10.0")
             ),
             daily_loss_limit_pct=float(
                 os.getenv("DAILY_LOSS_LIMIT_PCT", "3.0")
             ),
             min_composite_score=float(
-                os.getenv("MIN_COMPOSITE_SCORE", "20.0")
+                os.getenv("MIN_COMPOSITE_SCORE", "15.0")
             ),
             min_confidence_score=int(
                 os.getenv("MIN_CONFIDENCE_SCORE", "2")
@@ -218,6 +241,9 @@ class TradingConfig:
             min_position_pct=float(
                 os.getenv("MIN_POSITION_PCT", "2.0")
             ),
+            min_backtest_trades=int(
+                os.getenv("MIN_BACKTEST_TRADES", "3")
+            ),
         )
         return cls(
             alpaca=alpaca,
@@ -226,7 +252,7 @@ class TradingConfig:
                 os.getenv("SIGNALS_DIR", "signals")
             ),
             max_entry_slippage_pct=float(
-                os.getenv("MAX_ENTRY_SLIPPAGE_PCT", "1.5")
+                os.getenv("MAX_ENTRY_SLIPPAGE_PCT", "1.0")
             ),
             dry_run=os.getenv("DRY_RUN", "false").lower()
             in ("true", "1", "yes"),
@@ -245,6 +271,27 @@ class TradingConfig:
             ).lower() in ("true", "1", "yes"),
             bl_max_sector_pct=float(
                 os.getenv("BL_MAX_SECTOR_PCT", "0.40")
+            ),
+            market_sentiment_enabled=os.getenv(
+                "MARKET_SENTIMENT_ENABLED", "true"
+            ).lower() in ("true", "1", "yes"),
+            sentiment_fear_vix=float(
+                os.getenv("SENTIMENT_FEAR_VIX", "25.0")
+            ),
+            sentiment_greed_vix=float(
+                os.getenv("SENTIMENT_GREED_VIX", "15.0")
+            ),
+            sentiment_fear_pc=float(
+                os.getenv("SENTIMENT_FEAR_PC", "0.95")
+            ),
+            sentiment_greed_pc=float(
+                os.getenv("SENTIMENT_GREED_PC", "0.65")
+            ),
+            sentiment_fear_size_mult=float(
+                os.getenv("SENTIMENT_FEAR_SIZE_MULT", "1.10")
+            ),
+            sentiment_greed_size_mult=float(
+                os.getenv("SENTIMENT_GREED_SIZE_MULT", "0.90")
             ),
             llm_views_enabled=os.getenv(
                 "LLM_VIEWS_ENABLED", "false"
@@ -341,6 +388,22 @@ class TradingConfig:
                 config.bl_max_sector_pct = float(
                     overrides["bl_max_sector_pct"]
                 )
+
+            # Market sentiment overrides
+            if "market_sentiment_enabled" in overrides:
+                config.market_sentiment_enabled = bool(
+                    overrides["market_sentiment_enabled"]
+                )
+            for k in (
+                "sentiment_fear_vix",
+                "sentiment_greed_vix",
+                "sentiment_fear_pc",
+                "sentiment_greed_pc",
+                "sentiment_fear_size_mult",
+                "sentiment_greed_size_mult",
+            ):
+                if k in overrides:
+                    setattr(config, k, float(overrides[k]))
 
             # LLM view overrides
             if "llm_views_enabled" in overrides:

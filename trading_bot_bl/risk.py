@@ -30,6 +30,11 @@ class RiskManager:
 
     limits: RiskLimits
     history: Optional[TradeHistory] = None
+
+    # Market-sentiment position-size multiplier (1.0 = neutral).
+    # Set by the executor from the MarketSentiment module.
+    sentiment_size_multiplier: float = 1.0
+
     _circuit_breaker_tripped: bool = field(
         default=False, init=False
     )
@@ -86,7 +91,7 @@ class RiskManager:
                     f"Signal expired on {signal.signal_expires}"
                 )
 
-        if signal.total_trades < 5:
+        if signal.total_trades < self.limits.min_backtest_trades:
             return (
                 f"Too few backtest trades ({signal.total_trades}) "
                 f"— unreliable signal"
@@ -268,6 +273,29 @@ class RiskManager:
             room_for_ticker,
             portfolio.cash,  # can't spend more than cash
         )
+
+        # ── Apply market-sentiment size multiplier ─────────────
+        if (
+            self.sentiment_size_multiplier != 1.0
+            and intent.side == "buy"
+        ):
+            pre_sentiment = adjusted
+            adjusted = round(
+                adjusted * self.sentiment_size_multiplier, 2
+            )
+            # Never scale above the hard limits
+            adjusted = min(
+                adjusted,
+                max_from_exposure,
+                room_for_ticker,
+                portfolio.cash,
+            )
+            if adjusted != pre_sentiment:
+                log.info(
+                    f"  {ticker}: sentiment multiplier "
+                    f"{self.sentiment_size_multiplier:.2f} → "
+                    f"${pre_sentiment:,.0f} -> ${adjusted:,.0f}"
+                )
 
         # Don't bother with tiny orders (< $1)
         if adjusted < 1.0:

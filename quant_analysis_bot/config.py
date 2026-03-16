@@ -29,9 +29,9 @@ DEFAULT_CONFIG: dict = {
         "12mo": 252,
     },
     "window_weights": {
-        "3mo": 0.50,
-        "6mo": 0.30,
-        "12mo": 0.20,
+        "3mo": 0.25,
+        "6mo": 0.35,
+        "12mo": 0.40,
     },
     # Walk-forward validation: score on last N% of each window (OOS)
     "walk_forward_validation_pct": 0.30,

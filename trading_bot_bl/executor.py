@@ -21,6 +21,10 @@ from trading_bot_bl.models import (
     PortfolioSnapshot,
     Signal,
 )
+from trading_bot_bl.market_sentiment import (
+    MarketSentiment,
+    fetch_market_sentiment,
+)
 from trading_bot_bl.monitor import (
     MonitorReport,
     monitor_positions,
@@ -297,6 +301,22 @@ def execute(
             # Refresh pending tickers after cancellations
             pending_tickers = broker.get_pending_tickers()
 
+    # ── 5c. Fetch market-wide sentiment ───────────────────────
+    #    VIX + put/call → regime → position-size multiplier.
+    #    Disabled via MARKET_SENTIMENT_ENABLED=false.
+    sentiment = MarketSentiment()  # neutral default
+    if config.market_sentiment_enabled:
+        sentiment = fetch_market_sentiment(
+            fear_vix=config.sentiment_fear_vix,
+            greed_vix=config.sentiment_greed_vix,
+            fear_pc=config.sentiment_fear_pc,
+            greed_pc=config.sentiment_greed_pc,
+            fear_size_mult=config.sentiment_fear_size_mult,
+            greed_size_mult=config.sentiment_greed_size_mult,
+        )
+    else:
+        log.info("  Market sentiment: DISABLED")
+
     # ── 6. Monitor existing positions ─────────────────────────────
     #    Run BEFORE new orders: check for orphaned brackets,
     #    emergency losses, stale SL/TP, and gapped prices.
@@ -385,7 +405,9 @@ def execute(
 
     # ── 9. Risk check each intent ─────────────────────────────────
     risk_mgr = RiskManager(
-        limits=config.risk, history=history
+        limits=config.risk,
+        history=history,
+        sentiment_size_multiplier=sentiment.size_multiplier,
     )
 
     for intent in intents:

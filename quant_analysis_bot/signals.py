@@ -190,8 +190,8 @@ def generate_daily_signal(
     loss_rate = 1 - win_rate_f
     kelly_f = max((win_rate_f * pf - loss_rate) / pf, 0.0)
     half_kelly = kelly_f * 0.5
-    max_size = {"HIGH": 20.0, "MEDIUM": 10.0, "LOW": 5.0}.get(
-        confidence, 5.0
+    max_size = {"HIGH": 10.0, "MEDIUM": 10.0, "LOW": 7.0}.get(
+        confidence, 7.0
     )
     suggested_position_size_pct = round(
         min(half_kelly * 100, max_size), 2

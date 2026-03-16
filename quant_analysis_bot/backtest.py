@@ -402,8 +402,16 @@ def score_single_window(
     score += result.max_drawdown_pct * 1.5
 
     # ── Trade count reliability penalty ────────────────────────────
-    if result.total_trades < 3:
-        score *= 0.4
+    # Smooth curve: fewer trades → heavier penalty to reflect
+    # lower statistical confidence in the backtest metrics.
+    # Note: DSR (applied below at ≥5 trades) already penalizes
+    # the 5+ range, so no additional trade-count penalty is needed
+    # above 5. Below 5, DSR is statistically unreliable so we use
+    # these fixed multipliers instead.
+    if result.total_trades < 2:
+        score *= 0.3
+    elif result.total_trades < 3:
+        score *= 0.5
     elif result.total_trades < 5:
         score *= 0.7
 
@@ -496,7 +504,7 @@ def select_best_strategy(
         # SMA_200 have warm-up), but score only on the validation
         # (out-of-sample) portion.
         n_total = len(window_df)
-        n_val = max(int(n_total * walk_forward_pct), 15)
+        n_val = max(int(n_total * walk_forward_pct), 35)
         val_start_idx = n_total - n_val
 
         window_results = []
