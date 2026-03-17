@@ -77,6 +77,8 @@ def _make_order(
     limit_price: float | None = None,
     order_type: str = "",
     order_id: str = "ord-1",
+    order_class: str = "",
+    legs: list | None = None,
 ) -> SimpleNamespace:
     """Create a fake Alpaca order object."""
     return SimpleNamespace(
@@ -84,6 +86,8 @@ def _make_order(
         stop_price=stop_price,
         limit_price=limit_price,
         order_type=order_type,
+        order_class=order_class,
+        legs=legs,
         id=order_id,
     )
 
@@ -512,6 +516,100 @@ class TestStopLimitClassification(unittest.TestCase):
         self.assertEqual(
             broker._client.submit_order.call_count, 1
         )
+
+
+# ── Check 2c: OCO orders recognised as complete bracket ──────
+
+@patch(
+    "trading_bot_bl.monitor._fetch_atr", return_value=0.0
+)
+class TestOCOOrderClassification(unittest.TestCase):
+    """OCO parent with legs should be recognised as full bracket."""
+
+    def setUp(self) -> None:
+        self.limits = _default_limits()
+
+    def test_oco_parent_with_legs_detected(
+        self, _atr: MagicMock
+    ) -> None:
+        """OCO parent order with SL+TP legs is NOT orphaned."""
+        portfolio = _make_portfolio({
+            "CI": {
+                "avg_entry": 268.0,
+                "market_value": 11792.0,
+                "unrealized_pnl": 0.0,
+                "qty": 44.0,
+                "entry_date": date.today().isoformat(),
+            }
+        })
+        # OCO parent is a limit sell (TP), with a stop child (SL)
+        sl_leg = SimpleNamespace(
+            id="sl-leg-1",
+            stop_price=254.94,
+            limit_price=None,
+            order_type="stop",
+        )
+        tp_leg = SimpleNamespace(
+            id="tp-leg-1",
+            stop_price=None,
+            limit_price=295.20,
+            order_type="limit",
+        )
+        broker = _make_broker(
+            prices={"CI": 268.36},
+            orders=[
+                _make_order(
+                    "CI",
+                    limit_price=295.20,
+                    order_id="oco-parent-1",
+                    order_class="oco",
+                    legs=[sl_leg, tp_leg],
+                ),
+            ],
+        )
+
+        report = monitor_positions(
+            broker, portfolio, self.limits
+        )
+
+        self.assertEqual(report.orphaned_count, 0)
+        broker.close_position.assert_not_called()
+        broker._client.submit_order.assert_not_called()
+
+    def test_oco_parent_no_legs_uses_parent(
+        self, _atr: MagicMock
+    ) -> None:
+        """OCO parent without legs attr falls back to standard
+        classification (limit_price only = TP, missing SL)."""
+        portfolio = _make_portfolio({
+            "CI": {
+                "avg_entry": 268.0,
+                "market_value": 11792.0,
+                "unrealized_pnl": 0.0,
+                "qty": 44.0,
+                "entry_date": date.today().isoformat(),
+            }
+        })
+        broker = _make_broker(
+            prices={"CI": 268.36},
+            orders=[
+                _make_order(
+                    "CI",
+                    limit_price=295.20,
+                    order_id="oco-parent-1",
+                    order_class="oco",
+                    legs=None,
+                ),
+            ],
+        )
+
+        report = monitor_positions(
+            broker, portfolio, self.limits
+        )
+
+        # No legs → standard classification → only TP seen
+        # → partial bracket → reattach
+        self.assertEqual(report.orphaned_count, 1)
 
 
 # ── Check 3: Partial brackets (one leg missing) ────────────

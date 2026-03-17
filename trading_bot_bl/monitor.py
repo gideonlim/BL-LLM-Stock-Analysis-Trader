@@ -143,9 +143,21 @@ def monitor_positions(
             ).lower()
             stop_px = getattr(order, "stop_price", None)
             limit_px = getattr(order, "limit_price", None)
+            order_cls = str(
+                getattr(order, "order_class", "")
+            ).lower()
+
+            # Log raw order details for diagnostics
+            log.debug(
+                f"  Order {order.id}: symbol={ticker}, "
+                f"type={order_type}, side={order_side}, "
+                f"stop_px={stop_px}, limit_px={limit_px}, "
+                f"order_class={order_cls}, "
+                f"legs={getattr(order, 'legs', None)}"
+            )
 
             # ── Classify order as SL or TP leg ────────────────
-            # Alpaca bracket legs can appear as:
+            # Alpaca bracket/OCO legs can appear as:
             #   - Pure stop order: stop_price only → SL
             #   - Pure limit order: limit_price only → TP
             #   - Stop-limit order: BOTH stop_price AND
@@ -154,10 +166,41 @@ def monitor_positions(
             #   - order_type string: "stop", "stop_limit",
             #     "limit", "trailing_stop"
             #
-            # The sell-side heuristic: any SELL order with a
-            # stop_price is protecting downside (SL). Any SELL
-            # order with only a limit_price is taking profit (TP).
+            # For OCO orders, the parent is a limit sell (TP)
+            # and may have child legs. If the parent has legs,
+            # extract SL from them rather than treating the
+            # parent as TP-only.
 
+            # Check if this is an OCO parent with legs
+            legs = getattr(order, "legs", None)
+            if order_cls == "oco" and legs:
+                # OCO parent — extract both legs from children
+                for leg in legs:
+                    leg_stop = getattr(leg, "stop_price", None)
+                    leg_limit = getattr(leg, "limit_price", None)
+                    leg_type = str(
+                        getattr(leg, "order_type", "")
+                    ).lower()
+                    log.debug(
+                        f"    OCO leg {leg.id}: type={leg_type},"
+                        f" stop={leg_stop}, limit={leg_limit}"
+                    )
+                    if leg_stop:
+                        has_stop_loss = True
+                        sl_price = float(leg_stop)
+                        sl_order_id = str(leg.id)
+                    elif leg_limit:
+                        has_take_profit = True
+                        tp_price = float(leg_limit)
+                        tp_order_id = str(leg.id)
+                # Also classify the parent itself
+                if limit_px and not has_take_profit:
+                    has_take_profit = True
+                    tp_price = float(limit_px)
+                    tp_order_id = str(order.id)
+                continue
+
+            # Standard (non-OCO) order classification
             if stop_px:
                 # Has a stop trigger → this is a stop-loss leg
                 # (covers both pure stop and stop-limit orders)
