@@ -288,8 +288,18 @@ def monitor_positions(
                 take_profit_price=tp_price,
                 unrealized_pnl_pct=round(pnl_pct, 2),
             )
-            # Don't auto-close, but log prominently
-            log.warning(f"  PARTIAL BRACKET: {alert.message}")
+
+            # Remediate: cancel stale remaining leg and
+            # reattach both SL + TP via a single OCO order.
+            action = _reattach_bracket(
+                broker, ticker, qty, entry_price,
+                current_price, dry_run,
+            )
+            alert.action_taken = action
+            log.warning(
+                f"  PARTIAL BRACKET: {alert.message} "
+                f"-> {action}"
+            )
             report.alerts.append(alert)
             report.orphaned_count += 1
 
@@ -572,6 +582,7 @@ def _reattach_bracket(
     try:
         from alpaca.trading.requests import (
             StopLossRequest,
+            TakeProfitRequest,
             LimitOrderRequest,
         )
         from alpaca.trading.enums import (
@@ -594,9 +605,9 @@ def _reattach_bracket(
                 )
 
         # Submit a single OCO order with both legs linked.
-        # The parent limit sell IS the TP leg; the child
-        # stop_loss IS the SL leg. Alpaca links them so
-        # they share the share reservation.
+        # Alpaca OCO requires explicit take_profit AND
+        # stop_loss parameters — the parent limit_price
+        # alone does not satisfy the TP requirement.
         oco_request = LimitOrderRequest(
             symbol=ticker,
             qty=abs(qty),
@@ -604,6 +615,9 @@ def _reattach_bracket(
             time_in_force=TimeInForce.GTC,
             limit_price=tp_price,
             order_class=OrderClass.OCO,
+            take_profit=TakeProfitRequest(
+                limit_price=tp_price,
+            ),
             stop_loss=StopLossRequest(
                 stop_price=sl_price,
             ),

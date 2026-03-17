@@ -505,8 +505,13 @@ class TestStopLimitClassification(unittest.TestCase):
             if "take profit" in a.message.lower()
         ]
         self.assertEqual(len(partial_alerts), 1)
-        # Should NOT attempt reattach (partial, not orphaned)
         broker.close_position.assert_not_called()
+        # Partial bracket now triggers OCO reattach
+        # (cancels stale SL, places fresh OCO with both legs)
+        broker.cancel_order.assert_called()
+        self.assertEqual(
+            broker._client.submit_order.call_count, 1
+        )
 
 
 # ── Check 3: Partial brackets (one leg missing) ────────────
@@ -521,10 +526,10 @@ class TestPartialBrackets(unittest.TestCase):
     @patch(
         "trading_bot_bl.monitor._fetch_atr", return_value=0.0
     )
-    def test_missing_stop_loss_flagged(
+    def test_missing_stop_loss_reattached(
         self, _atr: MagicMock
     ) -> None:
-        """Position with TP but no SL should be flagged."""
+        """Position with TP but no SL should be reattached via OCO."""
         portfolio = _make_portfolio({
             "NVDA": {
                 "avg_entry": 500.0,
@@ -552,14 +557,19 @@ class TestPartialBrackets(unittest.TestCase):
         alert = report.alerts[0]
         self.assertEqual(alert.severity, "warning")
         self.assertIn("stop loss", alert.message.lower())
+        # Stale TP cancelled + OCO reattach placed
+        broker.cancel_order.assert_called()
+        self.assertEqual(
+            broker._client.submit_order.call_count, 1
+        )
 
     @patch(
         "trading_bot_bl.monitor._fetch_atr", return_value=0.0
     )
-    def test_missing_take_profit_flagged(
+    def test_missing_take_profit_reattached(
         self, _atr: MagicMock
     ) -> None:
-        """Position with SL but no TP should be flagged."""
+        """Position with SL but no TP should be reattached via OCO."""
         portfolio = _make_portfolio({
             "AMZN": {
                 "avg_entry": 180.0,
@@ -586,6 +596,11 @@ class TestPartialBrackets(unittest.TestCase):
         broker.close_position.assert_not_called()
         self.assertIn(
             "take profit", report.alerts[0].message.lower()
+        )
+        # Stale SL cancelled + OCO reattach placed
+        broker.cancel_order.assert_called()
+        self.assertEqual(
+            broker._client.submit_order.call_count, 1
         )
 
 
