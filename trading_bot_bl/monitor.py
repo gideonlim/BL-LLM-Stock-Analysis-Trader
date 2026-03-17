@@ -135,24 +135,33 @@ def monitor_positions(
         tp_order_id = ""
 
         for order in ticker_orders:
+            raw_type = getattr(order, "order_type", "")
             order_type = str(
-                getattr(order, "order_type", "")
+                getattr(raw_type, "value", raw_type) or ""
             ).lower()
+            raw_side = getattr(order, "side", "")
             order_side = str(
-                getattr(order, "side", "")
+                getattr(raw_side, "value", raw_side) or ""
             ).lower()
             stop_px = getattr(order, "stop_price", None)
             limit_px = getattr(order, "limit_price", None)
+            raw_order_cls = getattr(order, "order_class", "")
+            # Alpaca SDK returns an enum (e.g. OrderClass.OCO)
+            # — use .value to get the plain string "oco".
+            # str() on the enum may yield "OrderClass.OCO"
+            # which would break the comparison.
             order_cls = str(
-                getattr(order, "order_class", "")
+                getattr(raw_order_cls, "value", raw_order_cls)
+                or ""
             ).lower()
 
             # Log raw order details for diagnostics
-            log.debug(
+            log.info(
                 f"  Order {order.id}: symbol={ticker}, "
                 f"type={order_type}, side={order_side}, "
                 f"stop_px={stop_px}, limit_px={limit_px}, "
-                f"order_class={order_cls}, "
+                f"order_class={order_cls} "
+                f"(raw={raw_order_cls!r}), "
                 f"legs={getattr(order, 'legs', None)}"
             )
 
@@ -171,33 +180,60 @@ def monitor_positions(
             # extract SL from them rather than treating the
             # parent as TP-only.
 
-            # Check if this is an OCO parent with legs
-            legs = getattr(order, "legs", None)
-            if order_cls == "oco" and legs:
-                # OCO parent — extract both legs from children
-                for leg in legs:
-                    leg_stop = getattr(leg, "stop_price", None)
-                    leg_limit = getattr(leg, "limit_price", None)
-                    leg_type = str(
-                        getattr(leg, "order_type", "")
-                    ).lower()
-                    log.debug(
-                        f"    OCO leg {leg.id}: type={leg_type},"
-                        f" stop={leg_stop}, limit={leg_limit}"
-                    )
-                    if leg_stop:
-                        has_stop_loss = True
-                        sl_price = float(leg_stop)
-                        sl_order_id = str(leg.id)
-                    elif leg_limit:
-                        has_take_profit = True
-                        tp_price = float(leg_limit)
-                        tp_order_id = str(leg.id)
-                # Also classify the parent itself
+            # ── OCO order detection ─────────────────────────────
+            # An OCO order inherently has BOTH legs (TP + SL)
+            # linked together. The SL child leg sits in "held"
+            # status and is often invisible to the API — the
+            # legs attribute may be None or empty even though
+            # the child order exists.
+            #
+            # If order_class is "oco", trust that both legs are
+            # present. Extract details from legs if available,
+            # but never flag it as a partial bracket.
+            if order_cls == "oco":
+                legs = getattr(order, "legs", None)
+                if legs:
+                    for leg in legs:
+                        leg_stop = getattr(
+                            leg, "stop_price", None
+                        )
+                        leg_limit = getattr(
+                            leg, "limit_price", None
+                        )
+                        leg_type = str(
+                            getattr(leg, "order_type", "")
+                        ).lower()
+                        log.debug(
+                            f"    OCO leg {leg.id}: "
+                            f"type={leg_type}, "
+                            f"stop={leg_stop}, "
+                            f"limit={leg_limit}"
+                        )
+                        if leg_stop:
+                            has_stop_loss = True
+                            sl_price = float(leg_stop)
+                            sl_order_id = str(leg.id)
+                        elif leg_limit:
+                            has_take_profit = True
+                            tp_price = float(leg_limit)
+                            tp_order_id = str(leg.id)
+
+                # Parent is the TP limit sell
                 if limit_px and not has_take_profit:
                     has_take_profit = True
                     tp_price = float(limit_px)
                     tp_order_id = str(order.id)
+
+                # Trust that the SL child exists even if the
+                # API didn't return it (held status).
+                if not has_stop_loss:
+                    has_stop_loss = True
+                    log.info(
+                        f"  {ticker}: OCO order {order.id} "
+                        f"detected — SL leg assumed present "
+                        f"(held/invisible to API)"
+                    )
+
                 continue
 
             # Standard (non-OCO) order classification

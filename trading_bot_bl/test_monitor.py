@@ -576,11 +576,13 @@ class TestOCOOrderClassification(unittest.TestCase):
         broker.close_position.assert_not_called()
         broker._client.submit_order.assert_not_called()
 
-    def test_oco_parent_no_legs_uses_parent(
+    def test_oco_parent_no_legs_trusted_as_complete(
         self, _atr: MagicMock
     ) -> None:
-        """OCO parent without legs attr falls back to standard
-        classification (limit_price only = TP, missing SL)."""
+        """OCO parent without visible legs is still trusted as
+        a complete bracket. The SL child exists in held status
+        even when the API doesn't return it. Without this, the
+        monitor would churn (cancel + recreate) every run."""
         portfolio = _make_portfolio({
             "CI": {
                 "avg_entry": 268.0,
@@ -607,9 +609,11 @@ class TestOCOOrderClassification(unittest.TestCase):
             broker, portfolio, self.limits
         )
 
-        # No legs → standard classification → only TP seen
-        # → partial bracket → reattach
-        self.assertEqual(report.orphaned_count, 1)
+        # order_class="oco" → both legs trusted even if
+        # SL child is invisible. NOT orphaned/partial.
+        self.assertEqual(report.orphaned_count, 0)
+        broker.close_position.assert_not_called()
+        broker._client.submit_order.assert_not_called()
 
 
 # ── Check 3: Partial brackets (one leg missing) ────────────
