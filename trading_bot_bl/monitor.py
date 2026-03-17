@@ -624,6 +624,11 @@ def _reattach_bracket(
         )
         broker._client.submit_order(oco_request)
 
+        log.info(
+            f"  OCO order placed for {ticker}: "
+            f"SL=${sl_price}, TP=${tp_price}, qty={abs(qty)}"
+        )
+
         return (
             f"Reattached OCO: SL=${sl_price}, TP=${tp_price}"
         )
