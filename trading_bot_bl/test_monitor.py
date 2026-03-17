@@ -330,8 +330,9 @@ class TestOrphanedPositions(unittest.TestCase):
 
         self.assertEqual(report.orphaned_count, 1)
         broker.close_position.assert_not_called()
+        # OCO order: single submit_order call (SL + TP linked)
         self.assertEqual(
-            broker._client.submit_order.call_count, 2
+            broker._client.submit_order.call_count, 1
         )
 
     @patch(
@@ -361,8 +362,9 @@ class TestOrphanedPositions(unittest.TestCase):
 
         self.assertEqual(report.orphaned_count, 1)
         broker.close_position.assert_not_called()
+        # OCO order: single submit_order call (SL + TP linked)
         self.assertEqual(
-            broker._client.submit_order.call_count, 2
+            broker._client.submit_order.call_count, 1
         )
         self.assertEqual(
             report.alerts[0].severity, "warning"
@@ -395,9 +397,116 @@ class TestOrphanedPositions(unittest.TestCase):
 
         self.assertEqual(report.orphaned_count, 1)
         broker.close_position.assert_not_called()
+        # OCO order: single submit_order call (SL + TP linked)
         self.assertEqual(
-            broker._client.submit_order.call_count, 2
+            broker._client.submit_order.call_count, 1
         )
+
+
+# ── Check 2b: Stop-limit orders not misclassified ───────────
+
+
+class TestStopLimitClassification(unittest.TestCase):
+    """Bracket legs with both stop_price and limit_price
+    (stop-limit orders) must be recognized as SL legs, not
+    misclassified as orphaned."""
+
+    def setUp(self) -> None:
+        self.limits = _default_limits()
+
+    @patch(
+        "trading_bot_bl.monitor._fetch_atr", return_value=0.0
+    )
+    def test_stop_limit_order_detected_as_sl(
+        self, _atr: MagicMock
+    ) -> None:
+        """Stop-limit order (both stop_price and limit_price)
+        should be classified as SL, not orphaned."""
+        portfolio = _make_portfolio({
+            "CI": {
+                "avg_entry": 350.0,
+                "market_value": 15400.0,
+                "unrealized_pnl": 0.0,
+                "qty": 44.0,
+                "entry_date": date.today().isoformat(),
+            }
+        })
+        broker = _make_broker(
+            prices={"CI": 350.0},
+            orders=[
+                # Stop-limit SL: has BOTH stop_price and
+                # limit_price (the limit caps fill after stop
+                # triggers). Old code missed this case.
+                _make_order(
+                    "CI",
+                    stop_price=330.0,
+                    limit_price=328.0,
+                    order_id="sl-1",
+                ),
+                # Normal limit TP
+                _make_order(
+                    "CI",
+                    limit_price=385.0,
+                    order_id="tp-1",
+                ),
+            ],
+        )
+
+        report = monitor_positions(
+            broker, portfolio, self.limits
+        )
+
+        # Should NOT be orphaned — both legs are present
+        self.assertEqual(report.orphaned_count, 0)
+        broker.close_position.assert_not_called()
+        # No reattach attempts
+        self.assertEqual(
+            broker._client.submit_order.call_count, 0
+        )
+
+    @patch(
+        "trading_bot_bl.monitor._fetch_atr", return_value=0.0
+    )
+    def test_stop_limit_with_only_sl_leg(
+        self, _atr: MagicMock
+    ) -> None:
+        """Stop-limit SL with no TP → partial bracket, not
+        fully orphaned."""
+        portfolio = _make_portfolio({
+            "CI": {
+                "avg_entry": 350.0,
+                "market_value": 15400.0,
+                "unrealized_pnl": 0.0,
+                "qty": 44.0,
+                "entry_date": date.today().isoformat(),
+            }
+        })
+        broker = _make_broker(
+            prices={"CI": 350.0},
+            orders=[
+                _make_order(
+                    "CI",
+                    stop_price=330.0,
+                    limit_price=328.0,
+                    order_id="sl-1",
+                ),
+                # No TP order
+            ],
+        )
+
+        report = monitor_positions(
+            broker, portfolio, self.limits
+        )
+
+        # Should be partial (1 leg missing), not fully orphaned
+        self.assertEqual(report.orphaned_count, 1)
+        partial_alerts = [
+            a for a in report.alerts
+            if "take profit" in a.message.lower()
+        ]
+        self.assertEqual(len(partial_alerts), 1)
+        # Should NOT attempt reattach (partial, not orphaned)
+        broker.close_position.assert_not_called()
 
 
 # ── Check 3: Partial brackets (one leg missing) ────────────

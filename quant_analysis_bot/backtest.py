@@ -191,10 +191,17 @@ def run_backtest(
         )
 
     # ── Sortino Ratio ─────────────────────────────────────────────────
-    downside = returns_arr[returns_arr < 0]
-    if len(downside) > 0 and downside.std() > 0:
+    # Target Downside Deviation (TDD) per Sortino & Price (1994):
+    #   TDD = sqrt( (1/N) × Σ min(Rᵢ - T, 0)² )
+    # where T = target return (0 for excess-of-zero), N = ALL
+    # observations.  Common mistake: filtering to only negative
+    # returns and taking std() — that divides by n_negative instead
+    # of n_total, systematically overstating downside deviation.
+    downside_diff = np.minimum(returns_arr, 0.0)  # clamp positives to 0
+    tdd = np.sqrt(np.mean(downside_diff ** 2))
+    if tdd > 0:
         result.sortino_ratio = round(
-            np.sqrt(252) * returns_arr.mean() / downside.std(), 2
+            np.sqrt(252) * returns_arr.mean() / tdd, 2
         )
 
     # ── Max Drawdown ──────────────────────────────────────────────────

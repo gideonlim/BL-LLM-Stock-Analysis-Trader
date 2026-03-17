@@ -138,28 +138,43 @@ def monitor_positions(
             order_type = str(
                 getattr(order, "order_type", "")
             ).lower()
-            # Alpaca leg types: "stop" for SL, "limit" for TP
-            # Also check via stop_price / limit_price presence
+            order_side = str(
+                getattr(order, "side", "")
+            ).lower()
             stop_px = getattr(order, "stop_price", None)
             limit_px = getattr(order, "limit_price", None)
 
-            if stop_px and not limit_px:
-                # Pure stop order = stop loss leg
+            # ── Classify order as SL or TP leg ────────────────
+            # Alpaca bracket legs can appear as:
+            #   - Pure stop order: stop_price only → SL
+            #   - Pure limit order: limit_price only → TP
+            #   - Stop-limit order: BOTH stop_price AND
+            #     limit_price → SL (the limit_price caps the
+            #     fill price after the stop triggers)
+            #   - order_type string: "stop", "stop_limit",
+            #     "limit", "trailing_stop"
+            #
+            # The sell-side heuristic: any SELL order with a
+            # stop_price is protecting downside (SL). Any SELL
+            # order with only a limit_price is taking profit (TP).
+
+            if stop_px:
+                # Has a stop trigger → this is a stop-loss leg
+                # (covers both pure stop and stop-limit orders)
                 has_stop_loss = True
                 sl_price = float(stop_px)
                 sl_order_id = str(order.id)
-            elif limit_px and not stop_px:
-                # Pure limit order = take profit leg
+            elif limit_px:
+                # Limit only, no stop → take-profit leg
                 has_take_profit = True
                 tp_price = float(limit_px)
                 tp_order_id = str(order.id)
-            elif "stop" in order_type:
+            elif "stop" in order_type or "trail" in order_type:
+                # Fallback: classify by order_type string
                 has_stop_loss = True
-                sl_price = float(stop_px) if stop_px else 0.0
                 sl_order_id = str(order.id)
             elif "limit" in order_type:
                 has_take_profit = True
-                tp_price = float(limit_px) if limit_px else 0.0
                 tp_order_id = str(order.id)
 
         # ── Check 1: Emergency loss ──────────────────────────
@@ -530,50 +545,73 @@ def _reattach_bracket(
     Attempt to place new SL/TP orders for an orphaned position.
 
     Uses a default 5% SL below current price and 10% TP above.
+
+    Submits a single OCO (One-Cancels-Other) order that links
+    both the SL and TP legs together. This is critical because
+    Alpaca reserves shares per order — two separate sell orders
+    for the full quantity would fail since the first order
+    reserves all shares, leaving none for the second.
+
+    An OCO order's parent is a limit sell (the TP leg) and its
+    child is a stop sell (the SL leg). When either leg fills,
+    the other is automatically cancelled. Both legs share the
+    same share reservation.
+
+    Before placing the OCO, cancels any existing orders for
+    this ticker to free up the held-for-orders quantity.
     """
     sl_price = round(current_price * 0.95, 2)
     tp_price = round(current_price * 1.10, 2)
 
     if dry_run:
         return (
-            f"DRY RUN: would place SL=${sl_price} "
-            f"and TP=${tp_price}"
+            f"DRY RUN: would place OCO with "
+            f"SL=${sl_price} and TP=${tp_price}"
         )
 
     try:
         from alpaca.trading.requests import (
             StopLossRequest,
-            TakeProfitRequest,
             LimitOrderRequest,
-            StopOrderRequest,
         )
         from alpaca.trading.enums import (
+            OrderClass,
             OrderSide,
             TimeInForce,
         )
 
-        # Place stop loss
-        sl_request = StopOrderRequest(
-            symbol=ticker,
-            qty=abs(qty),
-            side=OrderSide.SELL,
-            time_in_force=TimeInForce.GTC,
-            stop_price=sl_price,
-        )
-        broker._client.submit_order(sl_request)
+        # Cancel any existing orders for this ticker first.
+        # If the position had stale/expired bracket legs, the
+        # shares may still be "held_for_orders". Cancelling
+        # first frees them for the new OCO order.
+        existing = broker.get_open_orders()
+        for order in existing:
+            if order.symbol == ticker:
+                broker.cancel_order(str(order.id))
+                log.info(
+                    f"  Cancelled existing order {order.id} "
+                    f"for {ticker} before reattach"
+                )
 
-        # Place take profit
-        tp_request = LimitOrderRequest(
+        # Submit a single OCO order with both legs linked.
+        # The parent limit sell IS the TP leg; the child
+        # stop_loss IS the SL leg. Alpaca links them so
+        # they share the share reservation.
+        oco_request = LimitOrderRequest(
             symbol=ticker,
             qty=abs(qty),
             side=OrderSide.SELL,
             time_in_force=TimeInForce.GTC,
             limit_price=tp_price,
+            order_class=OrderClass.OCO,
+            stop_loss=StopLossRequest(
+                stop_price=sl_price,
+            ),
         )
-        broker._client.submit_order(tp_request)
+        broker._client.submit_order(oco_request)
 
         return (
-            f"Reattached SL=${sl_price}, TP=${tp_price}"
+            f"Reattached OCO: SL=${sl_price}, TP=${tp_price}"
         )
 
     except Exception as e:
