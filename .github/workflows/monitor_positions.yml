@@ -1,14 +1,17 @@
 name: Monitor Positions
 
-# Checks existing positions for health issues every 2 hours
+# Checks existing positions for health issues every hour
 # during market hours (10 AM - 3 PM ET, Mon-Fri).
 # Handles: orphaned brackets, emergency losses, stale SL/TP, gap detection.
 on:
   schedule:
-    # Every 2 hours during market: 10 AM, 12 PM, 2 PM ET
+    # Every hour during market: 10 AM - 3 PM ET
     - cron: "0 14 * * 1-5"    # 10:00 AM ET
+    - cron: "0 15 * * 1-5"    # 11:00 AM ET
     - cron: "0 16 * * 1-5"    # 12:00 PM ET
+    - cron: "0 17 * * 1-5"    #  1:00 PM ET
     - cron: "0 18 * * 1-5"    #  2:00 PM ET
+    - cron: "0 19 * * 1-5"    #  3:00 PM ET
   workflow_dispatch:
 
 jobs:
