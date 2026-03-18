@@ -104,3 +104,109 @@ class PortfolioSnapshot:
     positions: dict = field(default_factory=dict)
     # positions = {ticker: {"qty": float, "market_value": float,
     #              "avg_entry": float, "unrealized_pnl": float}}
+
+
+# ── Trade Journal Models ──────────────────────────────────────────
+
+
+@dataclass
+class JournalEntry:
+    """Complete lifecycle record of a single trade.
+
+    Created when a bracket order is submitted (status='pending'),
+    confirmed when the fill is detected (status='open'), and
+    finalised when the position closes (status='closed').
+
+    All journal operations are non-critical — failures must never
+    disrupt the core trading pipeline.
+    """
+
+    # ── Identity ──────────────────────────────────────────
+    trade_id: str              # unique: f"{ticker}_{order_id[:8]}"
+    ticker: str
+    strategy: str
+    side: str                  # "long" or "short"
+
+    # ── Entry ─────────────────────────────────────────────
+    entry_order_id: str        # Alpaca order ID
+    entry_signal_price: float  # decision price from signal
+    entry_fill_price: float = 0.0
+    entry_slippage: float = 0.0
+    entry_slippage_pct: float = 0.0
+    entry_notional: float = 0.0
+    entry_qty: float = 0.0
+    entry_date: str = ""
+    entry_composite_score: float = 0.0
+    entry_confidence: str = ""
+    entry_confidence_score: int = 0
+
+    # ── Market Context at Entry ───────────────────────────
+    entry_vix: float = 0.0
+    entry_market_regime: str = ""
+    entry_spy_price: float = 0.0
+
+    # ── Bracket (as placed) ───────────────────────────────
+    original_sl_price: float = 0.0
+    original_tp_price: float = 0.0
+    initial_risk_per_share: float = 0.0
+    initial_risk_dollars: float = 0.0
+    initial_reward_dollars: float = 0.0
+    planned_rr_ratio: float = 0.0
+
+    # ── Exit ──────────────────────────────────────────────
+    exit_price: float = 0.0
+    exit_date: str = ""
+    exit_reason: str = ""
+    exit_order_id: str = ""
+    exit_fill_price: float = 0.0
+    exit_slippage: float = 0.0
+
+    # ── Outcome (populated on close) ─────────────────────
+    realized_pnl: float = 0.0
+    realized_pnl_pct: float = 0.0
+    r_multiple: float = 0.0
+    holding_days: int = 0
+
+    # ── Excursion tracking ────────────────────────────────
+    max_favorable_excursion: float = 0.0
+    max_adverse_excursion: float = 0.0
+    mfe_pct: float = 0.0
+    mae_pct: float = 0.0
+    mfe_date: str = ""
+    mae_date: str = ""
+    etd: float = 0.0
+    etd_pct: float = 0.0
+    edge_ratio: float = 0.0
+
+    # ── SL modifications (audit trail) ───────────────────
+    sl_modifications: list = field(default_factory=list)
+
+    # ── Sparse price path ─────────────────────────────────
+    price_samples: list = field(default_factory=list)
+
+    # ── Status ────────────────────────────────────────────
+    status: str = "pending"
+    opened_at: str = ""
+    closed_at: str = ""
+
+    # ── Metadata ──────────────────────────────────────────
+    tags: list = field(default_factory=list)
+    notes: str = ""
+
+
+@dataclass
+class EquitySnapshot:
+    """Point-in-time portfolio value for equity curve."""
+
+    timestamp: str = ""
+    equity: float = 0.0
+    cash: float = 0.0
+    market_value: float = 0.0
+    num_positions: int = 0
+    realized_pnl_today: float = 0.0
+    unrealized_pnl: float = 0.0
+    day_pnl: float = 0.0
+    day_pnl_pct: float = 0.0
+    drawdown_pct: float = 0.0
+    high_water_mark: float = 0.0
+    exposure_pct: float = 0.0

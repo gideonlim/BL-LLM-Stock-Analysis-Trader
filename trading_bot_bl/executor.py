@@ -33,6 +33,14 @@ from trading_bot_bl.monitor import (
 from trading_bot_bl.portfolio_optimizer import optimize_intents
 from trading_bot_bl.risk import RiskManager
 
+# ── Journal imports (non-critical) ────────────────────────────────
+try:
+    from trading_bot_bl import journal as _journal
+    from trading_bot_bl import equity_curve as _equity
+    _JOURNAL_AVAILABLE = True
+except ImportError:
+    _JOURNAL_AVAILABLE = False
+
 log = logging.getLogger(__name__)
 
 
@@ -317,6 +325,36 @@ def execute(
     else:
         log.info("  Market sentiment: DISABLED")
 
+    # ── 5d. Journal: equity snapshot + lifecycle checks ────────────
+    #    Non-critical — all wrapped in try/except so failures
+    #    never block the trading pipeline.
+    journal_dir = history_dir / "journal"
+    if _JOURNAL_AVAILABLE:
+        try:
+            _equity.record_snapshot(portfolio, history_dir)
+        except Exception as exc:
+            log.debug(f"Equity snapshot failed: {exc}")
+        try:
+            _journal.resolve_pending_trades(broker, journal_dir)
+        except Exception as exc:
+            log.debug(f"Journal resolve failed: {exc}")
+        try:
+            _journal.detect_closed_trades(
+                portfolio.positions, journal_dir, broker
+            )
+        except Exception as exc:
+            log.debug(f"Journal detect_closed failed: {exc}")
+        try:
+            _journal.migrate_existing_positions(
+                portfolio.positions,
+                broker.get_open_orders(),
+                journal_dir,
+                vix=sentiment.vix,
+                market_regime=sentiment.regime,
+            )
+        except Exception as exc:
+            log.debug(f"Journal migration failed: {exc}")
+
     # ── 6. Monitor existing positions ─────────────────────────────
     #    Run BEFORE new orders: check for orphaned brackets,
     #    emergency losses, stale SL/TP, and gapped prices.
@@ -330,6 +368,7 @@ def execute(
             portfolio=portfolio,
             limits=config.risk,
             dry_run=config.dry_run,
+            journal_dir=journal_dir if _JOURNAL_AVAILABLE else None,
         )
         # Write monitor log alongside execution logs
         write_monitor_log(monitor_report, history_dir)
@@ -541,6 +580,35 @@ def execute(
         # Stamp the strategy onto broker results
         result.strategy = strategy_name
         results.append(result)
+
+        # ── Journal: record new trade ──────────────────────────
+        if (
+            _JOURNAL_AVAILABLE
+            and result.status == "submitted"
+            and intent.side == "buy"
+            and result.order_id
+        ):
+            try:
+                _journal.create_trade(
+                    order_id=result.order_id,
+                    ticker=result.ticker,
+                    strategy=strategy_name,
+                    side=intent.side,
+                    signal_price=intent.signal.current_price,
+                    notional=result.notional,
+                    sl_price=approved_order.stop_loss_price,
+                    tp_price=approved_order.take_profit_price,
+                    composite_score=intent.signal.composite_score,
+                    confidence=intent.signal.confidence,
+                    confidence_score=intent.signal.confidence_score,
+                    vix=sentiment.vix,
+                    market_regime=sentiment.regime,
+                    journal_dir=journal_dir,
+                )
+            except Exception as exc:
+                log.debug(
+                    f"Journal: create_trade failed: {exc}"
+                )
 
         # Update portfolio snapshot to reflect the new order
         # (approximate, so subsequent risk checks account for it)

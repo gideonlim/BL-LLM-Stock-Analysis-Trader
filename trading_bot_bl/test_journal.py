@@ -1,0 +1,756 @@
+"""
+Tests for the trade journal — lifecycle, analytics, and equity curve.
+
+Covers:
+1. Journal entry creation, persistence, and loading
+2. Pending → open → closed lifecycle transitions
+3. Excursion tracking (MAE/MFE/ETD)
+4. SL modification recording
+5. Closed trade detection
+6. Migration of existing positions
+7. Analytics: overall, R-distribution, streaks, excursion, execution
+8. Equity curve snapshots and drawdown computation
+9. Probabilistic Sharpe and statistical confidence
+
+Run with:
+    python -m pytest trading_bot_bl/test_journal.py -v
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import os
+import sys
+import tempfile
+import unittest
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import MagicMock
+
+# Mock alpaca dependencies before importing trading_bot_bl
+import unittest.mock as _um
+
+_alpaca_mock = _um.MagicMock()
+sys.modules["alpaca"] = _alpaca_mock
+sys.modules["alpaca.trading"] = _alpaca_mock.trading
+sys.modules["alpaca.trading.client"] = _alpaca_mock.trading.client
+sys.modules["alpaca.trading.requests"] = (
+    _alpaca_mock.trading.requests
+)
+sys.modules["alpaca.trading.enums"] = (
+    _alpaca_mock.trading.enums
+)
+sys.modules["alpaca.data"] = _alpaca_mock.data
+sys.modules["alpaca.data.historical"] = (
+    _alpaca_mock.data.historical
+)
+sys.modules["alpaca.data.requests"] = (
+    _alpaca_mock.data.requests
+)
+
+from trading_bot_bl.models import (
+    EquitySnapshot,
+    JournalEntry,
+    PortfolioSnapshot,
+)
+from trading_bot_bl.journal import (
+    create_trade,
+    close_trade,
+    update_trade,
+    record_sl_modification,
+    load_open_trades,
+    load_all_trades,
+    detect_closed_trades,
+    migrate_existing_positions,
+    resolve_pending_trades,
+    _entry_to_dict,
+    _dict_to_entry,
+    _save_entry,
+)
+from trading_bot_bl.equity_curve import (
+    record_snapshot,
+    load_snapshots,
+)
+from trading_bot_bl.journal_analytics import (
+    compute_journal_metrics,
+    format_metrics_text,
+    _probabilistic_sharpe,
+    _min_track_record_length,
+    _safe_mean,
+    _std,
+    _skewness,
+    _pearson_corr,
+)
+
+
+class TestJournalSerialization(unittest.TestCase):
+    """Test JournalEntry to/from dict/JSON round-trip."""
+
+    def test_round_trip(self):
+        entry = JournalEntry(
+            trade_id="AAPL_abc12345",
+            ticker="AAPL",
+            strategy="VWAP Trend",
+            side="long",
+            entry_order_id="abc12345-full-uuid",
+            entry_signal_price=150.0,
+        )
+        d = _entry_to_dict(entry)
+        restored = _dict_to_entry(d)
+        self.assertEqual(restored.trade_id, "AAPL_abc12345")
+        self.assertEqual(restored.ticker, "AAPL")
+        self.assertEqual(restored.strategy, "VWAP Trend")
+        self.assertEqual(restored.status, "pending")
+
+    def test_save_and_load(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="MSFT_def67890",
+                ticker="MSFT",
+                strategy="Z-Score",
+                side="long",
+                entry_order_id="def67890",
+                entry_signal_price=400.0,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+            loaded = load_open_trades(jdir)
+            self.assertEqual(len(loaded), 1)
+            self.assertEqual(loaded[0].ticker, "MSFT")
+
+    def test_ignores_extra_json_fields(self):
+        """Future-proofing: unknown fields in JSON don't crash."""
+        d = {
+            "trade_id": "X_123",
+            "ticker": "X",
+            "strategy": "test",
+            "side": "long",
+            "entry_order_id": "123",
+            "entry_signal_price": 100.0,
+            "unknown_future_field": "ignored",
+        }
+        entry = _dict_to_entry(d)
+        self.assertEqual(entry.ticker, "X")
+
+
+class TestJournalLifecycle(unittest.TestCase):
+    """Test the full pending → open → closed lifecycle."""
+
+    def test_create_trade_pending(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = create_trade(
+                order_id="order-abc-123-full",
+                ticker="AAPL",
+                strategy="VWAP Trend",
+                side="buy",
+                signal_price=150.0,
+                notional=1500.0,
+                sl_price=142.50,
+                tp_price=165.0,
+                composite_score=55.0,
+                confidence="HIGH",
+                confidence_score=5,
+                vix=18.5,
+                market_regime="NEUTRAL",
+                journal_dir=jdir,
+            )
+            self.assertIsNotNone(entry)
+            self.assertEqual(entry.status, "pending")
+            self.assertEqual(entry.ticker, "AAPL")
+            self.assertEqual(entry.entry_vix, 18.5)
+            # Verify file was written
+            files = list(jdir.glob("*.json"))
+            self.assertEqual(len(files), 1)
+
+    def test_close_trade_computes_metrics(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="AAPL_abc",
+                ticker="AAPL",
+                strategy="VWAP",
+                side="long",
+                entry_order_id="abc",
+                entry_signal_price=150.0,
+                entry_fill_price=150.50,
+                entry_qty=10.0,
+                entry_date="2026-03-10T10:00:00",
+                original_sl_price=142.50,
+                initial_risk_per_share=8.0,
+                initial_risk_dollars=80.0,
+                max_favorable_excursion=165.0,
+                max_adverse_excursion=148.0,
+                mfe_pct=9.63,
+                mae_pct=1.66,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+
+            close_trade(
+                entry,
+                exit_price=160.0,
+                exit_reason="take_profit",
+                journal_dir=jdir,
+                expected_exit_price=165.0,
+            )
+
+            self.assertEqual(entry.status, "closed")
+            # P&L = (160 - 150.50) * 10 = 95
+            self.assertAlmostEqual(entry.realized_pnl, 95.0, 1)
+            # R-multiple = 95 / 80 = 1.19
+            self.assertAlmostEqual(entry.r_multiple, 1.19, 1)
+            # ETD = 165 - 160 = 5
+            self.assertAlmostEqual(entry.etd, 5.0, 1)
+            # Edge ratio = mfe_pct / mae_pct
+            self.assertGreater(entry.edge_ratio, 1.0)
+            # Exit slippage = 165 - 160 = 5
+            self.assertAlmostEqual(entry.exit_slippage, 5.0, 1)
+
+    def test_close_trade_idempotent(self):
+        """Closing an already-closed trade is a no-op."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="X_1",
+                ticker="X",
+                strategy="test",
+                side="long",
+                entry_order_id="1",
+                entry_signal_price=100.0,
+                entry_fill_price=100.0,
+                status="closed",
+                realized_pnl=50.0,
+            )
+            _save_entry(entry, jdir)
+            close_trade(entry, 90.0, "stop_loss", jdir)
+            # P&L should NOT change (already closed)
+            self.assertEqual(entry.realized_pnl, 50.0)
+
+
+class TestExcursionTracking(unittest.TestCase):
+    """Test MAE/MFE/price sample updates."""
+
+    def test_update_mfe(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="AAPL_1",
+                ticker="AAPL",
+                strategy="test",
+                side="long",
+                entry_order_id="1",
+                entry_signal_price=100.0,
+                entry_fill_price=100.0,
+                max_favorable_excursion=100.0,
+                max_adverse_excursion=100.0,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+
+            update_trade(entry, 110.0, jdir, "2026-03-15")
+            self.assertEqual(entry.max_favorable_excursion, 110.0)
+            self.assertAlmostEqual(entry.mfe_pct, 10.0, 1)
+
+    def test_update_mae(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="AAPL_2",
+                ticker="AAPL",
+                strategy="test",
+                side="long",
+                entry_order_id="2",
+                entry_signal_price=100.0,
+                entry_fill_price=100.0,
+                max_favorable_excursion=100.0,
+                max_adverse_excursion=100.0,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+
+            update_trade(entry, 95.0, jdir, "2026-03-15")
+            self.assertEqual(entry.max_adverse_excursion, 95.0)
+            self.assertAlmostEqual(entry.mae_pct, 5.0, 1)
+
+    def test_price_samples_deduplicate_by_date(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="X_1",
+                ticker="X",
+                strategy="test",
+                side="long",
+                entry_order_id="1",
+                entry_signal_price=100.0,
+                entry_fill_price=100.0,
+                max_favorable_excursion=100.0,
+                max_adverse_excursion=100.0,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+
+            update_trade(entry, 101.0, jdir, "2026-03-15")
+            update_trade(entry, 102.0, jdir, "2026-03-15")
+            # Same date — should only have one sample
+            self.assertEqual(len(entry.price_samples), 1)
+
+            update_trade(entry, 103.0, jdir, "2026-03-16")
+            self.assertEqual(len(entry.price_samples), 2)
+
+
+class TestSLModification(unittest.TestCase):
+    def test_record_sl_mod(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="X_1",
+                ticker="X",
+                strategy="test",
+                side="long",
+                entry_order_id="1",
+                entry_signal_price=100.0,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+
+            record_sl_modification(
+                entry, 95.0, 100.0, "breakeven", 108.0, jdir
+            )
+            self.assertEqual(len(entry.sl_modifications), 1)
+            self.assertEqual(
+                entry.sl_modifications[0]["reason"], "breakeven"
+            )
+
+
+class TestDetectClosedTrades(unittest.TestCase):
+    def test_detects_gone_position(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            # Create open entry for AAPL
+            entry = JournalEntry(
+                trade_id="AAPL_1",
+                ticker="AAPL",
+                strategy="test",
+                side="long",
+                entry_order_id="1",
+                entry_signal_price=150.0,
+                entry_fill_price=150.0,
+                status="open",
+                price_samples=[
+                    {"date": "2026-03-17", "price": 155.0}
+                ],
+            )
+            _save_entry(entry, jdir)
+
+            # Current positions: no AAPL
+            closed = detect_closed_trades(
+                current_positions={"MSFT": {}},
+                journal_dir=jdir,
+            )
+            self.assertEqual(len(closed), 1)
+            self.assertEqual(closed[0].ticker, "AAPL")
+            self.assertEqual(closed[0].status, "closed")
+
+    def test_no_false_positives(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            entry = JournalEntry(
+                trade_id="AAPL_1",
+                ticker="AAPL",
+                strategy="test",
+                side="long",
+                entry_order_id="1",
+                entry_signal_price=150.0,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+
+            # AAPL still in positions
+            closed = detect_closed_trades(
+                current_positions={"AAPL": {}},
+                journal_dir=jdir,
+            )
+            self.assertEqual(len(closed), 0)
+
+
+class TestMigration(unittest.TestCase):
+    def test_migrates_new_position(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            positions = {
+                "AAPL": {
+                    "avg_entry": 150.0,
+                    "qty": 10.0,
+                    "side": "long",
+                    "entry_date": "2026-03-10",
+                },
+            }
+            orders = [
+                SimpleNamespace(
+                    symbol="AAPL",
+                    stop_price=142.50,
+                    limit_price=None,
+                ),
+                SimpleNamespace(
+                    symbol="AAPL",
+                    stop_price=None,
+                    limit_price=165.0,
+                ),
+            ]
+            count = migrate_existing_positions(
+                positions, orders, jdir, vix=20.0
+            )
+            self.assertEqual(count, 1)
+
+            loaded = load_open_trades(jdir)
+            self.assertEqual(len(loaded), 1)
+            self.assertEqual(loaded[0].ticker, "AAPL")
+            self.assertIn("migrated", loaded[0].tags)
+            self.assertAlmostEqual(
+                loaded[0].original_sl_price, 142.50
+            )
+            self.assertAlmostEqual(
+                loaded[0].original_tp_price, 165.0
+            )
+
+    def test_skip_already_tracked(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            # Pre-existing journal entry
+            entry = JournalEntry(
+                trade_id="AAPL_existing",
+                ticker="AAPL",
+                strategy="test",
+                side="long",
+                entry_order_id="existing",
+                entry_signal_price=150.0,
+                status="open",
+            )
+            _save_entry(entry, jdir)
+
+            count = migrate_existing_positions(
+                {"AAPL": {"avg_entry": 150.0, "qty": 10}},
+                [],
+                jdir,
+            )
+            self.assertEqual(count, 0)
+
+
+class TestEquityCurve(unittest.TestCase):
+    def test_snapshot_and_load(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            log_dir = Path(tmpdir)
+            portfolio = PortfolioSnapshot(
+                equity=100000.0,
+                cash=50000.0,
+                market_value=50000.0,
+                day_pnl=-200.0,
+                day_pnl_pct=-0.2,
+                positions={
+                    "AAPL": {"unrealized_pnl": -200.0},
+                },
+            )
+            snap = record_snapshot(portfolio, log_dir)
+            self.assertIsNotNone(snap)
+            self.assertEqual(snap.equity, 100000.0)
+            self.assertEqual(snap.num_positions, 1)
+
+            loaded = load_snapshots(log_dir)
+            self.assertEqual(len(loaded), 1)
+            self.assertEqual(loaded[0].equity, 100000.0)
+
+    def test_drawdown_from_hwm(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            log_dir = Path(tmpdir)
+            # First snapshot: equity = 100k (sets HWM)
+            p1 = PortfolioSnapshot(
+                equity=100000.0,
+                cash=50000.0,
+                market_value=50000.0,
+                positions={},
+            )
+            record_snapshot(p1, log_dir)
+
+            # Second snapshot: equity dropped to 98k
+            p2 = PortfolioSnapshot(
+                equity=98000.0,
+                cash=50000.0,
+                market_value=48000.0,
+                positions={},
+            )
+            snap2 = record_snapshot(p2, log_dir)
+            self.assertIsNotNone(snap2)
+            # DD = (100k - 98k) / 100k = 2%
+            self.assertAlmostEqual(snap2.drawdown_pct, 2.0, 1)
+            self.assertEqual(snap2.high_water_mark, 100000.0)
+
+
+class TestJournalAnalytics(unittest.TestCase):
+    """Test metric computation from synthetic trades."""
+
+    def _make_trade(
+        self,
+        pnl: float,
+        r: float = 0.0,
+        strategy: str = "test",
+        mae_pct: float = 0.0,
+        mfe_pct: float = 0.0,
+        etd_pct: float = 0.0,
+        edge_ratio: float = 0.0,
+        holding_days: int = 5,
+        exit_reason: str = "take_profit",
+        entry_slippage_pct: float = 0.0,
+        entry_slippage: float = 0.0,
+        exit_slippage: float = 0.0,
+        regime: str = "NEUTRAL",
+        entry_date: str = "2026-03-10",
+        mfe_date: str = "2026-03-12",
+        mae_date: str = "2026-03-11",
+    ) -> JournalEntry:
+        return JournalEntry(
+            trade_id=f"T_{id(pnl)}",
+            ticker="X",
+            strategy=strategy,
+            side="long",
+            entry_order_id="o",
+            entry_signal_price=100.0,
+            entry_fill_price=100.0,
+            realized_pnl=pnl,
+            realized_pnl_pct=pnl / 100,
+            r_multiple=r,
+            mae_pct=mae_pct,
+            mfe_pct=mfe_pct,
+            etd_pct=etd_pct,
+            edge_ratio=edge_ratio,
+            holding_days=holding_days,
+            exit_reason=exit_reason,
+            entry_slippage_pct=entry_slippage_pct,
+            entry_slippage=entry_slippage,
+            exit_slippage=exit_slippage,
+            entry_market_regime=regime,
+            entry_date=entry_date,
+            mfe_date=mfe_date,
+            mae_date=mae_date,
+            status="closed",
+            closed_at="2026-03-15T10:00:00",
+        )
+
+    def test_overall_metrics(self):
+        trades = [
+            self._make_trade(100, r=1.0),
+            self._make_trade(200, r=2.0),
+            self._make_trade(-50, r=-0.5),
+            self._make_trade(-80, r=-0.8),
+        ]
+        m = compute_journal_metrics(trades)
+        self.assertEqual(m.overall.total_trades, 4)
+        self.assertEqual(m.overall.wins, 2)
+        self.assertEqual(m.overall.losses, 2)
+        self.assertAlmostEqual(m.overall.win_rate, 0.5, 2)
+        self.assertAlmostEqual(m.overall.avg_win, 150.0, 1)
+        self.assertAlmostEqual(m.overall.avg_loss, -65.0, 1)
+        self.assertAlmostEqual(m.overall.total_pnl, 170.0, 1)
+
+    def test_profit_factor(self):
+        trades = [
+            self._make_trade(300, r=3.0),
+            self._make_trade(-100, r=-1.0),
+        ]
+        m = compute_journal_metrics(trades)
+        # PF = 300 / 100 = 3.0
+        self.assertAlmostEqual(m.overall.profit_factor, 3.0, 1)
+
+    def test_r_distribution(self):
+        trades = [
+            self._make_trade(100, r=1.0),
+            self._make_trade(300, r=3.0),
+            self._make_trade(-100, r=-1.0),
+            self._make_trade(50, r=0.5),
+        ]
+        m = compute_journal_metrics(trades)
+        rd = m.r_distribution
+        self.assertAlmostEqual(rd.mean_r, 0.875, 2)
+        self.assertAlmostEqual(rd.pct_above_2r, 0.25, 2)
+        self.assertAlmostEqual(rd.pct_below_neg1r, 0.0, 2)
+
+    def test_streaks(self):
+        # W, W, W, L, L, W
+        trades = [
+            self._make_trade(10, r=0.1),
+            self._make_trade(20, r=0.2),
+            self._make_trade(30, r=0.3),
+            self._make_trade(-10, r=-0.1),
+            self._make_trade(-20, r=-0.2),
+            self._make_trade(5, r=0.05),
+        ]
+        # Give them sequential close dates
+        for i, t in enumerate(trades):
+            t.closed_at = f"2026-03-{10+i:02d}T10:00:00"
+
+        m = compute_journal_metrics(trades)
+        self.assertEqual(m.streaks.max_consecutive_wins, 3)
+        self.assertEqual(m.streaks.max_consecutive_losses, 2)
+        self.assertEqual(m.streaks.current_streak, 1)
+        self.assertEqual(m.streaks.current_streak_type, "win")
+
+    def test_holding_analysis(self):
+        trades = [
+            self._make_trade(
+                100, r=1.0, holding_days=3,
+                exit_reason="take_profit",
+            ),
+            self._make_trade(
+                -50, r=-0.5, holding_days=10,
+                exit_reason="time_exit",
+            ),
+            self._make_trade(
+                200, r=2.0, holding_days=5,
+                exit_reason="take_profit",
+            ),
+        ]
+        m = compute_journal_metrics(trades)
+        self.assertAlmostEqual(m.holding.avg_hold_all, 6.0, 1)
+        self.assertAlmostEqual(
+            m.holding.time_exit_rate, 1 / 3, 2
+        )
+        self.assertIn(
+            "time_exit", m.holding.exit_reason_distribution
+        )
+
+    def test_strategy_breakdown(self):
+        trades = [
+            self._make_trade(100, r=1.0, strategy="VWAP"),
+            self._make_trade(-50, r=-0.5, strategy="VWAP"),
+            self._make_trade(200, r=2.0, strategy="Z-Score"),
+        ]
+        m = compute_journal_metrics(trades)
+        self.assertIn("VWAP", m.by_strategy)
+        self.assertIn("Z-Score", m.by_strategy)
+        self.assertEqual(m.by_strategy["VWAP"].trade_count, 2)
+        self.assertEqual(m.by_strategy["Z-Score"].trade_count, 1)
+
+    def test_regime_breakdown(self):
+        trades = [
+            self._make_trade(100, r=1.0, regime="NEUTRAL"),
+            self._make_trade(-50, r=-0.5, regime="FEAR"),
+        ]
+        m = compute_journal_metrics(trades)
+        self.assertIn("NEUTRAL", m.by_regime)
+        self.assertIn("FEAR", m.by_regime)
+
+    def test_format_metrics_text(self):
+        trades = [
+            self._make_trade(100, r=1.0),
+            self._make_trade(-50, r=-0.5),
+        ]
+        m = compute_journal_metrics(trades)
+        text = format_metrics_text(m)
+        self.assertIn("Trade Journal Report", text)
+        self.assertIn("Win Rate", text)
+
+    def test_empty_trades(self):
+        """No trades should not crash."""
+        m = compute_journal_metrics([])
+        self.assertEqual(m.overall.total_trades, 0)
+
+    def test_all_winners(self):
+        trades = [
+            self._make_trade(100, r=1.0),
+            self._make_trade(200, r=2.0),
+        ]
+        m = compute_journal_metrics(trades)
+        self.assertAlmostEqual(m.overall.win_rate, 1.0, 2)
+        # Profit factor should be inf (no losses)
+        self.assertEqual(m.overall.profit_factor, float("inf"))
+
+
+class TestMathHelpers(unittest.TestCase):
+    def test_safe_mean_empty(self):
+        self.assertEqual(_safe_mean([]), 0.0)
+
+    def test_std(self):
+        vals = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
+        s = _std(vals)
+        self.assertAlmostEqual(s, 2.0, 0)
+
+    def test_skewness_symmetric(self):
+        vals = [-2.0, -1.0, 0.0, 1.0, 2.0]
+        sk = _skewness(vals)
+        self.assertAlmostEqual(sk, 0.0, 1)
+
+    def test_probabilistic_sharpe(self):
+        # With a high observed SR and enough observations,
+        # PSR should be > 0.5
+        psr = _probabilistic_sharpe(
+            observed_sr=0.1,
+            benchmark_sr=0.0,
+            n=100,
+            skew=0.0,
+            kurtosis=0.0,
+        )
+        self.assertGreater(psr, 0.5)
+
+    def test_min_track_record_length(self):
+        mtrl = _min_track_record_length(
+            observed_sr=0.05,
+            benchmark_sr=0.0,
+            skew=0.0,
+            kurtosis=0.0,
+        )
+        self.assertGreater(mtrl, 2)
+
+    def test_pearson_corr_perfect(self):
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
+        y = [2.0, 4.0, 6.0, 8.0, 10.0]
+        r = _pearson_corr(x, y)
+        self.assertAlmostEqual(r, 1.0, 2)
+
+
+class TestRiskAdjustedWithEquityCurve(unittest.TestCase):
+    """Test Sharpe/Sortino/drawdown from equity snapshots."""
+
+    def test_sharpe_from_snapshots(self):
+        # Create synthetic equity curve: steady growth
+        snapshots = []
+        equity = 100000.0
+        hwm = equity
+        for i in range(30):
+            equity += 100  # steady $100/day gain
+            hwm = max(hwm, equity)
+            dd = (hwm - equity) / hwm * 100
+            snapshots.append(EquitySnapshot(
+                timestamp=f"2026-03-{i+1:02d}",
+                equity=round(equity, 2),
+                cash=50000.0,
+                market_value=round(equity - 50000, 2),
+                drawdown_pct=round(dd, 4),
+                high_water_mark=round(hwm, 2),
+            ))
+
+        trades = [
+            JournalEntry(
+                trade_id="T_1",
+                ticker="X",
+                strategy="test",
+                side="long",
+                entry_order_id="1",
+                entry_signal_price=100.0,
+                realized_pnl=100.0,
+                r_multiple=1.0,
+                status="closed",
+                closed_at="2026-03-15",
+            )
+        ]
+        m = compute_journal_metrics(trades, snapshots)
+        # Steady gains → high Sharpe
+        self.assertGreater(m.risk_adjusted.sharpe_ratio, 0)
+        # No drawdown (monotonic increase)
+        self.assertAlmostEqual(m.drawdown.max_drawdown_pct, 0.0)
+
+
+if __name__ == "__main__":
+    unittest.main()

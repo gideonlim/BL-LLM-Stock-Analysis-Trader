@@ -53,6 +53,13 @@ class AlpacaBroker:
         account = self._client.get_account()
         positions = self._client.get_all_positions()
 
+        # Fetch entry dates from filled orders. Alpaca's
+        # Position object has no timestamp, so we look up
+        # the oldest filled BUY order for each symbol.
+        entry_dates = self._get_entry_dates(
+            [p.symbol for p in positions]
+        )
+
         pos_dict: dict = {}
         for p in positions:
             pos_dict[p.symbol] = {
@@ -60,7 +67,10 @@ class AlpacaBroker:
                 "market_value": float(p.market_value),
                 "avg_entry": float(p.avg_entry_price),
                 "unrealized_pnl": float(p.unrealized_pl),
-                "side": p.side.value,
+                "side": str(
+                    getattr(p.side, "value", p.side)
+                ),
+                "entry_date": entry_dates.get(p.symbol),
             }
 
         equity = float(account.equity)
@@ -82,6 +92,74 @@ class AlpacaBroker:
             day_pnl_pct=round(day_pnl_pct, 2),
             positions=pos_dict,
         )
+
+    def _get_entry_dates(
+        self, symbols: list[str]
+    ) -> dict[str, str]:
+        """
+        Look up the entry date for each position by querying
+        closed (filled) orders.
+
+        Alpaca positions have no timestamp field, so we find
+        the most recent filled BUY order for each symbol.
+        That order's ``filled_at`` is the position entry date.
+
+        Returns:
+            Dict of {symbol: ISO date string} for symbols
+            where an entry date was found.
+        """
+        if not symbols:
+            return {}
+        try:
+            from alpaca.trading.requests import (
+                GetOrdersRequest,
+            )
+            from alpaca.trading.enums import (
+                QueryOrderStatus,
+                OrderSide,
+            )
+
+            request = GetOrdersRequest(
+                status=QueryOrderStatus.CLOSED,
+                symbols=symbols,
+                side=OrderSide.BUY,
+                limit=500,
+            )
+            orders = self._client.get_orders(filter=request)
+
+            # For each symbol, find the most recent filled
+            # buy order — that's the entry for the current
+            # position.
+            dates: dict[str, str] = {}
+            for order in orders:
+                filled_at = getattr(order, "filled_at", None)
+                if not filled_at:
+                    continue
+                sym = order.symbol
+                # filled_at is a datetime; convert to ISO date
+                date_str = str(filled_at)[:10]
+                # Keep the MOST recent fill date per symbol
+                # (orders are returned newest-first by default)
+                if sym not in dates:
+                    dates[sym] = date_str
+
+            if dates:
+                log.debug(
+                    f"  Entry dates resolved for "
+                    f"{len(dates)}/{len(symbols)} positions"
+                )
+            else:
+                log.warning(
+                    "  Could not resolve entry dates — "
+                    "no filled buy orders found"
+                )
+            return dates
+
+        except Exception as e:
+            log.warning(
+                f"  Could not fetch entry dates: {e}"
+            )
+            return {}
 
     def is_market_open(self) -> bool:
         """Check if the market is currently open."""

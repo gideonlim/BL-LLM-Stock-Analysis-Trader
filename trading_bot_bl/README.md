@@ -114,12 +114,14 @@ BL weights are used for **ranking** (which stocks to buy first). Position sizing
 4. **Check market hours** — warns if market closed
 5. **Get portfolio + pending orders** — fetches account state
 5b. **Cancel stale orders** — cancels orders for tickers with no position (market open only)
-6. **Monitor positions** — health checks on held positions (emergency loss, orphans, stale brackets, gaps)
+5c. **Fetch market sentiment** — VIX level, market regime, SPY price
+5d. **Journal & equity hooks** — record equity snapshot, resolve pending fills, detect closed trades, migrate pre-journal positions (non-blocking; failures never disrupt the pipeline)
+6. **Monitor positions** — health checks on held positions (emergency loss, orphans, stale brackets, gaps); updates journal excursion data (MFE/MAE) and records SL modifications, trade closures
 7. **Enrich history** — attributes unrealized P&L to strategies
 8. **Build order intents** — converts signals to orders with 3-layer duplicate detection
 8b. **Portfolio optimize** — Black-Litterman (default) or marginal Sharpe (fallback)
 9. **Risk check** — validates each intent against exposure, quality, position size, and history constraints
-10. **Submit orders** — fetch live price, recalculate SL/TP, submit as limit bracket order
+10. **Submit orders** — fetch live price, recalculate SL/TP, submit as limit bracket order; creates a journal entry for each submitted trade
 
 ## Risk Management
 
@@ -153,7 +155,62 @@ The monitor checks each held position for:
 - **Price gaps** — price gapped beyond SL or TP, close position
 - **Stale brackets** — significant price move without triggering legs, tighten stop loss via trailing stop
 
+All monitor actions (emergency close, gap close, time exit, breakeven/trailing stop adjustments) are automatically recorded in the trade journal when available.
+
 Run with `--monitor-only` to check positions without placing new orders.
+
+## Trade Journal & Analytics
+
+The bot includes a full trade journal system that tracks every trade from order submission through exit, records equity snapshots each run, and computes institutional-grade performance analytics.
+
+### How It Works
+
+The journal operates on a three-state lifecycle: **pending** (order submitted, not yet filled) → **open** (fill confirmed) → **closed** (position exited). All journal operations are non-critical — wrapped in try/except so failures never disrupt the core trading pipeline.
+
+### Data Storage
+
+- `execution_logs/journal/` — one JSON file per trade (~50 fields: entry/exit prices, slippage, MFE/MAE, R-multiple, holding time, VIX at entry, regime, etc.)
+- `execution_logs/equity_curve.jsonl` — append-only, one JSON line per bot run (equity, cash, drawdown, high-water mark, exposure)
+
+### What Gets Tracked Per Trade
+
+Entry context (signal price, fill price, slippage, VIX, market regime, SPY level), bracket parameters (SL/TP levels, order class), exit details (exit price, exit reason, exit slippage), outcome metrics (realized P&L, R-multiple, holding days), excursion data (MFE, MAE, time-to-MFE/MAE, ETD, edge ratio), SL modification history, and intraday price samples.
+
+### Analytics Dashboard
+
+Once you have closed trades, run the analytics to get:
+
+```bash
+python3 -c "
+from pathlib import Path
+import json
+from trading_bot_bl.models import JournalEntry, EquitySnapshot
+from trading_bot_bl.journal_analytics import compute_journal_metrics, format_metrics_text
+
+journal_dir = Path('execution_logs/journal')
+equity_file = Path('execution_logs/equity_curve.jsonl')
+
+trades = []
+for f in journal_dir.glob('*.json'):
+    data = json.loads(f.read_text())
+    entry = JournalEntry(**{k: v for k, v in data.items() if hasattr(JournalEntry, k)})
+    if entry.status == 'closed':
+        trades.append(entry)
+
+snapshots = []
+if equity_file.exists():
+    for line in equity_file.read_text().strip().splitlines():
+        snapshots.append(EquitySnapshot(**json.loads(line)))
+
+if trades:
+    metrics = compute_journal_metrics(trades, snapshots)
+    print(format_metrics_text(metrics))
+else:
+    print('No closed trades yet.')
+"
+```
+
+This outputs: Sharpe/Sortino/Calmar ratios, Probabilistic Sharpe Ratio (PSR), profit factor, expectancy, win rate, R-distribution with skewness, edge ratio analysis, MFE/MAE excursion stats, streak analysis, strategy-level attribution, and regime-segmented breakdowns (bull/bear/neutral).
 
 ## CLI Flags
 
@@ -225,7 +282,7 @@ Run with `--monitor-only` to check positions without placing new orders.
 trading_bot_bl/
 ├── .env.example             # Template — copy to .env and fill in keys
 ├── config.py                # Credentials, risk limits, BL/LLM params
-├── models.py                # Signal, OrderIntent, OrderResult, PositionAlert
+├── models.py                # Signal, OrderIntent, OrderResult, PositionAlert, JournalEntry, EquitySnapshot
 ├── broker.py                # Alpaca API wrapper (limit + bracket orders)
 ├── executor.py              # 10-step execution pipeline
 ├── risk.py                  # Risk manager (exposure, quality, sizing, history)
@@ -235,8 +292,12 @@ trading_bot_bl/
 ├── llm_views.py             # LLM-enhanced view generation (ICLR 2025 repeated sampling)
 ├── news_fetcher.py          # News headline fetcher for LLM context
 ├── portfolio_optimizer.py   # Unified optimizer: BL (primary) → marginal Sharpe (fallback)
+├── journal.py               # Trade journal lifecycle (create, resolve, close, migrate)
+├── equity_curve.py          # Equity snapshot recording (JSONL append-only)
+├── journal_analytics.py     # Performance analytics (Sharpe, PSR, R-dist, regime breakdown)
 ├── cli.py                   # CLI entry point with BL/LLM flags
 ├── __main__.py              # Enables `python -m trading_bot_bl`
+├── test_journal.py          # Tests for journal + analytics (33 tests)
 └── test_black_litterman.py  # Tests for BL math (8 tests)
 ```
 
@@ -258,8 +319,21 @@ Override config via repository variables (Settings → Variables → Actions). A
 ## Running Tests
 
 ```bash
-cd trading_bot_bl
-python test_black_litterman.py
+# Black-Litterman tests (8 tests)
+python -m unittest trading_bot_bl.test_black_litterman -v
+
+# Journal + analytics tests (33 tests)
+python -m unittest trading_bot_bl.test_journal -v
+
+# Monitor tests (51 tests)
+python -m unittest trading_bot_bl.test_monitor -v
+
+# All tests
+python -m unittest discover -s trading_bot_bl -p 'test_*.py' -v
 ```
 
-Tests verify: Ledoit-Wolf shrinkage, equilibrium returns, posterior shifts, confidence mapping, weight optimization, no-views fallback, full pipeline, and LLM view blending.
+**BL tests** verify: Ledoit-Wolf shrinkage, equilibrium returns, posterior shifts, confidence mapping, weight optimization, no-views fallback, full pipeline, and LLM view blending.
+
+**Journal tests** verify: serialization round-trips, three-state lifecycle, excursion tracking (MFE/MAE), SL modification recording, closed-trade detection, position migration, equity curve snapshots/drawdown, full analytics suite (overall metrics, profit factor, R-distribution, streaks, holding analysis, strategy/regime breakdowns), and math helpers (PSR, MinTRL, Pearson correlation, skewness).
+
+**Monitor tests** verify: emergency loss, orphaned/partial brackets, price gaps, trailing/breakeven stops, time exits, dry-run safety, OCO classification, and edge cases.

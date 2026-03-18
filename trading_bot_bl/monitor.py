@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from trading_bot_bl.broker import AlpacaBroker
 from trading_bot_bl.config import RiskLimits
@@ -14,6 +15,13 @@ from trading_bot_bl.models import (
 )
 
 log = logging.getLogger(__name__)
+
+# ── Journal imports (non-critical) ────────────────────────────────
+try:
+    from trading_bot_bl import journal as _journal
+    _JOURNAL_AVAILABLE = True
+except ImportError:
+    _JOURNAL_AVAILABLE = False
 
 
 @dataclass
@@ -53,6 +61,7 @@ def monitor_positions(
     portfolio: PortfolioSnapshot,
     limits: RiskLimits,
     dry_run: bool = False,
+    journal_dir: Path | None = None,
 ) -> MonitorReport:
     """
     Audit every open position for health issues.
@@ -116,6 +125,20 @@ def monitor_positions(
                 f"  {ticker}: no price data, skipping monitor"
             )
             continue
+
+        # ── Journal: update excursion tracking ─────────────────
+        _j_entry = None
+        if _JOURNAL_AVAILABLE and journal_dir:
+            try:
+                _j_entry = _journal.get_journal_entry_for_ticker(
+                    ticker, journal_dir
+                )
+                if _j_entry:
+                    _journal.update_trade(
+                        _j_entry, current_price, journal_dir
+                    )
+            except Exception:
+                pass  # non-critical
 
         # Fetch ATR for volatility-aware stop management
         atr = _fetch_atr(ticker)
@@ -293,6 +316,18 @@ def monitor_positions(
                     f"-> {result.status}"
                 )
 
+            # Journal: record emergency close
+            if _JOURNAL_AVAILABLE and _j_entry and journal_dir:
+                try:
+                    _journal.close_trade(
+                        _j_entry,
+                        exit_price=current_price,
+                        exit_reason="emergency_close",
+                        journal_dir=journal_dir,
+                    )
+                except Exception:
+                    pass
+
             report.alerts.append(alert)
             report.emergency_count += 1
             continue  # position closed, skip other checks
@@ -414,6 +449,19 @@ def monitor_positions(
                     f"  GAP CLOSE: {alert.message} "
                     f"-> {result.status}"
                 )
+            # Journal: record gap close
+            if _JOURNAL_AVAILABLE and _j_entry and journal_dir:
+                try:
+                    _journal.close_trade(
+                        _j_entry,
+                        exit_price=current_price,
+                        exit_reason="gap_close",
+                        journal_dir=journal_dir,
+                        expected_exit_price=sl_price,
+                    )
+                except Exception:
+                    pass
+
             report.alerts.append(alert)
             report.emergency_count += 1
             continue
@@ -471,6 +519,23 @@ def monitor_positions(
                     )
                     if success:
                         sl_price = be_sl  # update for later checks
+                        # Journal: record SL modification
+                        if (
+                            _JOURNAL_AVAILABLE
+                            and _j_entry
+                            and journal_dir
+                        ):
+                            try:
+                                _journal.record_sl_modification(
+                                    _j_entry,
+                                    old_sl=sl_price,
+                                    new_sl=be_sl,
+                                    reason="breakeven",
+                                    current_price=current_price,
+                                    journal_dir=journal_dir,
+                                )
+                            except Exception:
+                                pass
                     alert.action_taken = (
                         f"SL moved to breakeven ${be_sl:.2f}"
                         if success
@@ -563,6 +628,22 @@ def monitor_positions(
                             broker, ticker, sl_order_id,
                             new_sl, qty,
                         )
+                        if success and (
+                            _JOURNAL_AVAILABLE
+                            and _j_entry
+                            and journal_dir
+                        ):
+                            try:
+                                _journal.record_sl_modification(
+                                    _j_entry,
+                                    old_sl=sl_price,
+                                    new_sl=new_sl,
+                                    reason="trailing",
+                                    current_price=current_price,
+                                    journal_dir=journal_dir,
+                                )
+                            except Exception:
+                                pass
                         alert.action_taken = (
                             f"SL tightened to ${new_sl:.2f}"
                             if success
@@ -615,6 +696,18 @@ def monitor_positions(
                     f"  TIME EXIT: {alert.message} "
                     f"-> {result.status}"
                 )
+
+            # Journal: record time exit
+            if _JOURNAL_AVAILABLE and _j_entry and journal_dir:
+                try:
+                    _journal.close_trade(
+                        _j_entry,
+                        exit_price=current_price,
+                        exit_reason="time_exit",
+                        journal_dir=journal_dir,
+                    )
+                except Exception:
+                    pass
 
             report.alerts.append(alert)
 
