@@ -328,8 +328,10 @@ def execute(
     # ── 5d. Journal: equity snapshot + lifecycle checks ────────────
     #    Non-critical — all wrapped in try/except so failures
     #    never block the trading pipeline.
+    #    Skipped entirely in dry-run mode so simulated runs
+    #    don't pollute real journal/equity data.
     journal_dir = history_dir / "journal"
-    if _JOURNAL_AVAILABLE:
+    if _JOURNAL_AVAILABLE and not config.dry_run:
         try:
             _equity.record_snapshot(portfolio, history_dir)
         except Exception as exc:
@@ -368,7 +370,11 @@ def execute(
             portfolio=portfolio,
             limits=config.risk,
             dry_run=config.dry_run,
-            journal_dir=journal_dir if _JOURNAL_AVAILABLE else None,
+            journal_dir=(
+                journal_dir
+                if _JOURNAL_AVAILABLE and not config.dry_run
+                else None
+            ),
         )
         # Write monitor log alongside execution logs
         write_monitor_log(monitor_report, history_dir)
