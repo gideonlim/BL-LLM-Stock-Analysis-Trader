@@ -449,11 +449,12 @@ def main() -> None:
     if args.report_pdf is not None:
         from trading_bot_bl.journal_report import generate_pdf_report
         date_str = datetime.now().strftime("%Y-%m-%d")
-        pdf_path = (
-            Path(args.report_pdf)
-            if args.report_pdf
-            else execution_log_dir / f"report_{date_str}.pdf"
-        )
+        if args.report_pdf:
+            pdf_path = Path(args.report_pdf)
+        else:
+            reports_dir = execution_log_dir.parent / "reports"/ "performance"
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            pdf_path = reports_dir / f"report_{date_str}.pdf"
         generate_pdf_report(execution_log_dir, pdf_path)
         log.info(f"  PDF report: {pdf_path}")
         return
@@ -461,11 +462,12 @@ def main() -> None:
     if args.report_csv is not None:
         from trading_bot_bl.journal_report import generate_csv_export
         date_str = datetime.now().strftime("%Y-%m-%d")
-        csv_path = (
-            Path(args.report_csv)
-            if args.report_csv
-            else execution_log_dir / f"trades_{date_str}.csv"
-        )
+        if args.report_csv:
+            csv_path = Path(args.report_csv)
+        else:
+            reports_dir = execution_log_dir.parent / "reports"
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            csv_path = reports_dir / f"trades_{date_str}.csv"
         generate_csv_export(execution_log_dir, csv_path)
         log.info(f"  CSV export: {csv_path}")
         return

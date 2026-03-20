@@ -1,0 +1,77 @@
+name: Weekly Performance Report
+
+# Runs every Sunday at 8:00 AM ET (13:00 UTC) to produce a PDF
+# performance report and CSV trade export covering the past week.
+# Both files are committed to the reports/ folder and uploaded as
+# a build artifact so you can download them from the Actions tab.
+on:
+  schedule:
+    - cron: "0 13 * * 0"   # 8:00 AM ET (UTC-5) every Sunday
+  workflow_dispatch:        # allow manual trigger any time
+
+permissions:
+  contents: write           # needed to commit report files
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Pull latest changes
+        run: git pull --rebase origin ${{ github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check journal data exists
+        run: |
+          if [ ! -d "execution_logs/journal" ]; then
+            echo "::warning::No journal data found in execution_logs/journal — report will be empty."
+          else
+            echo "Journal entries found:"
+            ls execution_logs/journal/*.json 2>/dev/null | wc -l
+          fi
+
+      - name: Generate PDF report
+        run: python -m trading_bot_bl --report-pdf
+        # No Alpaca credentials needed — reads only local journal files
+
+      - name: Generate CSV export
+        run: python -m trading_bot_bl --report-csv
+
+      - name: Show report files
+        run: |
+          echo "Generated reports:"
+          ls -lh reports/report_*.pdf reports/trades_*.csv 2>/dev/null || echo "No report files found."
+
+      - name: Upload reports as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-report-${{ github.run_number }}
+          path: |
+            reports/report_*.pdf
+            reports/trades_*.csv
+          retention-days: 90
+
+      - name: Commit reports to repository
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/ -f
+          git diff --cached --quiet && echo "No new reports to commit" && exit 0
+          git commit -m "chore: weekly report $(date +%Y-%m-%d)"
+          git push

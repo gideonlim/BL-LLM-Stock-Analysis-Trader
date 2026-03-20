@@ -516,6 +516,9 @@ def monitor_positions(
                     success = _replace_stop_loss(
                         broker, ticker, sl_order_id,
                         be_sl, qty,
+                        oco_parent_id=tp_order_id
+                        if not sl_order_id else "",
+                        tp_price=tp_price,
                     )
                     if success:
                         sl_price = be_sl  # update for later checks
@@ -623,10 +626,17 @@ def monitor_positions(
                             "DRY RUN: would tighten SL"
                         )
                     else:
-                        # Cancel old SL leg and place new one
+                        # Cancel old SL leg and place new one.
+                        # For OCO brackets the SL leg is held /
+                        # invisible — pass the OCO parent ID so
+                        # the function cancels the whole OCO
+                        # before resubmitting a fresh one.
                         success = _replace_stop_loss(
                             broker, ticker, sl_order_id,
                             new_sl, qty,
+                            oco_parent_id=tp_order_id
+                            if not sl_order_id else "",
+                            tp_price=tp_price,
                         )
                         if success and (
                             _JOURNAL_AVAILABLE
@@ -818,28 +828,104 @@ def _replace_stop_loss(
     old_sl_order_id: str,
     new_sl_price: float,
     qty: float,
+    oco_parent_id: str = "",
+    tp_price: float = 0.0,
 ) -> bool:
-    """Cancel old SL and place a new one at a tighter level."""
+    """Move a stop-loss to a tighter level.
+
+    Handles two bracket structures:
+
+    **Standalone SL** (``old_sl_order_id`` is set, no OCO parent):
+        Cancel the old stop order, then submit a new standalone
+        stop order at ``new_sl_price``.
+
+    **OCO bracket** (``oco_parent_id`` is set, SL leg is held /
+    invisible to the API):
+        Alpaca holds *all* shares for the entire OCO — cancelling
+        only the invisible SL leg leaves the parent alive and the
+        shares still reserved, so any new order is rejected with
+        ``available: 0``.  The correct approach is to cancel the
+        **OCO parent** (which atomically cancels both legs and
+        frees the share hold), then immediately resubmit a fresh
+        OCO with the original TP price and the new SL price.
+
+    Args:
+        broker:          AlpacaBroker instance.
+        ticker:          Position symbol.
+        old_sl_order_id: Order ID of the standalone SL leg to
+                         cancel (empty string if OCO).
+        new_sl_price:    New stop-loss price.
+        qty:             Position quantity (positive).
+        oco_parent_id:   Order ID of the OCO parent to cancel
+                         (set when the bracket is an OCO).
+        tp_price:        Existing take-profit price to preserve
+                         in the replacement OCO (required when
+                         ``oco_parent_id`` is set).
+    """
     try:
-        from alpaca.trading.requests import StopOrderRequest
         from alpaca.trading.enums import (
             OrderSide,
             TimeInForce,
         )
 
-        # Cancel old SL
-        if old_sl_order_id:
-            broker.cancel_order(old_sl_order_id)
+        if oco_parent_id:
+            # ── OCO path ─────────────────────────────────────
+            # 1. Cancel the OCO parent → frees held shares for
+            #    both the TP limit leg and the SL stop leg.
+            # 2. Resubmit a fresh OCO with the original TP and
+            #    the updated SL so both legs are re-linked in
+            #    a single share reservation.
+            from alpaca.trading.requests import (
+                LimitOrderRequest,
+                TakeProfitRequest,
+                StopLossRequest,
+            )
+            from alpaca.trading.enums import OrderClass
 
-        # Place new SL
-        request = StopOrderRequest(
-            symbol=ticker,
-            qty=abs(qty),
-            side=OrderSide.SELL,
-            time_in_force=TimeInForce.GTC,
-            stop_price=round(new_sl_price, 2),
-        )
-        broker._client.submit_order(request)
+            broker.cancel_order(oco_parent_id)
+            log.info(
+                f"  OCO parent {oco_parent_id} cancelled "
+                f"for {ticker} SL replacement"
+            )
+
+            oco_request = LimitOrderRequest(
+                symbol=ticker,
+                qty=abs(qty),
+                side=OrderSide.SELL,
+                time_in_force=TimeInForce.GTC,
+                limit_price=round(tp_price, 2),
+                order_class=OrderClass.OCO,
+                take_profit=TakeProfitRequest(
+                    limit_price=round(tp_price, 2),
+                ),
+                stop_loss=StopLossRequest(
+                    stop_price=round(new_sl_price, 2),
+                ),
+            )
+            broker._client.submit_order(oco_request)
+            log.info(
+                f"  New OCO submitted for {ticker}: "
+                f"SL=${new_sl_price:.2f}, TP=${tp_price:.2f}"
+            )
+
+        else:
+            # ── Standalone SL path ───────────────────────────
+            # Cancel old stop order (if we have its ID), then
+            # submit a plain stop order at the new price.
+            from alpaca.trading.requests import StopOrderRequest
+
+            if old_sl_order_id:
+                broker.cancel_order(old_sl_order_id)
+
+            request = StopOrderRequest(
+                symbol=ticker,
+                qty=abs(qty),
+                side=OrderSide.SELL,
+                time_in_force=TimeInForce.GTC,
+                stop_price=round(new_sl_price, 2),
+            )
+            broker._client.submit_order(request)
+
         return True
 
     except Exception as e:

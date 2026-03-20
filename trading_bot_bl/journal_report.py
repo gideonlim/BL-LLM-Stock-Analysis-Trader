@@ -110,7 +110,8 @@ def _chart_equity_curve(snapshots: list[EquitySnapshot]) -> Optional[io.BytesIO]
     ax1.plot(dates, hwm, color="#94a3b8", linewidth=1, linestyle="--",
              label="High Water Mark", alpha=0.7)
     ax1.fill_between(dates, equity, hwm, alpha=0.08, color="red",
-                     where=[e < h for e, h in zip(equity, hwm)])
+                     where=[e < h for e, h in zip(equity, hwm)],
+                     interpolate=True)
     ax1.set_ylabel("Equity ($)")
     ax1.legend(loc="upper left", fontsize=8)
     ax1.grid(True, alpha=0.3)
@@ -282,6 +283,7 @@ def generate_pdf_report(
         Table,
         TableStyle,
         PageBreak,
+        KeepTogether,
     )
 
     trades, snapshots, open_count, pending_count = _load_journal_data(log_dir)
@@ -451,38 +453,48 @@ def generate_pdf_report(
     story.append(Spacer(1, 16))
 
     # ── Charts ──────────────────────────────────────────────────
+    # KeepTogether prevents orphaned section headers: if the
+    # header + chart don't fit on the current page, both move
+    # together to the next page.
+
     # Equity curve
     eq_buf = _chart_equity_curve(snapshots)
     if eq_buf:
-        story.append(Paragraph("Equity Curve &amp; Drawdown", styles["SectionHead"]))
-        story.append(Image(eq_buf, width=width, height=width * 0.5))
-        story.append(Spacer(1, 12))
+        story.append(KeepTogether([
+            Paragraph("Equity Curve &amp; Drawdown", styles["SectionHead"]),
+            Image(eq_buf, width=width, height=width * 0.5),
+            Spacer(1, 12),
+        ]))
 
     # Cumulative P&L
     cum_buf = _chart_cumulative_pnl(trades)
     if cum_buf:
-        story.append(Paragraph("Cumulative P&amp;L", styles["SectionHead"]))
-        story.append(Image(cum_buf, width=width, height=width * 0.3))
-        story.append(Spacer(1, 12))
+        story.append(KeepTogether([
+            Paragraph("Cumulative P&amp;L", styles["SectionHead"]),
+            Image(cum_buf, width=width, height=width * 0.3),
+            Spacer(1, 12),
+        ]))
 
     # P&L distribution
     pnl_buf = _chart_pnl_distribution(trades)
     if pnl_buf:
-        story.append(PageBreak())
-        story.append(Paragraph("P&amp;L &amp; R-Multiple Distribution", styles["SectionHead"]))
-        story.append(Image(pnl_buf, width=width, height=width * 0.35))
-        story.append(Spacer(1, 12))
+        story.append(KeepTogether([
+            Paragraph("P&amp;L &amp; R-Multiple Distribution", styles["SectionHead"]),
+            Image(pnl_buf, width=width, height=width * 0.35),
+            Spacer(1, 12),
+        ]))
 
     # Win/loss + strategy
     wl_buf = _chart_win_loss(metrics)
     if wl_buf:
-        story.append(Paragraph("Win Rate &amp; Strategy Attribution", styles["SectionHead"]))
-        story.append(Image(wl_buf, width=width, height=width * 0.35))
-        story.append(Spacer(1, 12))
+        story.append(KeepTogether([
+            Paragraph("Win Rate &amp; Strategy Attribution", styles["SectionHead"]),
+            Image(wl_buf, width=width, height=width * 0.35),
+            Spacer(1, 12),
+        ]))
 
     # ── R-Distribution table ────────────────────────────────────
     rd = metrics.r_distribution
-    story.append(Paragraph("R-Distribution", styles["SectionHead"]))
     r_data = [
         [_lbl("Mean R"), _val(f"{rd.mean_r:+.2f}"),
          _lbl("Median R"), _val(f"{rd.median_r:+.2f}")],
@@ -499,12 +511,13 @@ def generate_pdf_report(
         ("TOPPADDING", (0, 0), (-1, -1), 4),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
-    story.append(t)
-    story.append(Spacer(1, 12))
+    story.append(KeepTogether([
+        Paragraph("R-Distribution", styles["SectionHead"]),
+        t, Spacer(1, 12),
+    ]))
 
     # ── Streak analysis ─────────────────────────────────────────
     st = metrics.streaks
-    story.append(Paragraph("Streak Analysis", styles["SectionHead"]))
     streak_type = "win" if st.current_streak_type == "win" else "loss"
     streak_data = [
         [_lbl("Max Win Streak"), _val(str(st.max_consecutive_wins)),
@@ -522,8 +535,10 @@ def generate_pdf_report(
         ("TOPPADDING", (0, 0), (-1, -1), 4),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
-    story.append(t)
-    story.append(Spacer(1, 12))
+    story.append(KeepTogether([
+        Paragraph("Streak Analysis", styles["SectionHead"]),
+        t, Spacer(1, 12),
+    ]))
 
     # ── Helper for breakdown table headers (white text on blue) ──
     hdr_style = ParagraphStyle(
@@ -551,7 +566,6 @@ def generate_pdf_report(
 
     # ── Strategy breakdown table ────────────────────────────────
     if metrics.by_strategy:
-        story.append(Paragraph("Strategy Breakdown", styles["SectionHead"]))
         header = [_hdr("Strategy"), _hdr("Trades"), _hdr("Win Rate"),
                   _hdr("PF"), _hdr("Avg R"), _hdr("Total P&amp;L")]
         rows = [header]
@@ -566,12 +580,13 @@ def generate_pdf_report(
             ])
         t = Table(rows, colWidths=breakdown_widths)
         t.setStyle(breakdown_style)
-        story.append(t)
-        story.append(Spacer(1, 12))
+        story.append(KeepTogether([
+            Paragraph("Strategy Breakdown", styles["SectionHead"]),
+            t, Spacer(1, 12),
+        ]))
 
     # ── Regime breakdown table ──────────────────────────────────
     if metrics.by_regime:
-        story.append(Paragraph("Regime Breakdown", styles["SectionHead"]))
         header = [_hdr("Regime"), _hdr("Trades"), _hdr("Win Rate"),
                   _hdr("PF"), _hdr("Avg R"), _hdr("Total P&amp;L")]
         rows = [header]
@@ -586,8 +601,10 @@ def generate_pdf_report(
             ])
         t = Table(rows, colWidths=breakdown_widths)
         t.setStyle(breakdown_style)
-        story.append(t)
-        story.append(Spacer(1, 12))
+        story.append(KeepTogether([
+            Paragraph("Regime Breakdown", styles["SectionHead"]),
+            t, Spacer(1, 12),
+        ]))
 
     # ── Trade log table ─────────────────────────────────────────
     story.append(PageBreak())
