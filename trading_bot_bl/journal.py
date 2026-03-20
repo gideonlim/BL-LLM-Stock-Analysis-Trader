@@ -518,6 +518,35 @@ def detect_closed_trades(
 # ── Migration ─────────────────────────────────────────────────────
 
 
+def _lookup_strategy_from_logs(
+    ticker: str,
+    log_dir: Path,
+) -> str:
+    """Search execution logs for the strategy that placed a trade.
+
+    Scans execution_*.json files (newest first) for a submitted BUY
+    order matching the ticker.  Returns the strategy name, or
+    "unknown" if not found.
+    """
+    try:
+        log_files = sorted(
+            log_dir.glob("execution_*.json"), reverse=True
+        )
+        for f in log_files:
+            data = json.loads(f.read_text())
+            for order in data.get("orders", []):
+                if (
+                    order.get("ticker") == ticker
+                    and order.get("status") == "submitted"
+                    and order.get("side") == "buy"
+                    and order.get("strategy")
+                ):
+                    return order["strategy"]
+    except Exception:
+        pass
+    return "unknown"
+
+
 def migrate_existing_positions(
     positions: dict[str, dict],
     open_orders: list,
@@ -529,7 +558,9 @@ def migrate_existing_positions(
     """Create journal entries for positions that pre-date the journal.
 
     Only creates entries for positions that don't already have a
-    matching journal entry.  Returns count of entries created.
+    matching journal entry.  Attempts to look up the original
+    strategy from execution logs before falling back to "unknown".
+    Returns count of entries created.
     """
     created = 0
     try:
@@ -561,10 +592,14 @@ def migrate_existing_positions(
             trade_id = f"{ticker}_migrated"
             now_iso = datetime.now().isoformat(timespec="seconds")
 
+            # Try to recover strategy name from execution logs
+            log_dir = journal_dir.parent
+            strategy = _lookup_strategy_from_logs(ticker, log_dir)
+
             entry = JournalEntry(
                 trade_id=trade_id,
                 ticker=ticker,
-                strategy="unknown",
+                strategy=strategy,
                 side=side,
                 entry_order_id="migrated",
                 entry_signal_price=avg_entry,

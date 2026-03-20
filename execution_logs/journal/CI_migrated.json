@@ -1,7 +1,7 @@
 {
   "trade_id": "CI_migrated",
   "ticker": "CI",
-  "strategy": "unknown",
+  "strategy": "Z-Score Mean Reversion",
   "side": "long",
   "entry_order_id": "migrated",
   "entry_signal_price": 268.43,

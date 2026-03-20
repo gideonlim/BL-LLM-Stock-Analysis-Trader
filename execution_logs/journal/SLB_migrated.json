@@ -1,7 +1,7 @@
 {
   "trade_id": "SLB_migrated",
   "ticker": "SLB",
-  "strategy": "unknown",
+  "strategy": "VWAP Trend",
   "side": "long",
   "entry_order_id": "migrated",
   "entry_signal_price": 44.83,

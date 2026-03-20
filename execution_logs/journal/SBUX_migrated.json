@@ -1,7 +1,7 @@
 {
   "trade_id": "SBUX_migrated",
   "ticker": "SBUX",
-  "strategy": "unknown",
+  "strategy": "VWAP Trend",
   "side": "long",
   "entry_order_id": "migrated",
   "entry_signal_price": 99.27,

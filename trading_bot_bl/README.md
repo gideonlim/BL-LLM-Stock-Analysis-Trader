@@ -181,36 +181,26 @@ Entry context (signal price, fill price, slippage, VIX, market regime, SPY level
 Once you have closed trades, run the analytics to get:
 
 ```bash
-python3 -c "
-from pathlib import Path
-import json
-from trading_bot_bl.models import JournalEntry, EquitySnapshot
-from trading_bot_bl.journal_analytics import compute_journal_metrics, format_metrics_text
+# Quick text report in terminal
+python -m trading_bot_bl --report
 
-journal_dir = Path('execution_logs/journal')
-equity_file = Path('execution_logs/equity_curve.jsonl')
+# Machine-readable JSON (pipe to jq, scripts, etc.)
+python -m trading_bot_bl --report-json
 
-trades = []
-for f in journal_dir.glob('*.json'):
-    data = json.loads(f.read_text())
-    entry = JournalEntry(**{k: v for k, v in data.items() if hasattr(JournalEntry, k)})
-    if entry.status == 'closed':
-        trades.append(entry)
+# PDF report with charts and tables
+python -m trading_bot_bl --report-pdf                          # default: execution_logs/report_YYYY-MM-DD.pdf
+python -m trading_bot_bl --report-pdf my_report.pdf            # custom path
 
-snapshots = []
-if equity_file.exists():
-    for line in equity_file.read_text().strip().splitlines():
-        snapshots.append(EquitySnapshot(**json.loads(line)))
-
-if trades:
-    metrics = compute_journal_metrics(trades, snapshots)
-    print(format_metrics_text(metrics))
-else:
-    print('No closed trades yet.')
-"
+# CSV export of all closed trades (for Excel, Google Sheets, etc.)
+python -m trading_bot_bl --report-csv                          # default: execution_logs/trades_YYYY-MM-DD.csv
+python -m trading_bot_bl --report-csv trades.csv               # custom path
 ```
 
-This outputs: Sharpe/Sortino/Calmar ratios, Probabilistic Sharpe Ratio (PSR), profit factor, expectancy, win rate, R-distribution with skewness, edge ratio analysis, MFE/MAE excursion stats, streak analysis, strategy-level attribution, and regime-segmented breakdowns (bull/bear/neutral).
+The text/JSON report outputs: Sharpe/Sortino/Calmar ratios, Probabilistic Sharpe Ratio (PSR), profit factor, expectancy, win rate, R-distribution with skewness, edge ratio analysis, MFE/MAE excursion stats, streak analysis, strategy-level attribution, and regime-segmented breakdowns (bull/bear/neutral).
+
+The PDF report includes all the above plus charts: equity curve with drawdown shading, cumulative P&L, per-trade P&L and R-multiple bar charts, win/loss pie chart, strategy P&L attribution, and full trade log table.
+
+Journal data is skipped entirely during `--dry-run` so simulated runs never pollute real performance data.
 
 ## CLI Flags
 
@@ -221,6 +211,10 @@ This outputs: Sharpe/Sortino/Calmar ratios, Probabilistic Sharpe Ratio (PSR), pr
 | `--dry-run` | Log orders without submitting |
 | `--live` | Use live trading instead of paper |
 | `--log-dir PATH` | Where to write execution logs (default: `execution_logs`) |
+| `--report` | Print text performance report (no orders placed) |
+| `--report-json` | Print JSON performance report (no orders placed) |
+| `--report-pdf [PATH]` | Generate PDF report with charts (default: `execution_logs/report_YYYY-MM-DD.pdf`) |
+| `--report-csv [PATH]` | Export closed trades as CSV (default: `execution_logs/trades_YYYY-MM-DD.csv`) |
 | `--monitor-only` | Only check existing positions, no new orders |
 | `--reset-history` | Archive old execution logs for clean history |
 | `--no-bl` | Disable Black-Litterman, use marginal Sharpe fallback |
@@ -295,6 +289,7 @@ trading_bot_bl/
 ├── journal.py               # Trade journal lifecycle (create, resolve, close, migrate)
 ├── equity_curve.py          # Equity snapshot recording (JSONL append-only)
 ├── journal_analytics.py     # Performance analytics (Sharpe, PSR, R-dist, regime breakdown)
+├── journal_report.py        # PDF report generator with charts + CSV export
 ├── cli.py                   # CLI entry point with BL/LLM flags
 ├── __main__.py              # Enables `python -m trading_bot_bl`
 ├── test_journal.py          # Tests for journal + analytics (33 tests)

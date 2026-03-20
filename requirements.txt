@@ -15,3 +15,9 @@ python-dotenv>=1.0
 # LLM views (optional — only needed with --llm-views):
 anthropic>=0.40.0      # optional, for Claude LLM views
 # openai>=1.0.0        # optional, alternative LLM provider
+
+# ── Journal & PDF Reports ────────────────────────
+# Core journal: no extra deps (uses stdlib json/dataclasses)
+# PDF reports (optional — only needed with --report-pdf):
+reportlab>=4.0         # PDF generation
+matplotlib>=3.7        # chart rendering for PDF reports

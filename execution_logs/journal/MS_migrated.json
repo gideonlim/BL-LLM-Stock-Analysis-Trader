@@ -1,7 +1,7 @@
 {
   "trade_id": "MS_migrated",
   "ticker": "MS",
-  "strategy": "unknown",
+  "strategy": "VWAP Trend",
   "side": "long",
   "entry_order_id": "migrated",
   "entry_signal_price": 156.86,

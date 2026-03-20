@@ -5,10 +5,10 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from trading_bot_bl.config import TradingConfig
-from trading_bot_bl.executor import execute, write_execution_log
 
 log = logging.getLogger(__name__)
 
@@ -44,6 +44,106 @@ def _archive_logs(log_dir: Path) -> None:
         "Strategy history has been reset. "
         "The bot will start fresh."
     )
+
+
+def _run_report(log_dir: Path, as_json: bool = False) -> None:
+    """Load journal data and print performance analytics."""
+    import json as _json
+    from dataclasses import fields as dc_fields
+
+    from trading_bot_bl.models import JournalEntry, EquitySnapshot
+    from trading_bot_bl.journal_analytics import (
+        compute_journal_metrics,
+        format_metrics_text,
+    )
+
+    journal_dir = log_dir / "journal"
+    equity_file = log_dir / "equity_curve.jsonl"
+
+    # Build set of valid field names from the dataclass definition
+    # (hasattr misses required fields that have no default)
+    _journal_fields = {f.name for f in dc_fields(JournalEntry)}
+
+    # ── Load closed trades ──────────────────────────────────────
+    trades: list[JournalEntry] = []
+    pending_count = 0
+    open_count = 0
+
+    if journal_dir.exists():
+        for f in sorted(journal_dir.glob("*.json")):
+            try:
+                data = _json.loads(f.read_text())
+                entry = JournalEntry(
+                    **{
+                        k: v
+                        for k, v in data.items()
+                        if k in _journal_fields
+                    }
+                )
+                if entry.status == "closed":
+                    trades.append(entry)
+                elif entry.status == "open":
+                    open_count += 1
+                elif entry.status == "pending":
+                    pending_count += 1
+            except Exception as exc:
+                log.debug(f"Skipping {f.name}: {exc}")
+
+    # ── Load equity snapshots ───────────────────────────────────
+    snapshots: list[EquitySnapshot] = []
+    if equity_file.exists():
+        for line in equity_file.read_text().strip().splitlines():
+            if line.strip():
+                try:
+                    snapshots.append(
+                        EquitySnapshot(**_json.loads(line))
+                    )
+                except Exception:
+                    pass
+
+    # ── Print summary header ────────────────────────────────────
+    log.info(f"{'=' * 60}")
+    log.info("  TRADE JOURNAL REPORT")
+    log.info(f"{'=' * 60}")
+    log.info(
+        f"  Closed trades: {len(trades)}  |  "
+        f"Open: {open_count}  |  "
+        f"Pending: {pending_count}"
+    )
+    log.info(f"  Equity snapshots: {len(snapshots)}")
+
+    if snapshots:
+        first = snapshots[0]
+        last = snapshots[-1]
+        log.info(
+            f"  Tracking period: {first.timestamp[:10]} "
+            f"to {last.timestamp[:10]}"
+        )
+        log.info(
+            f"  Starting equity: ${first.equity:,.2f}  |  "
+            f"Current: ${last.equity:,.2f}  |  "
+            f"Drawdown: {last.drawdown_pct:.2f}%  |  "
+            f"HWM: ${last.high_water_mark:,.2f}"
+        )
+    log.info(f"{'=' * 60}")
+
+    if not trades:
+        log.info(
+            "  No closed trades yet. Run the bot and let some "
+            "trades complete before generating a report."
+        )
+        log.info(f"{'=' * 60}\n")
+        return
+
+    # ── Compute and display ─────────────────────────────────────
+    metrics = compute_journal_metrics(trades, snapshots)
+
+    if as_json:
+        from dataclasses import asdict
+        print(_json.dumps(asdict(metrics), indent=2, default=str))
+    else:
+        log.info(format_metrics_text(metrics))
+        log.info(f"{'=' * 60}\n")
 
 
 def _run_monitor_only(
@@ -179,6 +279,48 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--report",
+        action="store_true",
+        help=(
+            "Show trade journal performance report. "
+            "Loads all closed trades and equity snapshots, "
+            "computes analytics (Sharpe, win rate, P&L, etc.), "
+            "and prints a summary. No orders are placed."
+        ),
+    )
+    parser.add_argument(
+        "--report-json",
+        action="store_true",
+        help=(
+            "Same as --report but outputs machine-readable JSON "
+            "instead of formatted text."
+        ),
+    )
+    parser.add_argument(
+        "--report-pdf",
+        type=str,
+        nargs="?",
+        const="",
+        default=None,
+        help=(
+            "Generate a PDF performance report with charts. "
+            "Optionally provide an output path "
+            "(default: execution_logs/report_YYYY-MM-DD.pdf)."
+        ),
+    )
+    parser.add_argument(
+        "--report-csv",
+        type=str,
+        nargs="?",
+        const="",
+        default=None,
+        help=(
+            "Export all closed trades as CSV. "
+            "Optionally provide an output path "
+            "(default: execution_logs/trades_YYYY-MM-DD.csv)."
+        ),
+    )
+    parser.add_argument(
         "--no-bl",
         action="store_true",
         help=(
@@ -297,12 +439,45 @@ def main() -> None:
     if args.reset_history:
         _archive_logs(execution_log_dir)
 
+    # ── Report mode ────────────────────────────────────────────────
+    if args.report or args.report_json:
+        _run_report(
+            execution_log_dir, as_json=args.report_json
+        )
+        return
+
+    if args.report_pdf is not None:
+        from trading_bot_bl.journal_report import generate_pdf_report
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        pdf_path = (
+            Path(args.report_pdf)
+            if args.report_pdf
+            else execution_log_dir / f"report_{date_str}.pdf"
+        )
+        generate_pdf_report(execution_log_dir, pdf_path)
+        log.info(f"  PDF report: {pdf_path}")
+        return
+
+    if args.report_csv is not None:
+        from trading_bot_bl.journal_report import generate_csv_export
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        csv_path = (
+            Path(args.report_csv)
+            if args.report_csv
+            else execution_log_dir / f"trades_{date_str}.csv"
+        )
+        generate_csv_export(execution_log_dir, csv_path)
+        log.info(f"  CSV export: {csv_path}")
+        return
+
     # ── Monitor-only mode ─────────────────────────────────────────
     if args.monitor_only:
         _run_monitor_only(config, execution_log_dir)
         return
 
     # ── Execute ───────────────────────────────────────────────────
+    from trading_bot_bl.executor import execute, write_execution_log
+
     results = execute(config, log_dir=execution_log_dir)
 
     # ── Log results ───────────────────────────────────────────────
