@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -15,8 +16,6 @@ log = logging.getLogger(__name__)
 
 def _archive_logs(log_dir: Path) -> None:
     """Move existing execution logs to an archive subdirectory."""
-    import shutil
-
     if not log_dir.exists():
         log.info("No execution logs to archive.")
         return
