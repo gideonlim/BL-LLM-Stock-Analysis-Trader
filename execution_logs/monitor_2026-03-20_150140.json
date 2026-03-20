@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-03-20T15:01:40",
+  "positions_checked": 6,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "SLB",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "SLB up 6.3% \u2014 moving SL to breakeven $44.83 (was $0.00)",
+      "action_taken": "SL moved to breakeven $44.83",
+      "current_price": 47.64,
+      "entry_price": 44.83,
+      "pnl_pct": 6.27,
+      "timestamp": "2026-03-20T15:01:40"
+    }
+  ]
+}
