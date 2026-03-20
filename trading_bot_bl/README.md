@@ -188,17 +188,17 @@ python -m trading_bot_bl --report
 python -m trading_bot_bl --report-json
 
 # PDF report with charts and tables
-python -m trading_bot_bl --report-pdf                          # default: execution_logs/report_YYYY-MM-DD.pdf
+python -m trading_bot_bl --report-pdf                          # default: reports/performance/report_YYYY-MM-DD.pdf
 python -m trading_bot_bl --report-pdf my_report.pdf            # custom path
 
 # CSV export of all closed trades (for Excel, Google Sheets, etc.)
-python -m trading_bot_bl --report-csv                          # default: execution_logs/trades_YYYY-MM-DD.csv
+python -m trading_bot_bl --report-csv                          # default: reports/trades_YYYY-MM-DD.csv
 python -m trading_bot_bl --report-csv trades.csv               # custom path
 ```
 
 The text/JSON report outputs: Sharpe/Sortino/Calmar ratios, Probabilistic Sharpe Ratio (PSR), profit factor, expectancy, win rate, R-distribution with skewness, edge ratio analysis, MFE/MAE excursion stats, streak analysis, strategy-level attribution, and regime-segmented breakdowns (bull/bear/neutral).
 
-The PDF report includes all the above plus charts: equity curve with drawdown shading, cumulative P&L, per-trade P&L and R-multiple bar charts, win/loss pie chart, strategy P&L attribution, and full trade log table.
+The PDF report includes all the above plus charts: equity curve with drawdown shading (with interpolated crossover precision), cumulative P&L, per-trade P&L and R-multiple bar charts, win/loss pie chart, strategy P&L attribution, and full trade log table. Reports are saved to the `reports/` folder by default and page sections are kept together — no orphaned headers or tables split across page breaks.
 
 Journal data is skipped entirely during `--dry-run` so simulated runs never pollute real performance data.
 
@@ -213,8 +213,8 @@ Journal data is skipped entirely during `--dry-run` so simulated runs never poll
 | `--log-dir PATH` | Where to write execution logs (default: `execution_logs`) |
 | `--report` | Print text performance report (no orders placed) |
 | `--report-json` | Print JSON performance report (no orders placed) |
-| `--report-pdf [PATH]` | Generate PDF report with charts (default: `execution_logs/report_YYYY-MM-DD.pdf`) |
-| `--report-csv [PATH]` | Export closed trades as CSV (default: `execution_logs/trades_YYYY-MM-DD.csv`) |
+| `--report-pdf [PATH]` | Generate PDF report with charts (default: `reports/report_YYYY-MM-DD.pdf`) |
+| `--report-csv [PATH]` | Export closed trades as CSV (default: `reports/trades_YYYY-MM-DD.csv`) |
 | `--monitor-only` | Only check existing positions, no new orders |
 | `--reset-history` | Archive old execution logs for clean history |
 | `--no-bl` | Disable Black-Litterman, use marginal Sharpe fallback |
@@ -298,11 +298,12 @@ trading_bot_bl/
 
 ## GitHub Actions
 
-Three workflows automate the full pipeline on weekday market hours:
+Four workflows automate the full pipeline on weekday market hours, plus a weekly report:
 
-1. **generate_signals.yml** — 9:00 AM ET: runs `quant_bot.py --all-stocks --top-n 200`, commits signals
-2. **execute_trades.yml** — 10:15 AM ET: pulls latest signals, runs `python -m trading_bot_bl`, commits logs
-3. **monitor_positions.yml** — 10 AM, 12 PM, 2 PM ET: runs `--monitor-only`, uploads logs
+1. **generate_signals.yml** — 9:00 AM ET weekdays: runs `quant_bot.py --all-stocks --top-n 200`, commits signals
+2. **execute_trades.yml** — 10:15 AM ET weekdays: pulls latest signals, runs `python -m trading_bot_bl`, commits logs
+3. **monitor_positions.yml** — 10 AM, 12 PM, 2 PM ET weekdays: runs `--monitor-only`, uploads logs
+4. **weekly_report.yml** — 8:00 AM ET every Sunday: generates both PDF and CSV reports into `reports/`, commits them to the repo and uploads as a 90-day workflow artifact (no Alpaca credentials required)
 
 ### Required Secrets
 - `ALPACA_API_KEY`, `ALPACA_API_SECRET`
