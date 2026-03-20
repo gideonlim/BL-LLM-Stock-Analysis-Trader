@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from typing import Optional
 
 import numpy as np
@@ -66,8 +67,6 @@ def fetch_returns_matrix(
 
     if not tickers:
         return pd.DataFrame()
-
-    from datetime import datetime, timedelta
 
     end = datetime.now()
     start = end - timedelta(days=lookback_days + 30)  # buffer for weekends

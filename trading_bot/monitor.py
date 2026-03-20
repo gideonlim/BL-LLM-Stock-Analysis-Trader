@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 
 from trading_bot.broker import AlpacaBroker
 from trading_bot.config import RiskLimits
@@ -552,11 +555,7 @@ def write_monitor_log(
     log_dir: Path,
 ) -> Path:
     """Write monitor results to a JSON log file."""
-    import json
-    from datetime import datetime
-    from pathlib import Path as P
-
-    log_dir = P(log_dir)
+    log_dir = Path(log_dir)
     log_dir.mkdir(parents=True, exist_ok=True)
     date_str = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     path = log_dir / f"monitor_{date_str}.json"
