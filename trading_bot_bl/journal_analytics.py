@@ -11,7 +11,7 @@ import logging
 import math
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from trading_bot_bl.models import EquitySnapshot, JournalEntry
@@ -1068,10 +1068,8 @@ def _norm_ppf(p: float) -> float:
 
 def _days_between(date_a: str, date_b: str) -> int:
     """Days between two ISO date strings."""
-    from datetime import date as dt_date
-
     a = date_a[:10]
     b = date_b[:10]
-    da = dt_date.fromisoformat(a)
-    db = dt_date.fromisoformat(b)
+    da = date.fromisoformat(a)
+    db = date.fromisoformat(b)
     return (db - da).days

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import urllib.request
 from datetime import datetime
 from typing import Dict, List
 
@@ -31,8 +32,6 @@ _BUNDLED_TICKERS_FILE = os.path.join(
 
 def _fetch_wiki_html(url: str) -> str:
     """Fetch HTML from Wikipedia with a proper User-Agent."""
-    import urllib.request
-
     req = urllib.request.Request(
         url,
         headers={
