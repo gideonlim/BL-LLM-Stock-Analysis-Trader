@@ -8,6 +8,7 @@ from datetime import date
 from typing import Optional
 
 from trading_bot_bl.config import RiskLimits
+from trading_bot_bl.earnings import check_earnings_blackout
 from trading_bot_bl.history import TradeHistory
 from trading_bot_bl.models import OrderIntent, PortfolioSnapshot, Signal
 
@@ -35,9 +36,76 @@ class RiskManager:
     # Set by the executor from the MarketSentiment module.
     sentiment_size_multiplier: float = 1.0
 
+    # SPY trend regime — set by executor from SpyRegime.
+    # Overrides max_positions and min_composite_score when active.
+    spy_trend_regime: str = "BULL"
+
+    # Regime-adjusted limits (set by apply_spy_regime_overrides).
+    # These shadow the base limits during CAUTION/BEAR/SEVERE_BEAR.
+    _effective_max_positions: int = field(default=0, init=False)
+    _effective_min_composite: float = field(default=0.0, init=False)
+
     _circuit_breaker_tripped: bool = field(
         default=False, init=False
     )
+
+    def __post_init__(self) -> None:
+        # Start with base limits; apply_spy_regime_overrides
+        # will tighten them if needed.
+        self._effective_max_positions = self.limits.max_positions
+        self._effective_min_composite = (
+            self.limits.min_composite_score
+        )
+
+    def apply_spy_regime_overrides(
+        self,
+        *,
+        bear_max_positions: int = 4,
+        bear_min_composite: float = 30.0,
+        caution_max_positions: int = 6,
+        caution_min_composite: float = 22.0,
+    ) -> None:
+        """Tighten risk limits based on the current SPY trend regime.
+
+        Called by the executor after constructing the RiskManager.
+        Does nothing if regime is BULL.
+        """
+        regime = self.spy_trend_regime
+        if regime == "SEVERE_BEAR":
+            # Hard halt — set max positions to 0
+            self._effective_max_positions = 0
+            self._effective_min_composite = 999.0
+            log.warning(
+                "SPY SEVERE_BEAR: halting all new entries "
+                "(drawdown exceeds threshold)"
+            )
+        elif regime == "BEAR":
+            self._effective_max_positions = min(
+                self.limits.max_positions, bear_max_positions
+            )
+            self._effective_min_composite = max(
+                self.limits.min_composite_score,
+                bear_min_composite,
+            )
+            log.info(
+                f"SPY BEAR regime active: max_positions="
+                f"{self._effective_max_positions}, "
+                f"min_composite={self._effective_min_composite}"
+            )
+        elif regime == "CAUTION":
+            self._effective_max_positions = min(
+                self.limits.max_positions, caution_max_positions
+            )
+            self._effective_min_composite = max(
+                self.limits.min_composite_score,
+                caution_min_composite,
+            )
+            log.info(
+                f"SPY CAUTION regime active: max_positions="
+                f"{self._effective_max_positions}, "
+                f"min_composite={self._effective_min_composite}"
+            )
+        # BULL: keep base limits (already set in __post_init__)
 
     def check_circuit_breaker(
         self, portfolio: PortfolioSnapshot
@@ -64,15 +132,25 @@ class RiskManager:
         """
         Check if a signal meets minimum quality thresholds.
         Returns rejection reason or None if OK.
+
+        Uses regime-adjusted min_composite_score when SPY trend
+        filter is active (CAUTION/BEAR raise the bar).
         """
         if signal.signal in ("HOLD", "ERROR"):
             if self.limits.skip_hold_signals:
                 return f"Signal is {signal.signal} — skipped"
 
-        if signal.composite_score < self.limits.min_composite_score:
+        effective_min = self._effective_min_composite
+        if signal.composite_score < effective_min:
+            regime_note = ""
+            if effective_min > self.limits.min_composite_score:
+                regime_note = (
+                    f" [SPY {self.spy_trend_regime}: raised from "
+                    f"{self.limits.min_composite_score}]"
+                )
             return (
                 f"Composite score {signal.composite_score} "
-                f"< min {self.limits.min_composite_score}"
+                f"< min {effective_min}{regime_note}"
             )
 
         if signal.confidence_score < self.limits.min_confidence_score:
@@ -97,6 +175,38 @@ class RiskManager:
                 f"— unreliable signal"
             )
 
+        # PBO overfitting check (CSCV)
+        if (
+            self.limits.max_pbo < 1.0
+            and hasattr(signal, "pbo")
+            and signal.pbo >= 0
+        ):
+            if signal.pbo > self.limits.max_pbo:
+                return (
+                    f"PBO {signal.pbo:.0%} exceeds max "
+                    f"{self.limits.max_pbo:.0%} — likely overfit"
+                )
+
+        return None
+
+    def check_earnings_blackout(self, ticker: str) -> str | None:
+        """
+        Check if a ticker is in earnings blackout.
+        Returns rejection reason or None if OK.
+
+        Uses configurable pre/post day windows. Gracefully
+        degrades if yfinance data is unavailable (returns None).
+        """
+        try:
+            info = check_earnings_blackout(
+                ticker,
+                pre_days=self.limits.earnings_blackout_pre_days,
+                post_days=self.limits.earnings_blackout_post_days,
+            )
+            if info.in_blackout:
+                return info.blackout_reason
+        except Exception as e:
+            log.debug(f"Earnings check failed for {ticker}: {e}")
         return None
 
     def check_strategy_history(
@@ -179,17 +289,38 @@ class RiskManager:
                 reason="Daily loss circuit breaker is active",
             )
 
-        # ── Max positions ─────────────────────────────────────────
+        # ── SPY regime hard halt ──────────────────────────────────
         if (
             intent.side == "buy"
-            and self.limits.max_positions > 0
-            and len(portfolio.positions) >= self.limits.max_positions
+            and self.spy_trend_regime == "SEVERE_BEAR"
         ):
             return RiskVerdict(
                 approved=False,
                 reason=(
+                    "SEVERE_BEAR: SPY drawdown exceeds threshold "
+                    "— all new entries halted"
+                ),
+            )
+
+        # ── Max positions (regime-adjusted) ─────────────────────
+        if (
+            intent.side == "buy"
+            and self._effective_max_positions > 0
+            and len(portfolio.positions)
+            >= self._effective_max_positions
+        ):
+            regime_note = ""
+            if self._effective_max_positions < self.limits.max_positions:
+                regime_note = (
+                    f" [SPY {self.spy_trend_regime}: reduced from "
+                    f"{self.limits.max_positions}]"
+                )
+            return RiskVerdict(
+                approved=False,
+                reason=(
                     f"Already at {len(portfolio.positions)} positions "
-                    f"(max {self.limits.max_positions})"
+                    f"(max {self._effective_max_positions})"
+                    f"{regime_note}"
                 ),
             )
 
@@ -215,6 +346,19 @@ class RiskManager:
             return RiskVerdict(
                 approved=False, reason=quality_issue
             )
+
+        # ── Earnings blackout ────────────────────────────────────
+        if (
+            intent.side == "buy"
+            and self.limits.earnings_blackout_enabled
+        ):
+            earnings_issue = self.check_earnings_blackout(
+                intent.ticker
+            )
+            if earnings_issue:
+                return RiskVerdict(
+                    approved=False, reason=earnings_issue
+                )
 
         # ── Strategy history check ────────────────────────────────
         history_issue = self.check_strategy_history(intent)

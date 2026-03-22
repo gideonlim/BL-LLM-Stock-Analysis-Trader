@@ -53,6 +53,8 @@ class BacktestResult:
     avg_loss_pct: float = 0.0
     profit_factor: float = 0.0
     avg_holding_days: float = 0.0
+    # CSCV overfitting probability (0-1, lower = better)
+    pbo: float = -1.0           # -1 means not computed
 
 
 @dataclass
@@ -92,6 +94,7 @@ class DailySignal:
     avg_holding_days: float
     total_trades: int
     backtest_period: str     # "2025-03-11 to 2026-03-11 (252 days)"
+    pbo: float               # CSCV probability of overfitting (-1 = not computed)
 
     # ── Market context ────────────────────────────────────────────────
     rsi: float

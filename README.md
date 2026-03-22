@@ -8,7 +8,7 @@ A two-stage system: (1) a quant analysis bot that backtests 11 trading strategie
 pip install -r requirements.txt
 
 # Step 1: Generate signals
-python quant_bot.py --all-stocks --top-n 200
+python -m quant_analysis_bot --all-stocks --top-n 200
 
 # Step 2: Execute trades (configure trading_bot_bl/.env first)
 python -m trading_bot_bl --dry-run    # preview orders
@@ -27,13 +27,13 @@ To analyze the top US stocks by market cap instead of a fixed list:
 
 ```bash
 # Scan top 1000 US stocks (default)
-python quant_bot.py --all-stocks
+python -m quant_analysis_bot --all-stocks
 
 # Scan top 100 only (faster)
-python quant_bot.py --all-stocks --top-n 100
+python -m quant_analysis_bot --all-stocks --top-n 100
 
 # Scan top 500
-python quant_bot.py --all-stocks --top-n 500
+python -m quant_analysis_bot --all-stocks --top-n 500
 ```
 
 The `--all-stocks` flag pulls S&P 500, S&P MidCap 400, and S&P SmallCap 600 tickers from Wikipedia, fetches their market caps via Yahoo Finance, sorts them, and takes the top N. Results are cached for the day so the first run takes a few minutes but subsequent runs are instant. A progress bar with ETA is shown throughout.
@@ -56,11 +56,11 @@ The bot defaults to **long-only mode**, which means SELL signals exit your posit
 
 ```bash
 # Long-only (default) -- SELL means "exit to cash"
-python quant_bot.py
-python quant_bot.py --long-only
+python -m quant_analysis_bot
+python -m quant_analysis_bot --long-only
 
 # Long+Short mode -- SELL means "open a short position"
-python quant_bot.py --long-short
+python -m quant_analysis_bot --long-short
 ```
 
 In long-only mode, signals are **BUY / EXIT / HOLD**. In long+short mode, signals are **BUY / SELL/SHORT / HOLD**. Backtest results will differ between modes since long-only skips short trades entirely, giving you honest numbers for how the strategy performs without shorting.
@@ -103,16 +103,16 @@ Each run creates three types of output:
 
 ```bash
 # Use a custom config file
-python quant_bot.py --config my_config.json
+python -m quant_analysis_bot --config my_config.json
 
 # Override which stocks to analyze
-python quant_bot.py --tickers TSLA AMZN MSFT
+python -m quant_analysis_bot --tickers TSLA AMZN MSFT
 
 # Change risk profile
-python quant_bot.py --risk aggressive
+python -m quant_analysis_bot --risk aggressive
 
 # Scan top 200 US stocks in long-short mode
-python quant_bot.py --all-stocks --top-n 200 --long-short
+python -m quant_analysis_bot --all-stocks --top-n 200 --long-short
 ```
 
 ### Config File

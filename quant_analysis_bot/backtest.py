@@ -53,7 +53,7 @@ def run_backtest(
     df = df.dropna(subset=["Close"])
 
     if len(df) < 30:
-        return result, trade_log
+        return result, trade_log, np.array([])
 
     dates = df.index
     close = df["Close"].values
@@ -154,7 +154,7 @@ def run_backtest(
     returns_arr = np.array(daily_returns)
 
     if len(returns_arr) == 0:
-        return result, trade_log
+        return result, trade_log, np.array([])
 
     n_days = len(returns_arr)
 
@@ -234,7 +234,7 @@ def run_backtest(
             np.mean([t["holding_days"] for t in trades_raw]), 1
         )
 
-    return result, trade_log
+    return result, trade_log, returns_arr
 
 
 # ── Normal distribution helpers (pure numpy, no scipy) ────────────────
@@ -525,7 +525,7 @@ def select_best_strategy(
                 val_df = window_df.iloc[val_start_idx:].copy()
                 val_signals = signals.iloc[val_start_idx:]
 
-                result, trade_log = run_backtest(
+                result, trade_log, strat_returns = run_backtest(
                     val_df,
                     val_signals,
                     ticker,
@@ -536,11 +536,12 @@ def select_best_strategy(
                     next_bar_execution=use_next_bar,
                 )
 
-                # Compute return series for DSR skew/kurtosis
-                val_close = val_df["Close"].values
-                returns_for_dsr = None
-                if len(val_close) > 10:
-                    returns_for_dsr = np.diff(val_close) / val_close[:-1]
+                # Strategy return stream for DSR skew/kurtosis
+                returns_for_dsr = (
+                    strat_returns
+                    if len(strat_returns) > 10
+                    else None
+                )
 
                 sc = score_single_window(
                     result,

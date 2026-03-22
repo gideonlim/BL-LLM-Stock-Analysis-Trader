@@ -1,4 +1,4 @@
-"""Market-wide sentiment indicators — VIX, put/call ratio.
+"""Market-wide sentiment indicators — VIX, put/call ratio, SPY trend.
 
 Provides a portfolio-level sentiment regime that modifies position
 sizing and risk thresholds.  All data comes from yfinance (free),
@@ -13,16 +13,21 @@ Design notes
   (VIX > 30, P/C > 1.0) historically marks bottoms → *widen* the
   size multiplier.  Extreme greed (VIX < 15, P/C < 0.6) often
   precedes corrections → *shrink* the size multiplier.
-* The module never blocks a trade — it only *scales* position
-  notional.  The risk manager still enforces hard limits.
-* Graceful degradation: if yfinance fails, the module returns a
-  neutral sentiment (multiplier = 1.0) so trading continues.
+* **SPY trend regime (bear market filter).**  Separate from the
+  contrarian VIX module.  When SPY is below its 200-day SMA for
+  ≥3 consecutive days, we flag a BEAR regime.  This *reduces*
+  exposure (fewer positions, tighter quality bar) rather than
+  sizing up contrarian-style.  A 15% drawdown from 52-week high
+  triggers a hard halt on new entries.
+* The VIX module never blocks a trade — it only *scales* position
+  notional.  The SPY regime filter *can* block trades via the risk
+  manager.  Both gracefully degrade to neutral on data failure.
 """
 
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -30,6 +35,47 @@ log = logging.getLogger(__name__)
 
 # ── Lookback for z-score normalisation (trading days) ────────
 _LOOKBACK_DAYS = 252  # ~1 year
+
+
+@dataclass(frozen=True)
+class SpyRegime:
+    """SPY trend-based regime detection for bear market filtering.
+
+    Unlike the VIX sentiment (contrarian — buys more during fear),
+    this is a *trend-following* filter: when SPY is in a sustained
+    downtrend, we reduce exposure because a long-only strategy
+    underperforms in bear markets.
+    """
+
+    # Current SPY price and 200-day SMA
+    spy_price: float = 0.0
+    spy_sma200: float = 0.0
+
+    # How far SPY is from its 200-SMA (negative = below)
+    spy_vs_sma200_pct: float = 0.0
+
+    # Number of consecutive trading days SPY closed below 200-SMA
+    days_below_sma200: int = 0
+
+    # 200-SMA slope (annualised % change, 20-day window)
+    sma200_slope_ann_pct: float = 0.0
+
+    # SPY drawdown from 52-week high
+    spy_drawdown_pct: float = 0.0
+
+    # Regime label
+    trend_regime: str = "BULL"  # BULL / CAUTION / BEAR / SEVERE_BEAR
+
+    def summary(self) -> str:
+        return (
+            f"SPY=${self.spy_price:.2f}, "
+            f"SMA200=${self.spy_sma200:.2f} "
+            f"({self.spy_vs_sma200_pct:+.1f}%), "
+            f"days_below={self.days_below_sma200}, "
+            f"slope={self.sma200_slope_ann_pct:+.1f}%/yr, "
+            f"dd={self.spy_drawdown_pct:.1f}%, "
+            f"trend={self.trend_regime}"
+        )
 
 
 @dataclass(frozen=True)
@@ -53,15 +99,20 @@ class MarketSentiment:
     # Position-size multiplier produced by the regime
     size_multiplier: float = 1.0
 
+    # SPY trend regime (bear market filter)
+    spy_regime: SpyRegime = field(default_factory=SpyRegime)
+
     def summary(self) -> str:
-        return (
-            f"VIX={self.vix:.1f} (z={self.vix_z:+.2f}), "
+        parts = [
+            f"VIX={self.vix:.1f} (z={self.vix_z:+.2f})",
             f"P/C={self.put_call_ratio:.2f} "
-            f"(z={self.put_call_z:+.2f}), "
-            f"MSI={self.msi:+.2f}, "
-            f"regime={self.regime}, "
-            f"size_mult={self.size_multiplier:.2f}"
-        )
+            f"(z={self.put_call_z:+.2f})",
+            f"MSI={self.msi:+.2f}",
+            f"regime={self.regime}",
+            f"size_mult={self.size_multiplier:.2f}",
+            f"trend={self.spy_regime.trend_regime}",
+        ]
+        return ", ".join(parts)
 
 
 # ── Public API ───────────────────────────────────────────────
@@ -74,8 +125,10 @@ def fetch_market_sentiment(
     greed_pc: float = 0.6,
     fear_size_mult: float = 1.15,
     greed_size_mult: float = 0.85,
+    spy_bear_confirmation_days: int = 3,
+    spy_severe_drawdown_pct: float = 15.0,
 ) -> MarketSentiment:
-    """Fetch live VIX + put/call ratio and compute sentiment.
+    """Fetch live VIX + put/call ratio + SPY trend and compute sentiment.
 
     Parameters
     ----------
@@ -89,6 +142,12 @@ def fetch_market_sentiment(
     greed_size_mult : float
         Position-size multiplier during extreme greed (defensive:
         we *decrease* size because greed precedes corrections).
+    spy_bear_confirmation_days : int
+        Number of consecutive days SPY must close below 200-SMA
+        to confirm a BEAR regime (avoids whipsaws).
+    spy_severe_drawdown_pct : float
+        SPY drawdown from 52-week high that triggers SEVERE_BEAR
+        (halts all new entries).
 
     Returns
     -------
@@ -116,6 +175,12 @@ def fetch_market_sentiment(
         greed_size_mult=greed_size_mult,
     )
 
+    # SPY trend regime (bear market filter)
+    spy_regime = fetch_spy_regime(
+        confirmation_days=spy_bear_confirmation_days,
+        severe_drawdown_pct=spy_severe_drawdown_pct,
+    )
+
     sent = MarketSentiment(
         vix=vix,
         vix_z=vix_z,
@@ -124,10 +189,119 @@ def fetch_market_sentiment(
         msi=msi,
         regime=regime,
         size_multiplier=size_mult,
+        spy_regime=spy_regime,
     )
 
     log.info(f"  Market sentiment: {sent.summary()}")
+    if spy_regime.trend_regime != "BULL":
+        log.info(f"  SPY trend detail: {spy_regime.summary()}")
     return sent
+
+
+def fetch_spy_regime(
+    *,
+    confirmation_days: int = 3,
+    severe_drawdown_pct: float = 15.0,
+) -> SpyRegime:
+    """Fetch SPY price data and classify the trend regime.
+
+    Tiered classification:
+
+    * **BULL** — SPY above 200-SMA, or below for < *confirmation_days*.
+      No restrictions.
+    * **CAUTION** — 200-SMA slope is negative (declining trend) but
+      SPY is still above the SMA.  Early warning: tighten quality bar.
+    * **BEAR** — SPY closed below 200-SMA for ≥ *confirmation_days*
+      consecutively.  Reduce max positions and raise min score.
+    * **SEVERE_BEAR** — SPY drawdown from 52-week high ≥
+      *severe_drawdown_pct*.  Halt all new entries.
+
+    On any data failure, returns a neutral BULL default so the
+    trading pipeline continues without restriction.
+    """
+    try:
+        import yfinance as yf
+
+        data = yf.download(
+            "SPY",
+            period="18mo",
+            progress=False,
+            auto_adjust=True,
+        )
+        if data.empty or len(data) < 210:
+            log.warning("SPY data insufficient for 200-SMA — using BULL")
+            return SpyRegime()
+
+        closes = data["Close"].dropna().values.flatten()
+
+        # Current price
+        spy_price = float(closes[-1])
+
+        # 200-day simple moving average
+        sma200 = float(np.mean(closes[-200:]))
+
+        # % distance from SMA
+        vs_sma_pct = (spy_price - sma200) / sma200 * 100
+
+        # Consecutive days below 200-SMA (count backwards)
+        days_below = 0
+        sma_series = np.convolve(
+            closes, np.ones(200) / 200, mode="valid"
+        )
+        # sma_series[-1] corresponds to closes[-1]
+        for i in range(1, min(len(sma_series), 60) + 1):
+            price_i = closes[-i]
+            sma_i = sma_series[-i]
+            if price_i < sma_i:
+                days_below += 1
+            else:
+                break
+
+        # 200-SMA slope: annualised % change over last 20 trading days
+        slope_ann_pct = 0.0
+        if len(sma_series) >= 20:
+            sma_now = sma_series[-1]
+            sma_20ago = sma_series[-20]
+            if sma_20ago > 0:
+                # 20 trading days ≈ 1 month → annualise × 12
+                slope_ann_pct = (
+                    (sma_now / sma_20ago - 1.0) * 12.0 * 100.0
+                )
+
+        # Drawdown from 52-week high (~252 trading days)
+        high_52w = float(np.max(closes[-252:]))
+        drawdown_pct = (
+            (high_52w - spy_price) / high_52w * 100
+            if high_52w > 0 else 0.0
+        )
+
+        # Classify regime
+        if drawdown_pct >= severe_drawdown_pct:
+            trend = "SEVERE_BEAR"
+        elif days_below >= confirmation_days:
+            trend = "BEAR"
+        elif slope_ann_pct < 0 and vs_sma_pct < 2.0:
+            # SMA slope turning negative and price near/at SMA
+            trend = "CAUTION"
+        else:
+            trend = "BULL"
+
+        regime = SpyRegime(
+            spy_price=round(spy_price, 2),
+            spy_sma200=round(sma200, 2),
+            spy_vs_sma200_pct=round(vs_sma_pct, 2),
+            days_below_sma200=days_below,
+            sma200_slope_ann_pct=round(slope_ann_pct, 1),
+            spy_drawdown_pct=round(drawdown_pct, 2),
+            trend_regime=trend,
+        )
+
+        log.info(f"  SPY regime: {regime.summary()}")
+        return regime
+
+    except Exception as exc:
+        log.warning(f"SPY regime fetch failed: {exc} — using BULL")
+        return SpyRegime()
 
 
 # ── Internal helpers ─────────────────────────────────────────

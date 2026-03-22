@@ -1,12 +1,12 @@
 name: Weekly Performance Report
 
-# Runs every Sunday at 8:00 AM ET (13:00 UTC) to produce a PDF
-# performance report and CSV trade export covering the past week.
-# Both files are committed to the reports/ folder and uploaded as
-# a build artifact so you can download them from the Actions tab.
+# Runs every Sunday morning to produce a PDF performance report
+# and CSV trade export covering the past week.  Both files are
+# committed to the reports/ folder and uploaded as a build artifact.
 on:
   schedule:
-    - cron: "0 13 * * 0"   # 8:00 AM ET (UTC-5) every Sunday
+    - cron: "0 8 * * 0"    # 8:00 AM ET, every Sunday
+      timezone: America/New_York
   workflow_dispatch:        # allow manual trigger any time
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
       - name: Show report files
         run: |
           echo "Generated reports:"
-          ls -lh reports/report_*.pdf reports/trades_*.csv 2>/dev/null || echo "No report files found."
+          ls -lh reports/performance/report_*.pdf reports/trades_*.csv 2>/dev/null || echo "No report files found."
 
       - name: Upload reports as artifact
         if: always()
@@ -62,7 +62,7 @@ jobs:
         with:
           name: weekly-report-${{ github.run_number }}
           path: |
-            reports/report_*.pdf
+            reports/performance/report_*.pdf
             reports/trades_*.csv
           retention-days: 90
 

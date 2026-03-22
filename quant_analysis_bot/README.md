@@ -34,6 +34,15 @@ python -m quant_analysis_bot --config my_config.json
 | `--all-stocks` | Fetch top US stocks by market cap instead of using the default list |
 | `--top-n N` | How many top stocks to analyze with `--all-stocks` (default: 1000) |
 
+### Extra Tickers (ETFs, Commodities, etc.)
+
+The `--all-stocks` universe is built from S&P 500/400/600 components — individual stocks only. To include instruments outside these indices (commodity ETFs like USO/GLD, sector ETFs like XLE, treasury ETFs like TLT, or any other ticker), use either:
+
+1. **`extra_tickers.txt`** (recommended) — one ticker per line, comments with `#`. Place in the project root. Changes take effect on the next run without clearing the cache.
+2. **`EXTRA_TICKERS` env var** — comma-separated, e.g. `EXTRA_TICKERS=USO,GLD,XLE,TLT`
+
+Both sources are merged and deduplicated. Extra tickers are appended after the market-cap sort so they're always included, but they still go through the same backtest pipeline and must produce a strong enough signal to pass risk checks.
+
 ## Output Files
 
 Each run produces three types of output in dated files:

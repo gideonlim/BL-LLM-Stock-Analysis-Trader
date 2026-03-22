@@ -314,6 +314,66 @@ def load_trade_history(
     return history
 
 
+def reconcile_with_journal(
+    history: TradeHistory,
+    journal_dir: Path,
+) -> None:
+    """Clear churn state for orders that were never filled.
+
+    Scans the journal directory for entries closed with
+    ``exit_reason == "order_cancelled"`` (i.e. limit orders that
+    expired or were cancelled before filling).  For each such
+    entry, if the ticker's ``last_buy_date`` matches the cancelled
+    order's submission date, the churn fields are reset so the
+    ticker isn't blocked by a 2-day cooldown that never applied.
+
+    This is intentionally lightweight — it only touches churn
+    fields (``last_buy_date``), not strategy success counters
+    (which measure signal-quality pass-through, not fill rate).
+    """
+    if not journal_dir.exists():
+        return
+
+    cancelled_tickers: dict[str, str] = {}  # ticker → opened_at
+    for path in journal_dir.glob("*.json"):
+        try:
+            with open(path, encoding="utf-8") as f:
+                d = json.load(f)
+            if (
+                d.get("exit_reason") == "order_cancelled"
+                and d.get("status") == "closed"
+            ):
+                ticker = d.get("ticker", "")
+                opened = d.get("opened_at", "")
+                if ticker and opened:
+                    # Keep the latest cancelled date per ticker
+                    prev = cancelled_tickers.get(ticker, "")
+                    if opened > prev:
+                        cancelled_tickers[ticker] = opened
+        except (json.JSONDecodeError, OSError):
+            continue
+
+    cleared = 0
+    for ticker, cancelled_at in cancelled_tickers.items():
+        th = history.by_ticker.get(ticker)
+        if th and th.last_buy_date:
+            # Only clear if the last buy IS the cancelled order
+            # (i.e. no subsequent successful buy superseded it).
+            # Compare date portions — opened_at and last_buy_date
+            # are both ISO timestamps from the same bot run.
+            if th.last_buy_date[:10] <= cancelled_at[:10]:
+                th.last_buy_date = ""
+                th.last_buy_strategy = ""
+                th.last_buy_notional = 0.0
+                cleared += 1
+
+    if cleared:
+        log.info(
+            f"Journal reconcile: cleared churn state for "
+            f"{cleared} ticker(s) with unfilled orders"
+        )
+
+
 def enrich_history_with_pnl(
     history: TradeHistory,
     positions: dict,

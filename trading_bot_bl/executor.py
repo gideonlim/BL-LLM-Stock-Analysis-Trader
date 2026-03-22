@@ -14,6 +14,7 @@ from trading_bot_bl.history import (
     TradeHistory,
     enrich_history_with_pnl,
     load_trade_history,
+    reconcile_with_journal,
 )
 from trading_bot_bl.models import (
     OrderIntent,
@@ -103,6 +104,7 @@ def load_latest_signals(signals_dir: Path) -> list[Signal]:
                         "max_drawdown_pct", 0.0
                     ),
                     vol_20=s.get("vol_20", 0.0),
+                    pbo=s.get("pbo", -1.0),
                 )
             )
         except (KeyError, TypeError) as e:
@@ -276,6 +278,11 @@ def execute(
         lookback_days=config.history_lookback_days,
     )
 
+    # Cross-reference with journal to clear churn cooldowns for
+    # orders that were submitted but never filled (expired/cancelled).
+    journal_dir = history_dir / "journal"
+    reconcile_with_journal(history, journal_dir)
+
     # ── 3. Connect to broker ──────────────────────────────────────
     broker = AlpacaBroker(config.alpaca)
 
@@ -321,6 +328,12 @@ def execute(
             greed_pc=config.sentiment_greed_pc,
             fear_size_mult=config.sentiment_fear_size_mult,
             greed_size_mult=config.sentiment_greed_size_mult,
+            spy_bear_confirmation_days=(
+                config.spy_bear_confirmation_days
+            ),
+            spy_severe_drawdown_pct=(
+                config.spy_severe_drawdown_pct
+            ),
         )
     else:
         log.info("  Market sentiment: DISABLED")
@@ -453,7 +466,18 @@ def execute(
         limits=config.risk,
         history=history,
         sentiment_size_multiplier=sentiment.size_multiplier,
+        spy_trend_regime=sentiment.spy_regime.trend_regime,
     )
+    # Apply regime-adjusted limits (CAUTION/BEAR/SEVERE_BEAR)
+    if config.spy_regime_enabled:
+        risk_mgr.apply_spy_regime_overrides(
+            bear_max_positions=config.spy_bear_max_positions,
+            bear_min_composite=config.spy_bear_min_composite_score,
+            caution_max_positions=config.spy_caution_max_positions,
+            caution_min_composite=(
+                config.spy_caution_min_composite_score
+            ),
+        )
 
     for intent in intents:
         verdict = risk_mgr.evaluate_order(intent, portfolio)

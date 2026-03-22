@@ -34,6 +34,8 @@ class Signal:
     annual_excess_pct: float = 0.0
     max_drawdown_pct: float = 0.0
     vol_20: float = 0.0
+    # CSCV overfitting probability (v3) — -1 = not computed
+    pbo: float = -1.0
 
 
 @dataclass

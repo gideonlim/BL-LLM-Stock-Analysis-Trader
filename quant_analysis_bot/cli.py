@@ -10,6 +10,10 @@ from datetime import datetime
 
 from quant_analysis_bot.backtest import select_best_strategy
 from quant_analysis_bot.config import load_config
+from quant_analysis_bot.cscv import (
+    format_cscv_report,
+    run_cscv_for_ticker,
+)
 from quant_analysis_bot.data import enrich_dataframe, fetch_data
 from quant_analysis_bot.models import DailySignal
 from quant_analysis_bot.output import (
@@ -51,11 +55,14 @@ def run(config: dict) -> None:
     )
     log.info(f"{'=' * 60}")
 
+    run_cscv_flag = config.get("run_cscv", False)
+
     all_signals: list[DailySignal] = []
     all_window_results: dict = {}
     all_composite_scores: dict = {}
     best_strategies: dict = {}
     all_trade_logs: dict = {}
+    cscv_results: dict = {}
 
     tickers = config["tickers"]
     n_tickers = len(tickers)
@@ -104,14 +111,43 @@ def run(config: dict) -> None:
                         f"WinRate={best_result.win_rate:.1%})"
                     )
 
+                # CSCV overfitting analysis
+                # Auto-run for BUY signals (executor needs PBO to gate
+                # entries). Also run for all tickers when --validate.
+                signal = generate_daily_signal(
+                    df, ticker, best_strat, best_result, config
+                )
+
+                should_cscv = (
+                    run_cscv_flag or signal.signal == "BUY"
+                )
+                if should_cscv:
+                    try:
+                        cscv_res = run_cscv_for_ticker(
+                            df, ticker, config
+                        )
+                        if cscv_res.is_valid:
+                            cscv_results[ticker] = cscv_res
+                            best_result.pbo = cscv_res.pbo
+                            # Re-generate signal with PBO attached
+                            signal = generate_daily_signal(
+                                df, ticker, best_strat,
+                                best_result, config,
+                            )
+                            if not use_progress:
+                                log.info(
+                                    f"  CSCV PBO: {cscv_res.pbo:.1%}"
+                                )
+                    except Exception as e:
+                        log.debug(
+                            f"  CSCV failed for {ticker}: {e}"
+                        )
+
                 all_window_results[ticker] = per_window
                 all_composite_scores[ticker] = comp_scores
                 best_strategies[ticker] = best_strat.name
                 all_trade_logs[ticker] = trade_logs
 
-                signal = generate_daily_signal(
-                    df, ticker, best_strat, best_result, config
-                )
                 all_signals.append(signal)
 
                 if not use_progress:
@@ -158,6 +194,7 @@ def run(config: dict) -> None:
                         avg_holding_days=0.0,
                         total_trades=0,
                         backtest_period="N/A",
+                        pbo=-1.0,
                         rsi=0.0,
                         vol_20=0.0,
                         sma_50=0.0,
@@ -196,6 +233,10 @@ def run(config: dict) -> None:
         )
         print(f"\n{report_text}")
 
+    # ── CSCV overfitting report ────────────────────────────────────────
+    if cscv_results:
+        print(f"\n{format_cscv_report(cscv_results)}")
+
     # ── Signal summary ────────────────────────────────────────────────
     print(f"\n{'=' * 70}")
     print(f"  TODAY'S SIGNALS  ({today})")
@@ -214,10 +255,13 @@ def run(config: dict) -> None:
             f"       Price: ${s.current_price}  RSI: {s.rsi}  "
             f"Trend: {s.trend}  Confidence: {s.confidence}"
         )
+        pbo_str = (
+            f"  PBO: {s.pbo:.0%}" if s.pbo >= 0 else ""
+        )
         print(
             f"       Ann.Return: {s.annual_return_pct}%  "
             f"Ann.Excess: {s.annual_excess_pct}%  "
-            f"MaxDD: {s.max_drawdown_pct}%"
+            f"MaxDD: {s.max_drawdown_pct}%{pbo_str}"
         )
         print(f"       Backtest: {s.backtest_period}")
         if s.notes and s.notes != "No special conditions":
@@ -285,6 +329,15 @@ def main() -> None:
         default=1000,
         help="Number of top stocks with --all-stocks (default: 1000)",
     )
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help=(
+            "Run CSCV overfitting analysis (PBO) on each ticker. "
+            "Adds a validation report showing probability of "
+            "backtest overfitting."
+        ),
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -296,6 +349,8 @@ def main() -> None:
         config["long_only"] = True
     elif args.long_short:
         config["long_only"] = False
+
+    config["run_cscv"] = args.validate
 
     if args.all_stocks:
         log.info(

@@ -1,12 +1,12 @@
 name: Execute Trades
 
 # Runs after market opens to execute signals via Alpaca.
-# US market opens 9:30 AM ET. This runs at 10:15 AM ET (Mon-Fri)
-# to let the opening volatility settle before entering positions.
-# 10:15 AM ET = 14:15 UTC (EST) or 15:15 UTC (EDT).
+# US market opens 9:30 AM ET. We wait 45 min to let opening
+# volatility settle before entering positions.
 on:
   schedule:
-    - cron: "15 14 * * 1-5"   # 10:15 AM ET, weekdays
+    - cron: "15 10 * * 1-5"   # 10:15 AM ET, weekdays
+      timezone: America/New_York
   workflow_dispatch:           # allow manual trigger
 
 permissions:
@@ -59,6 +59,12 @@ jobs:
           MAX_ENTRY_SLIPPAGE_PCT: ${{ vars.MAX_ENTRY_SLIPPAGE_PCT || '1.5' }}
           USE_BLACK_LITTERMAN: ${{ vars.USE_BLACK_LITTERMAN || 'true' }}
           BL_TAU: ${{ vars.BL_TAU || '0.05' }}
+          # SPY trend regime (bear market filter)
+          SPY_REGIME_ENABLED: ${{ vars.SPY_REGIME_ENABLED || 'true' }}
+          SPY_BEAR_CONFIRMATION_DAYS: ${{ vars.SPY_BEAR_CONFIRMATION_DAYS || '3' }}
+          SPY_BEAR_MAX_POSITIONS: ${{ vars.SPY_BEAR_MAX_POSITIONS || '4' }}
+          SPY_BEAR_MIN_COMPOSITE_SCORE: ${{ vars.SPY_BEAR_MIN_COMPOSITE_SCORE || '30.0' }}
+          SPY_SEVERE_DRAWDOWN_PCT: ${{ vars.SPY_SEVERE_DRAWDOWN_PCT || '15.0' }}
           # LLM views (optional — leave ANTHROPIC_API_KEY empty to disable)
           LLM_VIEWS_ENABLED: ${{ vars.LLM_VIEWS_ENABLED || 'false' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

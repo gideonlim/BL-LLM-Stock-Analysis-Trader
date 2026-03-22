@@ -2,6 +2,16 @@
 
 > **Purpose:** A curated survey of academic research, advanced math, and quantitative finance techniques that could meaningfully improve each layer of our trading system. Organized by component, with implementation priority and difficulty ratings.
 
+### Implementation Progress
+
+> **13 Fully Implemented** | **3 Partially Implemented** | **18 Not Implemented** (as of March 2026)
+
+| Status | Meaning |
+|--------|---------|
+| ✅ | Fully implemented |
+| 🔶 | Partially implemented |
+| ⬜ | Not yet implemented |
+
 ---
 
 ## Table of Contents
@@ -22,7 +32,7 @@
 
 Our bot currently uses marginal Sharpe ranking (Markowitz-based). There are three major upgrades worth considering.
 
-### 1.1 Hierarchical Risk Parity (HRP)
+### 1.1 Hierarchical Risk Parity (HRP) ⬜
 
 **What it is:** An alternative to Markowitz optimization developed by Marcos López de Prado (2016). Instead of inverting a covariance matrix (which is numerically unstable with many assets), HRP uses hierarchical clustering to group correlated assets, then allocates risk top-down through the tree.
 
@@ -36,7 +46,9 @@ Our bot currently uses marginal Sharpe ranking (Markowitz-based). There are thre
 - López de Prado, "Building Diversified Portfolios that Outperform Out of Sample" (2016, Journal of Portfolio Management)
 - Recent 2025 extensions exploring distance metric variants and reinforcement learning integration (RL-BHRP)
 
-### 1.2 Black-Litterman Model
+### 1.2 Black-Litterman Model ✅
+
+> **Implemented in:** `trading_bot_bl/black_litterman.py`, `trading_bot_bl/portfolio_optimizer.py`. Full BL model with posterior return computation, confidence-mapped view uncertainty (Ω), regime-sensitive covariance blending, and LLM-enhanced view generation. Primary optimization method.
 
 **What it is:** A Bayesian framework (Goldman Sachs, 1990) that starts from market equilibrium returns (implied by market-cap weights via reverse optimization) and blends in the investor's own views with specified confidence levels. The output is a set of expected returns that can be fed into a mean-variance optimizer without the extreme, unstable weights that raw Markowitz produces.
 
@@ -48,7 +60,7 @@ Our bot currently uses marginal Sharpe ranking (Markowitz-based). There are thre
 
 **Key insight for our bot:** Our confidence scoring (0-6) already encodes view uncertainty. A signal with confidence 5 should produce a tighter Ω (more certain view) than confidence 2.
 
-### 1.3 Risk Parity
+### 1.3 Risk Parity ⬜
 
 **What it is:** Instead of optimizing returns, allocate so each asset contributes equally to total portfolio risk. This prevents concentrated risk in a few volatile positions.
 
@@ -64,7 +76,9 @@ Our bot currently uses marginal Sharpe ranking (Markowitz-based). There are thre
 
 Our bot uses Half-Kelly. There are more sophisticated approaches.
 
-### 2.1 Volatility Targeting
+### 2.1 Volatility Targeting 🔶
+
+> **Partially implemented:** Market sentiment module applies VIX-based position sizing multiplier (fear → larger, greed → smaller). However, true per-stock volatility-targeted sizing (inverse of realized vol) is not implemented — sizing still uses Half-Kelly capped by confidence.
 
 **What it is:** Instead of sizing by expected return (Kelly), size each position to contribute a target amount of daily volatility. This automatically reduces exposure in high-vol markets and increases it in low-vol markets.
 
@@ -78,7 +92,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low. We already have `vol_20` in the signal data. This could be a blended approach: `final_size = alpha * kelly_size + (1 - alpha) * vol_target_size`.
 
-### 2.2 Constant Proportion Portfolio Insurance (CPPI)
+### 2.2 Constant Proportion Portfolio Insurance (CPPI) ⬜
 
 **What it is:** A dynamic position sizing method that protects a portfolio floor value. Position size is: Exposure = multiplier * (portfolio_value - floor). As the portfolio drops toward the floor, exposure shrinks to zero. As it rises, exposure increases.
 
@@ -88,7 +102,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low-Medium. Replace the binary circuit breaker with a continuous scaling function. Position sizes shrink smoothly rather than going to zero when a threshold is hit.
 
-### 2.3 Optimal f (Ralph Vince)
+### 2.3 Optimal f (Ralph Vince) ⬜
 
 **What it is:** An empirical method that tests various bet fractions against the actual distribution of historical returns to find the fraction that maximizes terminal wealth. Unlike Kelly (which assumes a simple win/loss binary), Optimal f uses the full return distribution.
 
@@ -100,7 +114,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 ## 3. Signal Generation & Feature Engineering
 
-### 3.1 Market Regime Detection via Hidden Markov Models (HMMs)
+### 3.1 Market Regime Detection via Hidden Markov Models (HMMs) ⬜
+
+> **Note:** Market regime detection is implemented via SPY 200-day SMA trend filter (`market_sentiment.py`) with BULL/CAUTION/BEAR/SEVERE_BEAR tiers, but uses a deterministic trend-following approach rather than HMMs.
 
 **What it is:** HMMs model the market as switching between hidden states (e.g., bull/bear/sideways), each with different return and volatility characteristics. The model infers which state the market is currently in.
 
@@ -116,7 +132,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Medium. The model itself is straightforward with `hmmlearn`. The challenge is choosing the right number of states and features (returns, vol, breadth).
 
-### 3.2 Fractional Differentiation (López de Prado)
+### 3.2 Fractional Differentiation (López de Prado) ⬜
 
 **What it is:** A method to make time series stationary while preserving as much memory (trend information) as possible. Standard integer differentiation (returns = price[t] - price[t-1]) makes the series stationary but destroys all memory. Fractional differentiation with d ≈ 0.2-0.4 achieves stationarity while retaining 90%+ correlation with the original series.
 
@@ -126,7 +142,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low. The `fracdiff` Python library implements this efficiently. Use it as a feature preprocessing step before any ML model.
 
-### 3.3 Triple Barrier Method + Meta-Labeling (López de Prado)
+### 3.3 Triple Barrier Method + Meta-Labeling (López de Prado) ⬜
 
 **What it is:** Instead of labeling returns as simply up/down after a fixed period, the triple barrier method uses three dynamic barriers: upper barrier (take profit hit first → label +1), lower barrier (stop loss hit first → label -1), and vertical barrier (time expires → label based on return sign). Meta-labeling then trains a secondary ML model to decide whether to act on the primary model's signal.
 
@@ -136,7 +152,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Medium-High. Requires generating proper labels from historical data and training a secondary classifier (Random Forest or Gradient Boosting).
 
-### 3.4 Adaptive Moving Averages (KAMA, FRAMA)
+### 3.4 Adaptive Moving Averages (KAMA, FRAMA) ⬜
 
 **What it is:** Moving averages that automatically adjust their smoothing period based on market conditions. Kaufman's Adaptive Moving Average (KAMA) uses an efficiency ratio; Ehlers' Fractal Adaptive Moving Average (FRAMA) uses fractal dimension.
 
@@ -144,7 +160,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low. These are drop-in replacements for existing moving average calculations in `strategies.py`.
 
-### 3.5 Factor-Aware Signal Enhancement
+### 3.5 Factor-Aware Signal Enhancement ⬜
 
 **What it is:** Rather than treating each stock independently, incorporate cross-sectional factor exposures (momentum, value, quality, size) to enrich signals.
 
@@ -157,7 +173,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Medium. Requires fundamental data (earnings, book value) beyond our current Yahoo Finance price data.
 
-### 3.6 GARCH Volatility Forecasting
+### 3.6 GARCH Volatility Forecasting ⬜
 
 **What it is:** GARCH (Generalized Autoregressive Conditional Heteroskedasticity) models volatility as time-varying, capturing the empirical fact that volatility clusters — high-vol days tend to follow high-vol days.
 
@@ -173,7 +189,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 ## 4. Risk Management
 
-### 4.1 Conditional Value-at-Risk (CVaR / Expected Shortfall)
+### 4.1 Conditional Value-at-Risk (CVaR / Expected Shortfall) ⬜
 
 **What it is:** While VaR asks "what's the worst loss at the 95th percentile?", CVaR asks "given that we're in the worst 5%, what's the expected loss?" CVaR captures tail risk that VaR misses.
 
@@ -185,7 +201,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Medium. The math is straightforward, but estimating CVaR reliably requires sufficient return history.
 
-### 4.2 Dynamic Stop-Loss via ATR Chandelier Exits
+### 4.2 Dynamic Stop-Loss via ATR Chandelier Exits 🔶
+
+> **Partially implemented:** ATR-based trailing stops exist in `monitor.py` (2× ATR below current price with breakeven floor). However, this is not the full Chandelier Exit — stops are anchored to current price rather than the highest high over N periods.
 
 **What it is:** An evolution of ATR trailing stops that anchors the stop to the highest high (for longs) rather than the current price. The Chandelier Exit = Highest High over N periods - ATR × multiplier.
 
@@ -195,7 +213,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low. We already have ATR calculations.
 
-### 4.3 Maximum Drawdown Control (CPPI-Based)
+### 4.3 Maximum Drawdown Control (CPPI-Based) ⬜
 
 **What it is:** Instead of a binary circuit breaker (stop all trading at -3%), use a continuous scaling function. As drawdown increases, position sizes decrease proportionally. The floor ratchets up with portfolio gains (TIPP variant).
 
@@ -203,7 +221,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low-Medium. Modify the risk manager's `evaluate_order()` to scale `adjusted_notional` by the CPPI multiplier rather than applying a binary circuit breaker.
 
-### 4.4 Correlation Breakdown Detection
+### 4.4 Correlation Breakdown Detection ⬜
 
 **What it is:** Monitor whether the correlation structure of our portfolio is changing. During crises, correlations tend to spike toward 1.0 (everything falls together), destroying diversification exactly when it's needed most.
 
@@ -215,7 +233,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 ## 5. Covariance & Return Estimation
 
-### 5.1 Ledoit-Wolf Shrinkage Estimator
+### 5.1 Ledoit-Wolf Shrinkage Estimator ✅
+
+> **Implemented in:** `trading_bot_bl/black_litterman.py`. Custom implementation following Ledoit-Wolf 2004 methodology. Used as long-term covariance estimator, blended with EWMA in regime-sensitive mode.
 
 **What it is:** The sample covariance matrix from 60 days of 15+ stocks is noisy and ill-conditioned. Ledoit-Wolf shrinkage "shrinks" it toward a structured target (like the identity matrix or a single-factor model), reducing estimation error.
 
@@ -231,7 +251,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 - Ledoit & Wolf, "Honey, I Shrunk the Sample Covariance Matrix" (2003, Journal of Portfolio Management)
 - Ledoit & Wolf, "Nonlinear Shrinkage of the Covariance Matrix for Portfolio Selection" (2017, Review of Financial Studies) — the "Goldilocks" estimator
 
-### 5.2 Exponentially Weighted Covariance
+### 5.2 Exponentially Weighted Covariance ✅
+
+> **Implemented in:** `trading_bot_bl/black_litterman.py`. EWMA covariance with configurable halflife (default 21 days). Used as short-term component in regime-sensitive blending alongside Ledoit-Wolf.
 
 **What it is:** Weight recent observations more heavily when estimating covariance, so the matrix adapts to changing market conditions.
 
@@ -241,7 +263,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Very Low.
 
-### 5.3 Denoised Covariance via Random Matrix Theory
+### 5.3 Denoised Covariance via Random Matrix Theory ⬜
 
 **What it is:** Marchenko-Pastur theory from random matrix theory tells us which eigenvalues of a sample covariance matrix are noise vs. signal. By replacing noise eigenvalues with their average, we get a cleaner covariance estimate.
 
@@ -253,7 +275,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 ## 6. Execution & Market Microstructure
 
-### 6.1 Slippage Modeling
+### 6.1 Slippage Modeling ✅
+
+> **Implemented in:** `trading_bot_bl/broker.py`, `trading_bot_bl/journal.py`. Limit orders with configurable max entry slippage (default 1.0%). Journal tracks entry/exit slippage per trade. Analytics include slippage reporting.
 
 **What it is:** Estimate the expected difference between the intended trade price and the actual fill price. Slippage depends on order size relative to average daily volume, bid-ask spread, and market impact.
 
@@ -263,7 +287,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low. Add slippage as a transaction cost in backtest scoring. Already partially handled by `transaction_cost_bps` in config.
 
-### 6.2 Time-of-Day Execution Optimization
+### 6.2 Time-of-Day Execution Optimization ✅
+
+> **Implemented:** Execution scheduled at 10:15 AM ET via GitHub Actions (45 min after market open). Avoids peak opening volatility and wide spreads.
 
 **What it is:** Market microstructure research shows that spreads are widest at the open (first 30 minutes) and narrow throughout the day, with a small widening at close. Intraday volatility follows a U-shape.
 
@@ -271,7 +297,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Very Low. Change the cron schedule from 10:00 AM to 10:30 AM or 11:00 AM ET.
 
-### 6.3 Limit Orders for Entry
+### 6.3 Limit Orders for Entry ✅
+
+> **Implemented in:** `trading_bot_bl/broker.py`. Entry uses limit orders at `current_price × (1 + max_entry_slippage_pct)` when slippage > 0. Won't fill if stock gaps up beyond the limit. Configurable via `MAX_ENTRY_SLIPPAGE_PCT`.
 
 **What it is:** Instead of market orders, place limit orders at or slightly below the current price for BUY entries. This can capture the bid-ask spread rather than paying it.
 
@@ -285,7 +313,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 ## 7. Backtesting & Overfitting Prevention
 
-### 7.1 Walk-Forward Optimization
+### 7.1 Walk-Forward Optimization ✅
+
+> **Implemented in:** `quant_analysis_bot/backtest.py`. 70/30 train-test split (configurable via `walk_forward_validation_pct`). Metrics scored only on out-of-sample validation portion. Next-bar execution prevents look-ahead bias.
 
 **What it is:** Instead of optimizing parameters on the full historical dataset (which overfits), use a rolling or expanding window: optimize on in-sample data, test on out-of-sample data, advance the window, and repeat. Only report out-of-sample results.
 
@@ -295,7 +325,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Medium. Requires restructuring `backtest.py` to split windows.
 
-### 7.2 Combinatorially Symmetric Cross-Validation (CSCV)
+### 7.2 Combinatorially Symmetric Cross-Validation (CSCV) ✅
+
+> **Implemented in:** `quant_analysis_bot/cscv.py`. Full PBO (Probability of Backtest Overfitting) implementation per Bailey et al. (2017). Partitions return matrix into S equal sub-periods, evaluates all C(S, S/2) training/testing combinations, computes PBO, logit distribution, Spearman rank correlation, and per-strategy summary. Auto-selects partition count based on data length. Integrated via `--validate` CLI flag. PBO propagated to BacktestResult and DailySignal. 24 unit tests in `test_cscv.py`.
 
 **What it is:** A method by Bailey, Borwein, and López de Prado (2014) that estimates the probability a backtest is overfitted. It partitions the data into S subsets, tests all combinations, and measures how often the in-sample optimal strategy is also out-of-sample optimal.
 
@@ -303,7 +335,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Medium-High. Requires combinatorial testing across data partitions.
 
-### 7.3 Deflated Sharpe Ratio
+### 7.3 Deflated Sharpe Ratio ✅
+
+> **Implemented in:** `quant_analysis_bot/backtest.py`. Full Bailey & de Prado (2014) DSR implementation. Uses strategy return stream (not raw stock returns) for accurate skew/kurtosis. Applied as scoring multiplier with confidence weighting.
 
 **What it is:** Adjusts the Sharpe ratio for: (a) number of strategies tested (multiple testing correction), (b) non-normality of returns (skewness and kurtosis), and (c) sample size.
 
@@ -313,7 +347,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low-Medium. The formula is closed-form. Add it as a post-processing step to composite scoring.
 
-### 7.4 Probabilistic Sharpe Ratio (Lo, 2002)
+### 7.4 Probabilistic Sharpe Ratio (Lo, 2002) ✅
+
+> **Implemented in:** `trading_bot_bl/journal_analytics.py`. PSR calculation with 0% null hypothesis for live trading performance assessment. Also includes MinTRL (minimum track record length) computation.
 
 **What it is:** Andrew Lo's seminal 2002 paper shows that the standard Sharpe ratio estimator has significant bias from serial correlation and small sample sizes. The Probabilistic Sharpe Ratio gives confidence intervals and minimum track record length.
 
@@ -329,7 +365,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 Our bot currently uses only price/volume-derived technical indicators. Incorporating market sentiment — from news headlines, social media, options flow, and institutional filings — provides orthogonal information that technical analysis alone cannot capture. Research consistently shows that sentiment signals are most powerful when combined with (not replacing) quantitative signals.
 
-### 8.1 News Headline Sentiment via FinBERT
+### 8.1 News Headline Sentiment via FinBERT ⬜
 
 **What it is:** FinBERT is a BERT-based language model fine-tuned on financial text (ProsusAI/finBERT). It classifies financial headlines into positive, negative, or neutral with a confidence score. Unlike generic sentiment tools (VADER, TextBlob), FinBERT understands financial language — it correctly interprets "the company beat expectations" as positive and "the stock was downgraded" as negative.
 
@@ -348,7 +384,9 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 - FinBERT-LSTM integration for stock movement prediction (ACM 2024) — combined sentiment with LSTM price model for market/industry/stock-level news
 - Tak & Pele (2025), S&P 500 empirical evaluation showing FinBERT outperforms lexicon-based approaches
 
-### 8.2 LLM-Based Sentiment Scoring (GPT/Claude)
+### 8.2 LLM-Based Sentiment Scoring (GPT/Claude) ✅
+
+> **Implemented in:** `trading_bot_bl/llm_views.py`, `trading_bot_bl/news_fetcher.py`. LLM-enhanced view generation using Claude or OpenAI API with repeated sampling (N=10 at temp 0.7) for uncertainty estimation. Headlines fetched and used as context. Integrated into Black-Litterman model as view confidence (Ω). Feature-flagged via `LLM_VIEWS_ENABLED`.
 
 **What it is:** Instead of a specialized model like FinBERT, use a general-purpose LLM (GPT-4, Claude, Llama 3) with domain-specific prompting to score financial news. Advanced techniques include Chain-of-Thought (CoT) prompting, Domain Knowledge Chain-of-Thought (DK-CoT), and few-shot examples to improve accuracy.
 
@@ -370,7 +408,9 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 - Springer (2025) — DK-CoT strategy with knowledge-enhanced LLM sentiment prediction
 - FinDPO (ACM 2025) — Preference optimization for financial sentiment
 
-### 8.3 Market-Wide Sentiment Indicators (VIX, Put/Call, Fear & Greed)
+### 8.3 Market-Wide Sentiment Indicators (VIX, Put/Call, Fear & Greed) ✅
+
+> **Implemented in:** `trading_bot_bl/market_sentiment.py`. VIX and put/call ratio with 252-day z-score normalization. Composite MSI = −0.5 × vix_z − 0.5 × pcr_z. Two-tier regime classification (FEAR/GREED/NEUTRAL) with contrarian position sizing. SPY 200-SMA trend regime overlay (BULL/CAUTION/BEAR/SEVERE_BEAR) for bear market protection. Feature-flagged via `MARKET_SENTIMENT_ENABLED` and `SPY_REGIME_ENABLED`.
 
 **What it is:** Quantitative market-wide sentiment gauges that measure aggregate investor emotion: the VIX (CBOE Volatility Index, "fear gauge"), the equity put/call ratio, and the CNN Fear & Greed Index (a composite of 7 sub-indicators).
 
@@ -387,7 +427,7 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 
 **Implementation difficulty:** Very Low. VIX is a free yfinance download. The logic is a few lines of z-score computation added to the risk manager or portfolio optimizer.
 
-### 8.4 Social Media Sentiment (Reddit, Twitter/X)
+### 8.4 Social Media Sentiment (Reddit, Twitter/X) ⬜
 
 **What it is:** Extracting sentiment from social media platforms — particularly finance-focused communities like r/WallStreetBets, StockTwits, and Financial Twitter — to gauge retail investor sentiment and detect momentum buildups before they appear in price.
 
@@ -411,7 +451,7 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 - ScienceDirect (2024) — WSB attention increases uninformed trading and reduces holding-period returns
 - ResearchGate (2025) — Reddit stronger for volatility prediction, Twitter for gradual reactions
 
-### 8.5 Options Flow & Unusual Activity
+### 8.5 Options Flow & Unusual Activity ⬜
 
 **What it is:** Monitoring large or unusual options trades from institutional players — hedge funds, market makers, and proprietary desks that drive the majority of options volume. Unusual options activity (high volume relative to open interest, especially out-of-the-money contracts expiring within 35 days) often precedes significant price moves.
 
@@ -427,7 +467,7 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 
 **Implementation difficulty:** Medium. Requires a paid data subscription. The analysis logic is straightforward once data is available. Most valuable as a confirmation layer rather than a primary signal.
 
-### 8.6 Earnings Sentiment & Post-Earnings Announcement Drift (PEAD)
+### 8.6 Earnings Sentiment & Post-Earnings Announcement Drift (PEAD) ⬜
 
 **What it is:** The well-documented anomaly where stocks continue drifting in the direction of an earnings surprise for 60-90 days after the announcement. A positive earnings surprise (beat estimates) leads to continued positive drift; a negative surprise leads to continued decline. The effect is strongest when combined with investor attention metrics.
 
@@ -455,7 +495,7 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 - Lan et al. (2024, ScienceDirect) — Earnings surprise + investor attention + PEAD investing strategy
 - CFA Institute (2025) — Discussion of whether generative AI is disrupting PEAD effectiveness
 
-### 8.7 Institutional Ownership Changes (13F Filings)
+### 8.7 Institutional Ownership Changes (13F Filings) ⬜
 
 **What it is:** SEC Form 13F requires institutional investment managers with >$100M in AUM to disclose their equity holdings quarterly. By computing changes between filings, you can measure net institutional flow — where the biggest players are accumulating or distributing.
 
@@ -476,7 +516,9 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 - ExtractAlpha 13F Sentiment Signal — 12% annual outperformance, 0.83 Sharpe (2007–2024)
 - Alpha Architect — Cluster insider buying patterns and their predictive power
 
-### 8.8 Composite Sentiment Integration Architecture
+### 8.8 Composite Sentiment Integration Architecture 🔶
+
+> **Partially implemented:** VIX + put/call ratio are combined into MSI. LLM views are integrated into Black-Litterman. SPY trend regime provides a third signal layer. However, the full multi-source architecture (news + options + earnings + 13F + social media unified into one composite score per ticker) is not built.
 
 **What it is:** Rather than using any single sentiment source, build a multi-source sentiment layer that aggregates news, market-wide, options, earnings, and institutional signals into a unified sentiment score per ticker.
 
@@ -522,50 +564,50 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 
 ### Phase 1: Quick Wins (Low effort, high impact)
 
-| Improvement | Component | Effort | Impact | Description |
+| Improvement | Component | Effort | Impact | Status |
 |---|---|---|---|---|
-| **Ledoit-Wolf shrinkage** | portfolio_optimizer.py | Very Low | High | Replace `returns.cov()` with `LedoitWolf().fit(returns).covariance_` — dramatically better covariance estimates |
-| **Probabilistic Sharpe Ratio** | backtest.py | Low | High | Add confidence intervals to Sharpe estimates — stops us from trusting short-window flukes |
-| **Volatility-targeted sizing** | executor.py / signals.py | Low | High | Blend Half-Kelly with vol-targeting: size inversely proportional to realized vol |
-| **Deflated Sharpe Ratio** | backtest.py | Low | Medium | Correct for multiple testing (11 strategies × 3 windows = 33 trials) |
-| **Execution timing** | cli.py / GitHub Actions | Very Low | Low-Medium | Delay market orders by 30-60 min after open to avoid wide spreads |
-| **ATR Chandelier exits** | monitor.py | Low | Medium | Replace simple trailing stop with volatility-adaptive stops |
-| **Exponentially weighted covariance** | portfolio_optimizer.py | Very Low | Medium | Weight recent returns more heavily in covariance estimation |
-| **VIX / market-wide sentiment** | risk.py / signals.py | Very Low | Medium | Use VIX z-score + put/call ratio to scale position sizes and tighten stops in extreme regimes |
-| **Earnings event filter** | signals.py / risk.py | Low | Medium-High | Check earnings calendar before signal generation; skip or widen stops around earnings dates |
+| **Ledoit-Wolf shrinkage** | black_litterman.py | Very Low | High | ✅ Implemented |
+| **Probabilistic Sharpe Ratio** | journal_analytics.py | Low | High | ✅ Implemented |
+| **Volatility-targeted sizing** | executor.py / signals.py | Low | High | 🔶 Partial (VIX-level only) |
+| **Deflated Sharpe Ratio** | backtest.py | Low | Medium | ✅ Implemented |
+| **Execution timing** | GitHub Actions | Very Low | Low-Medium | ✅ Implemented (10:15 AM ET) |
+| **ATR Chandelier exits** | monitor.py | Low | Medium | 🔶 Partial (ATR trailing, not highest-high anchored) |
+| **Exponentially weighted covariance** | black_litterman.py | Very Low | Medium | ✅ Implemented |
+| **VIX / market-wide sentiment** | market_sentiment.py | Very Low | Medium | ✅ Implemented (+ SPY regime filter) |
+| **Earnings event filter** | signals.py / risk.py | Low | Medium-High | ⬜ Not implemented |
 
 ### Phase 2: Meaningful Upgrades (Medium effort, high impact)
 
-| Improvement | Component | Effort | Impact | Description |
+| Improvement | Component | Effort | Impact | Status |
 |---|---|---|---|---|
-| **HRP allocation** | portfolio_optimizer.py | Medium | High | Add Hierarchical Risk Parity as an alternative to marginal-Sharpe ranking |
-| **HMM regime detection** | new module | Medium | High | 2-3 state HMM on SPY to detect bull/bear/sideways; scale positions by regime |
-| **GARCH volatility forecasting** | signals.py / risk.py | Medium | High | Replace backward-looking vol_20 with forward-looking GARCH forecasts |
-| **CPPI drawdown control** | risk.py | Medium | High | Replace binary circuit breaker with continuous position scaling |
-| **Walk-forward backtesting** | backtest.py | Medium | High | Split windows into train/test for honest out-of-sample metrics |
-| **Fractional differentiation** | new preprocessing | Low-Medium | Medium | Make features stationary while preserving memory — foundation for future ML |
-| **Slippage model** | backtest.py | Low | Medium | Add realistic slippage to backtest costs |
-| **Correlation breakdown monitoring** | monitor.py / risk.py | Low | Medium | Track portfolio correlation and reduce exposure when correlations spike |
-| **FinBERT news sentiment** | new sentiment module | Low-Medium | High | Score news headlines per ticker via FinBERT; use as confidence modifier for signals |
-| **LLM headline scoring** | llm_views.py extension | Low | Medium-High | Extend existing LLM infrastructure to score news sentiment; DK-CoT prompting for accuracy |
-| **Social media mention volume** | new module | Medium | Medium | Track ticker mention spikes on StockTwits/Reddit as a risk signal (not buy signal) |
+| **HRP allocation** | portfolio_optimizer.py | Medium | High | ⬜ Not implemented |
+| **HMM regime detection** | new module | Medium | High | ⬜ Not implemented (SPY SMA-based regime exists) |
+| **GARCH volatility forecasting** | signals.py / risk.py | Medium | High | ⬜ Not implemented |
+| **CPPI drawdown control** | risk.py | Medium | High | ⬜ Not implemented |
+| **Walk-forward backtesting** | backtest.py | Medium | High | ✅ Implemented (70/30 split) |
+| **Fractional differentiation** | new preprocessing | Low-Medium | Medium | ⬜ Not implemented |
+| **Slippage model** | broker.py / journal.py | Low | Medium | ✅ Implemented (limit orders + tracking) |
+| **Correlation breakdown monitoring** | monitor.py / risk.py | Low | Medium | ⬜ Not implemented |
+| **FinBERT news sentiment** | new sentiment module | Low-Medium | High | ⬜ Not implemented |
+| **LLM headline scoring** | llm_views.py | Low | Medium-High | ✅ Implemented (LLM views + news context) |
+| **Social media mention volume** | new module | Medium | Medium | ⬜ Not implemented |
 
 ### Phase 3: Advanced Capabilities (Higher effort, potentially transformative)
 
-| Improvement | Component | Effort | Impact | Description |
+| Improvement | Component | Effort | Impact | Status |
 |---|---|---|---|---|
-| **Black-Litterman integration** | portfolio_optimizer.py | Medium-High | High | Use signals as views, confidence as uncertainty, market equilibrium as prior |
-| **Meta-labeling** | new module | High | High | Train ML model to predict when strategy signals are reliable |
-| **Triple barrier labeling** | backtest.py | Medium-High | High | Label trades by which barrier was hit first (matches our bracket orders) |
-| **CVaR portfolio constraints** | risk.py / portfolio_optimizer.py | Medium | Medium-High | Constrain portfolio construction to limit tail risk |
-| **CSCV overfitting detection** | backtest.py | Medium-High | Medium | Estimate probability that backtest results are overfitted |
-| **Factor-aware signals** | signals.py | Medium-High | Medium | Add momentum, value, quality factor exposures to signal generation |
-| **Limit order entries** | broker.py | Medium | Medium | Use limit orders for lower-confidence signals to save spread |
-| **Random Matrix Theory denoising** | portfolio_optimizer.py | Medium | Medium | Denoise covariance matrix using Marchenko-Pastur distribution |
-| **PEAD strategy** | strategies.py | Medium | Medium-High | Add post-earnings announcement drift as a new strategy; buy top-decile earnings surprises with 60-day horizon |
-| **Institutional 13F sentiment** | new module | Medium | Medium | Parse SEC 13F filings to detect institutional accumulation/distribution as a slow-moving confidence modifier |
-| **Options flow integration** | new module | Medium | Medium-High | Use unusual options activity (net premium, sweep detection) as signal confirmation layer; requires paid API |
-| **Composite sentiment layer** | new sentiment module | Medium-High | High | Multi-source sentiment aggregation (news + VIX + options + earnings + 13F) as unified pipeline modifier |
+| **Black-Litterman integration** | black_litterman.py | Medium-High | High | ✅ Implemented (full BL + LLM views) |
+| **Meta-labeling** | new module | High | High | ⬜ Not implemented |
+| **Triple barrier labeling** | backtest.py | Medium-High | High | ⬜ Not implemented |
+| **CVaR portfolio constraints** | risk.py / portfolio_optimizer.py | Medium | Medium-High | ⬜ Not implemented |
+| **CSCV overfitting detection** | cscv.py | Medium-High | Medium | ✅ Implemented (PBO + logits + rank corr) |
+| **Factor-aware signals** | signals.py | Medium-High | Medium | ⬜ Not implemented |
+| **Limit order entries** | broker.py | Medium | Medium | ✅ Implemented |
+| **Random Matrix Theory denoising** | portfolio_optimizer.py | Medium | Medium | ⬜ Not implemented |
+| **PEAD strategy** | strategies.py | Medium | Medium-High | ⬜ Not implemented |
+| **Institutional 13F sentiment** | new module | Medium | Medium | ⬜ Not implemented |
+| **Options flow integration** | new module | Medium | Medium-High | ⬜ Not implemented |
+| **Composite sentiment layer** | new sentiment module | Medium-High | High | 🔶 Partial (VIX + P/C + SPY + LLM) |
 
 ---
 

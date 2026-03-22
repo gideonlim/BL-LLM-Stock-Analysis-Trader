@@ -1,4 +1,10 @@
-"""Stock universe construction -- top US stocks by market cap."""
+"""Stock universe construction -- top US stocks by market cap.
+
+The universe is built from S&P 500/400/600 components, sorted by
+market cap.  Extra tickers (ETFs, commodities, etc.) can be added
+via the ``EXTRA_TICKERS`` env var or an ``extra_tickers.txt`` file
+so they are always included regardless of index membership.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +13,7 @@ import logging
 import os
 import urllib.request
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List
 
 import pandas as pd
@@ -28,6 +35,11 @@ _BUNDLED_TICKERS_FILE = os.path.join(
     "..",
     "us_tickers.json",
 )
+# Extra tickers file: checked in bot root and in quant_analysis_bot/
+_EXTRA_TICKERS_PATHS = [
+    Path(os.path.dirname(os.path.abspath(__file__)), "..", "extra_tickers.txt"),
+    Path(os.path.dirname(os.path.abspath(__file__)), "extra_tickers.txt"),
+]
 
 
 def _fetch_wiki_html(url: str) -> str:
@@ -98,6 +110,81 @@ def _load_bundled_tickers() -> List[str]:
     return []
 
 
+def load_extra_tickers() -> List[str]:
+    """Load extra tickers from env var and/or text file.
+
+    These are tickers that fall outside the S&P index universe
+    (e.g. commodity ETFs like USO, GLD, sector ETFs like XLE,
+    treasury ETFs like TLT, or any other instruments you want
+    the bot to consider).
+
+    Sources (merged, deduplicated):
+
+    1. ``EXTRA_TICKERS`` env var — comma-separated, e.g.
+       ``EXTRA_TICKERS=USO,GLD,XLE,TLT``
+    2. ``extra_tickers.txt`` file — one ticker per line,
+       ``#`` comments and blank lines ignored.  Searched in
+       project root and quant_analysis_bot/ directory.
+
+    Extra tickers are appended to the universe *after* the
+    market-cap sort, so they are always included regardless
+    of their market cap ranking.  They still go through the
+    same backtest pipeline and must produce a strong enough
+    signal to pass risk checks.
+    """
+    extras: set[str] = set()
+
+    # 1. Env var
+    env_val = os.getenv("EXTRA_TICKERS", "").strip()
+    if env_val:
+        for raw in env_val.split(","):
+            ticker = raw.strip().upper().replace(".", "-")
+            if ticker and 1 <= len(ticker) <= 6:
+                extras.add(ticker)
+        if extras:
+            log.info(
+                f"  EXTRA_TICKERS env: {len(extras)} tickers "
+                f"({', '.join(sorted(extras))})"
+            )
+
+    # 2. Text file
+    for path in _EXTRA_TICKERS_PATHS:
+        resolved = path.resolve()
+        if resolved.exists():
+            try:
+                with open(resolved, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        # Skip comments and blanks
+                        if not line or line.startswith("#"):
+                            continue
+                        # Support inline comments
+                        ticker = (
+                            line.split("#")[0]
+                            .strip()
+                            .upper()
+                            .replace(".", "-")
+                        )
+                        if ticker and 1 <= len(ticker) <= 6:
+                            extras.add(ticker)
+                log.info(
+                    f"  Loaded extra tickers from {resolved}"
+                )
+            except OSError as exc:
+                log.debug(
+                    f"  Could not read {resolved}: {exc}"
+                )
+            break  # Only read the first file found
+
+    if extras:
+        log.info(
+            f"  {len(extras)} extra tickers total: "
+            f"{', '.join(sorted(extras))}"
+        )
+
+    return sorted(extras)
+
+
 def _get_market_caps(
     tickers: List[str], batch_size: int = 50
 ) -> Dict[str, float]:
@@ -160,7 +247,19 @@ def fetch_top_us_stocks(
             f"  Loaded {len(cached)} tickers from "
             f"universe cache ({cache_file})"
         )
-        return cached[:n]
+        # Still check for extra tickers — user may have added
+        # new ones after the cache was built today.
+        extra = load_extra_tickers()
+        if extra:
+            already = set(cached)
+            added = [t for t in extra if t not in already]
+            if added:
+                cached.extend(added)
+                log.info(
+                    f"  Appended {len(added)} extra tickers "
+                    f"not in cache: {', '.join(added)}"
+                )
+        return cached[:n] if not extra else cached
 
     log.info(f"  Building top {n} US stock universe...")
 
@@ -229,6 +328,20 @@ def fetch_top_us_stocks(
     )
     top_n = sorted_tickers[:n]
 
+    # 5. Append extra tickers (ETFs, commodities, etc.)
+    #    These bypass the market-cap ranking — they're always
+    #    included so the bot can evaluate non-index instruments.
+    extra = load_extra_tickers()
+    if extra:
+        already = set(top_n)
+        added = [t for t in extra if t not in already]
+        if added:
+            top_n.extend(added)
+            log.info(
+                f"  Appended {len(added)} extra tickers: "
+                f"{', '.join(added)}"
+            )
+
     # Cache for today
     with open(cache_file, "w") as f:
         json.dump(top_n, f)
@@ -238,10 +351,14 @@ def fetch_top_us_stocks(
         top5_str = ", ".join(
             f"{t} (${market_caps[t] / 1e9:.0f}B)"
             for t in top_n[:5]
+            if t in market_caps
         )
-        log.info(f"  Top 5: {top5_str}")
-        if len(top_n) >= n:
-            bottom = top_n[-1]
+        if top5_str:
+            log.info(f"  Top 5: {top5_str}")
+        # Show the last ticker that was ranked by market cap (not extras)
+        ranked = [t for t in top_n if t in market_caps]
+        if len(ranked) >= n:
+            bottom = ranked[-1]
             log.info(
                 f"  #{n}: {bottom} "
                 f"(${market_caps[bottom] / 1e9:.1f}B)"

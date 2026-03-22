@@ -82,13 +82,13 @@ python -m trading_bot_bl --config trading_config.json
 
 ```bash
 # Step 1: Generate today's signals
-python quant_bot.py --all-stocks --top-n 200
+python -m quant_analysis_bot --all-stocks --top-n 200
 
 # Step 2: Execute with Black-Litterman optimization
 python -m trading_bot_bl
 ```
 
-**Important:** These are two separate steps. If you change sizing/config in quant_bot.py, regenerate signals before running the trading bot.
+**Important:** These are two separate steps. If you change sizing/config in the quant analysis bot, regenerate signals before running the trading bot.
 
 ## How Black-Litterman Works
 
@@ -128,14 +128,31 @@ BL weights are used for **ranking** (which stocks to buy first). Position sizing
 The risk manager enforces multiple layers of protection (in order):
 
 - **Circuit breaker** — halts all trading if day P&L drops below -3%
-- **Max positions** — won't exceed 8 concurrent positions (configurable)
+- **SPY trend regime** — bear market filter (see below)
+- **Max positions** — won't exceed 8 concurrent positions (regime-adjusted, configurable)
 - **Min position size** — skips orders below 2% of equity (configurable)
-- **Signal quality** — minimum composite score (20), confidence score (2), signal expiry check, min backtest trades (5)
+- **Signal quality** — minimum composite score (regime-adjusted), confidence score (2), signal expiry check, min backtest trades (5)
 - **Strategy history** — blocks strategies with poor track records (only counts strategy-attributable failures, not infrastructure errors)
 - **Ticker churn** — 2-day cooldown between trades on the same ticker
 - **Portfolio exposure** — won't exceed 80% total exposure
 - **Per-stock cap** — no single position above 12% of equity
+- **Sentiment sizing** — VIX/P/C contrarian multiplier (separate from trend regime)
 - **Cash check** — can't spend more than available cash
+
+### SPY Bear Market Filter
+
+Since the bot is long-only, it underperforms in sustained bear markets. The SPY trend regime filter detects downtrends using the 200-day SMA and tightens risk limits accordingly. This is separate from the VIX contrarian module (which sizes up during fear spikes — good for V-shaped recoveries, bad for prolonged bears).
+
+Four regime tiers:
+
+| Regime | Trigger | Effect |
+|---|---|---|
+| **BULL** | SPY above 200-SMA | No restrictions |
+| **CAUTION** | 200-SMA slope negative, SPY near SMA | Max 6 positions, min composite 22 |
+| **BEAR** | SPY below 200-SMA for ≥3 consecutive days | Max 4 positions, min composite 30 |
+| **SEVERE_BEAR** | SPY drawdown ≥15% from 52-week high | Halt all new entries |
+
+The confirmation buffer (default 3 days) prevents whipsaws from single-day dips below the SMA. All thresholds are configurable via env vars or config JSON. The filter degrades gracefully — if SPY data is unavailable, it defaults to BULL (no restrictions).
 
 ## Order Entry Protection
 
@@ -213,7 +230,7 @@ Journal data is skipped entirely during `--dry-run` so simulated runs never poll
 | `--log-dir PATH` | Where to write execution logs (default: `execution_logs`) |
 | `--report` | Print text performance report (no orders placed) |
 | `--report-json` | Print JSON performance report (no orders placed) |
-| `--report-pdf [PATH]` | Generate PDF report with charts (default: `reports/report_YYYY-MM-DD.pdf`) |
+| `--report-pdf [PATH]` | Generate PDF report with charts (default: `reports/performance/report_YYYY-MM-DD.pdf`) |
 | `--report-csv [PATH]` | Export closed trades as CSV (default: `reports/trades_YYYY-MM-DD.csv`) |
 | `--monitor-only` | Only check existing positions, no new orders |
 | `--reset-history` | Archive old execution logs for clean history |
@@ -248,6 +265,18 @@ Journal data is skipped entirely during `--dry-run` so simulated runs never poll
 | `MAX_ENTRY_SLIPPAGE_PCT` | 1.5 | Limit order slippage cap (0 = market order) |
 | `HISTORY_LOOKBACK_DAYS` | 30 | Days of execution history to consider |
 
+### SPY Trend Regime
+
+| Variable | Default | Description |
+|---|---|---|
+| `SPY_REGIME_ENABLED` | true | Enable SPY bear market filter |
+| `SPY_BEAR_CONFIRMATION_DAYS` | 3 | Days below 200-SMA to confirm BEAR |
+| `SPY_BEAR_MAX_POSITIONS` | 4 | Max positions during BEAR |
+| `SPY_BEAR_MIN_COMPOSITE_SCORE` | 30.0 | Min composite score during BEAR |
+| `SPY_CAUTION_MAX_POSITIONS` | 6 | Max positions during CAUTION |
+| `SPY_CAUTION_MIN_COMPOSITE_SCORE` | 22.0 | Min composite score during CAUTION |
+| `SPY_SEVERE_DRAWDOWN_PCT` | 15.0 | Drawdown (%) from 52w high for SEVERE_BEAR |
+
 ### Black-Litterman
 
 | Variable | Default | Description |
@@ -279,9 +308,10 @@ trading_bot_bl/
 ├── models.py                # Signal, OrderIntent, OrderResult, PositionAlert, JournalEntry, EquitySnapshot
 ├── broker.py                # Alpaca API wrapper (limit + bracket orders)
 ├── executor.py              # 10-step execution pipeline
-├── risk.py                  # Risk manager (exposure, quality, sizing, history)
+├── risk.py                  # Risk manager (exposure, quality, sizing, history, SPY regime)
 ├── history.py               # Trade history aggregation + infra vs strategy classification
 ├── monitor.py               # Position health monitoring (orphans, emergencies, trailing stops)
+├── market_sentiment.py      # VIX/P/C contrarian sizing + SPY trend regime detection
 ├── black_litterman.py       # BL model: equilibrium, views, posterior, Ledoit-Wolf shrinkage
 ├── llm_views.py             # LLM-enhanced view generation (ICLR 2025 repeated sampling)
 ├── news_fetcher.py          # News headline fetcher for LLM context
@@ -293,14 +323,16 @@ trading_bot_bl/
 ├── cli.py                   # CLI entry point with BL/LLM flags
 ├── __main__.py              # Enables `python -m trading_bot_bl`
 ├── test_journal.py          # Tests for journal + analytics (33 tests)
-└── test_black_litterman.py  # Tests for BL math (8 tests)
+├── test_black_litterman.py  # Tests for BL math (8 tests)
+├── test_monitor.py          # Tests for position monitoring (51 tests)
+└── test_spy_regime.py       # Tests for SPY regime filter (21 tests)
 ```
 
 ## GitHub Actions
 
 Four workflows automate the full pipeline on weekday market hours, plus a weekly report:
 
-1. **generate_signals.yml** — 9:00 AM ET weekdays: runs `quant_bot.py --all-stocks --top-n 200`, commits signals
+1. **generate_signals.yml** — 9:00 AM ET weekdays: runs `python -m quant_analysis_bot --all-stocks --top-n 200`, commits signals
 2. **execute_trades.yml** — 10:15 AM ET weekdays: pulls latest signals, runs `python -m trading_bot_bl`, commits logs
 3. **monitor_positions.yml** — 10 AM, 12 PM, 2 PM ET weekdays: runs `--monitor-only`, uploads logs
 4. **weekly_report.yml** — 8:00 AM ET every Sunday: generates both PDF and CSV reports into `reports/`, commits them to the repo and uploads as a 90-day workflow artifact (no Alpaca credentials required)
@@ -324,6 +356,9 @@ python -m unittest trading_bot_bl.test_journal -v
 # Monitor tests (51 tests)
 python -m unittest trading_bot_bl.test_monitor -v
 
+# SPY regime filter tests (21 tests)
+python -m unittest trading_bot_bl.test_spy_regime -v
+
 # All tests
 python -m unittest discover -s trading_bot_bl -p 'test_*.py' -v
 ```
@@ -333,3 +368,5 @@ python -m unittest discover -s trading_bot_bl -p 'test_*.py' -v
 **Journal tests** verify: serialization round-trips, three-state lifecycle, excursion tracking (MFE/MAE), SL modification recording, closed-trade detection, position migration, equity curve snapshots/drawdown, full analytics suite (overall metrics, profit factor, R-distribution, streaks, holding analysis, strategy/regime breakdowns), and math helpers (PSR, MinTRL, Pearson correlation, skewness).
 
 **Monitor tests** verify: emergency loss, orphaned/partial brackets, price gaps, trailing/breakeven stops, time exits, dry-run safety, OCO classification, and edge cases.
+
+**SPY regime tests** verify: regime classification (BULL/CAUTION/BEAR/SEVERE_BEAR), 200-SMA detection with mocked data, confirmation buffer (whipsaw prevention), risk manager integration (max positions, min composite score overrides), SEVERE_BEAR hard halt, and graceful degradation on data failure.

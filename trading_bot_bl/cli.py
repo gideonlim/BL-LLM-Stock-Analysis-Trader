@@ -175,6 +175,39 @@ def _run_monitor_only(
                 f"  Cleaned up {len(stale)} stale orders"
             )
 
+    # ── Journal lifecycle hooks ─────────────────────────────────
+    #    Same hooks the full executor runs (step 5d).  Without
+    #    these, trades that fill or exit between executor runs
+    #    aren't recorded until the next morning.
+    journal_dir: Path | None = None
+    if not config.dry_run:
+        try:
+            from trading_bot_bl import journal as _journal
+            from trading_bot_bl import equity_curve as _equity
+
+            journal_dir = log_dir / "journal"
+
+            try:
+                _equity.record_snapshot(portfolio, log_dir)
+            except Exception as exc:
+                log.debug(f"Equity snapshot failed: {exc}")
+            try:
+                _journal.resolve_pending_trades(
+                    broker, journal_dir
+                )
+            except Exception as exc:
+                log.debug(f"Journal resolve failed: {exc}")
+            try:
+                _journal.detect_closed_trades(
+                    portfolio.positions, journal_dir, broker
+                )
+            except Exception as exc:
+                log.debug(
+                    f"Journal detect_closed failed: {exc}"
+                )
+        except ImportError:
+            pass  # journal/equity modules not available
+
     if not portfolio.positions:
         log.info("  No open positions to monitor.")
         return
@@ -184,6 +217,7 @@ def _run_monitor_only(
         portfolio=portfolio,
         limits=config.risk,
         dry_run=config.dry_run,
+        journal_dir=journal_dir,
     )
     write_monitor_log(report, log_dir)
 
@@ -304,7 +338,7 @@ def main() -> None:
         help=(
             "Generate a PDF performance report with charts. "
             "Optionally provide an output path "
-            "(default: execution_logs/report_YYYY-MM-DD.pdf)."
+            "(default: reports/performance/report_YYYY-MM-DD.pdf)."
         ),
     )
     parser.add_argument(
@@ -316,7 +350,7 @@ def main() -> None:
         help=(
             "Export all closed trades as CSV. "
             "Optionally provide an output path "
-            "(default: execution_logs/trades_YYYY-MM-DD.csv)."
+            "(default: reports/trades_YYYY-MM-DD.csv)."
         ),
     )
     parser.add_argument(

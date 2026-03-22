@@ -236,6 +236,7 @@ def generate_daily_signal(
         avg_holding_days=round(result.avg_holding_days, 1),
         total_trades=result.total_trades,
         backtest_period=backtest_period,
+        pbo=round(result.pbo, 3) if result.pbo >= 0 else -1.0,
         rsi=round(rsi_val, 1),
         vol_20=round(float(vol_20), 4),
         sma_50=round(float(latest.get("SMA_50", 0) or 0), 2),

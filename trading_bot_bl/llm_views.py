@@ -173,7 +173,7 @@ def build_prompt(
         confidence=signal.confidence_score,
         composite=signal.composite_score,
         sharpe=signal.sharpe,
-        win_rate=signal.win_rate,
+        win_rate=signal.win_rate / 100,  # stored as 0-100, format needs 0-1
         total_trades=signal.total_trades,
         stop_loss=signal.stop_loss_price,
         take_profit=signal.take_profit_price,
@@ -240,7 +240,7 @@ def build_enriched_prompt(
         confidence=signal.confidence_score,
         composite=signal.composite_score,
         sharpe=signal.sharpe,
-        win_rate=signal.win_rate,
+        win_rate=signal.win_rate / 100,  # stored as 0-100, format needs 0-1
         total_trades=signal.total_trades,
         stop_loss=signal.stop_loss_price,
         take_profit=signal.take_profit_price,

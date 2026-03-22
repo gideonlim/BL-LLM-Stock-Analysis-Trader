@@ -488,7 +488,7 @@ def integrate_llm_views(
                 + llm_weight * daily_return
             )
             # Take the more conservative (larger) omega
-            new_omega[row_i] = min(
+            new_omega[row_i] = max(
                 new_omega[row_i], llm_omega
             )
             log.info(

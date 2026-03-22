@@ -124,6 +124,19 @@ class RiskLimits:
     # reliable enough to execute
     min_backtest_trades: int = 3
 
+    # Maximum PBO (probability of backtest overfitting) allowed.
+    # Signals with PBO above this are rejected as likely overfit.
+    # Set to 1.0 to disable PBO gating.
+    # PBO of -1 (not computed) always passes.
+    max_pbo: float = 0.50
+
+    # ── Earnings blackout ─────────────────────────────────────
+    # Block new entries near earnings announcements to avoid
+    # overnight gap risk that ATR-based stops can't protect against.
+    earnings_blackout_enabled: bool = True
+    earnings_blackout_pre_days: int = 3   # days before earnings
+    earnings_blackout_post_days: int = 1  # days after earnings
+
 
 @dataclass
 class TradingConfig:
@@ -193,6 +206,32 @@ class TradingConfig:
     # Position-size multiplier during extreme greed (defensive)
     sentiment_greed_size_mult: float = 0.90
 
+    # ── SPY trend regime (bear market filter) ─────────────────
+    # Enable SPY 200-SMA bear market detection.  When enabled,
+    # the risk manager restricts exposure during sustained
+    # downtrends (separate from VIX contrarian sizing).
+    spy_regime_enabled: bool = True
+
+    # Consecutive days SPY must close below 200-SMA to confirm
+    # BEAR regime (prevents whipsaws from single-day dips).
+    spy_bear_confirmation_days: int = 3
+
+    # In BEAR regime: reduce max concurrent positions to this
+    spy_bear_max_positions: int = 4
+
+    # In BEAR regime: raise min composite score to this
+    spy_bear_min_composite_score: float = 30.0
+
+    # In CAUTION regime: reduce max positions to this
+    spy_caution_max_positions: int = 6
+
+    # In CAUTION regime: raise min composite score to this
+    spy_caution_min_composite_score: float = 22.0
+
+    # SPY drawdown from 52-week high (%) that triggers
+    # SEVERE_BEAR — halts all new entries entirely
+    spy_severe_drawdown_pct: float = 15.0
+
     # ── LLM view generation ────────────────────────────────────
     # Enable LLM-enhanced views (requires API key)
     llm_views_enabled: bool = False
@@ -244,6 +283,20 @@ class TradingConfig:
             min_backtest_trades=int(
                 os.getenv("MIN_BACKTEST_TRADES", "3")
             ),
+            max_pbo=float(
+                os.getenv("MAX_PBO", "0.50")
+            ),
+            earnings_blackout_enabled=(
+                os.getenv(
+                    "EARNINGS_BLACKOUT_ENABLED", "true"
+                ).lower() == "true"
+            ),
+            earnings_blackout_pre_days=int(
+                os.getenv("EARNINGS_BLACKOUT_PRE_DAYS", "3")
+            ),
+            earnings_blackout_post_days=int(
+                os.getenv("EARNINGS_BLACKOUT_POST_DAYS", "1")
+            ),
         )
         return cls(
             alpaca=alpaca,
@@ -292,6 +345,27 @@ class TradingConfig:
             ),
             sentiment_greed_size_mult=float(
                 os.getenv("SENTIMENT_GREED_SIZE_MULT", "0.90")
+            ),
+            spy_regime_enabled=os.getenv(
+                "SPY_REGIME_ENABLED", "true"
+            ).lower() in ("true", "1", "yes"),
+            spy_bear_confirmation_days=int(
+                os.getenv("SPY_BEAR_CONFIRMATION_DAYS", "3")
+            ),
+            spy_bear_max_positions=int(
+                os.getenv("SPY_BEAR_MAX_POSITIONS", "4")
+            ),
+            spy_bear_min_composite_score=float(
+                os.getenv("SPY_BEAR_MIN_COMPOSITE_SCORE", "30.0")
+            ),
+            spy_caution_max_positions=int(
+                os.getenv("SPY_CAUTION_MAX_POSITIONS", "6")
+            ),
+            spy_caution_min_composite_score=float(
+                os.getenv("SPY_CAUTION_MIN_COMPOSITE_SCORE", "22.0")
+            ),
+            spy_severe_drawdown_pct=float(
+                os.getenv("SPY_SEVERE_DRAWDOWN_PCT", "15.0")
             ),
             llm_views_enabled=os.getenv(
                 "LLM_VIEWS_ENABLED", "false"
@@ -401,6 +475,26 @@ class TradingConfig:
                 "sentiment_greed_pc",
                 "sentiment_fear_size_mult",
                 "sentiment_greed_size_mult",
+            ):
+                if k in overrides:
+                    setattr(config, k, float(overrides[k]))
+
+            # SPY regime overrides
+            if "spy_regime_enabled" in overrides:
+                config.spy_regime_enabled = bool(
+                    overrides["spy_regime_enabled"]
+                )
+            for k in (
+                "spy_bear_confirmation_days",
+                "spy_bear_max_positions",
+                "spy_caution_max_positions",
+            ):
+                if k in overrides:
+                    setattr(config, k, int(overrides[k]))
+            for k in (
+                "spy_bear_min_composite_score",
+                "spy_caution_min_composite_score",
+                "spy_severe_drawdown_pct",
             ):
                 if k in overrides:
                     setattr(config, k, float(overrides[k]))
