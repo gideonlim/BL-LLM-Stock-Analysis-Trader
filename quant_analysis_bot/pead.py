@@ -23,6 +23,7 @@ Returns a DataFrame with columns: Reported EPS, EPS Estimate.
 from __future__ import annotations
 
 import logging
+import threading
 from typing import Dict, Optional
 
 import numpy as np
@@ -32,11 +33,13 @@ log = logging.getLogger(__name__)
 
 # Module-level cache: {ticker: earnings_df}
 _pead_cache: Dict[str, Optional[pd.DataFrame]] = {}
+_cache_lock = threading.Lock()
 
 
 def fetch_earnings_surprises(
     ticker: str,
     use_cache: bool = True,
+    retries: int = 2,
 ) -> Optional[pd.DataFrame]:
     """
     Fetch historical earnings dates and surprises from yfinance.
@@ -46,20 +49,35 @@ def fetch_earnings_surprises(
       - estimated_eps: consensus estimate
       - surprise_pct: (actual - estimate) / |estimate| × 100
 
-    Returns None if data is unavailable.
+    Returns None if data is unavailable.  Retries on empty
+    results (Yahoo rate-limits can return empty instead of data).
     """
-    if use_cache and ticker in _pead_cache:
-        return _pead_cache[ticker]
+    with _cache_lock:
+        if use_cache and ticker in _pead_cache:
+            return _pead_cache[ticker]
+
+    import time
 
     try:
         import yfinance as yf
 
-        t = yf.Ticker(ticker)
-        ed = t.earnings_dates
+        ed = None
+        t = yf.Ticker(ticker)  # reuse across retries
+        for attempt in range(1 + retries):
+            ed = t.earnings_dates
+            if ed is not None and not ed.empty:
+                break
+            if attempt < retries:
+                time.sleep(0.5 * (attempt + 1))
 
         if ed is None or ed.empty:
-            if use_cache:
-                _pead_cache[ticker] = None
+            log.debug(
+                f"{ticker}: No earnings data from yfinance "
+                f"(Yahoo coverage gap, not delisted)"
+            )
+            with _cache_lock:
+                if use_cache:
+                    _pead_cache[ticker] = None
             return None
 
         # yfinance .earnings_dates has columns like:
@@ -72,8 +90,9 @@ def fetch_earnings_surprises(
                 ed["Reported EPS"], errors="coerce"
             )
         else:
-            if use_cache:
-                _pead_cache[ticker] = None
+            with _cache_lock:
+                if use_cache:
+                    _pead_cache[ticker] = None
             return None
 
         if "EPS Estimate" in ed.columns:
@@ -81,8 +100,9 @@ def fetch_earnings_surprises(
                 ed["EPS Estimate"], errors="coerce"
             )
         else:
-            if use_cache:
-                _pead_cache[ticker] = None
+            with _cache_lock:
+                if use_cache:
+                    _pead_cache[ticker] = None
             return None
 
         # Compute surprise percentage
@@ -102,8 +122,9 @@ def fetch_earnings_surprises(
         )
 
         if result.empty:
-            if use_cache:
-                _pead_cache[ticker] = None
+            with _cache_lock:
+                if use_cache:
+                    _pead_cache[ticker] = None
             return None
 
         # Ensure index is tz-naive for alignment with OHLCV data
@@ -113,14 +134,16 @@ def fetch_earnings_surprises(
         # Sort chronologically
         result = result.sort_index()
 
-        if use_cache:
-            _pead_cache[ticker] = result
+        with _cache_lock:
+            if use_cache:
+                _pead_cache[ticker] = result
         return result
 
     except Exception as e:
         log.debug(f"PEAD earnings fetch failed for {ticker}: {e}")
-        if use_cache:
-            _pead_cache[ticker] = None
+        with _cache_lock:
+            if use_cache:
+                _pead_cache[ticker] = None
         return None
 
 
@@ -219,6 +242,96 @@ def enrich_with_pead(
             ] = days_since
 
     return df
+
+
+def prefetch_earnings_parallel(
+    tickers: list[str],
+    max_workers: int = 4,
+    batch_size: int = 50,
+    batch_delay: float = 2.0,
+) -> None:
+    """Pre-fetch earnings data for many tickers in parallel.
+
+    Uses ThreadPoolExecutor to run yfinance API calls concurrently,
+    but processes tickers in batches with cooldown delays between
+    batches to avoid Yahoo Finance rate limiting.
+
+    Results are stored in the module-level ``_pead_cache`` so that
+    subsequent calls to ``enrich_with_pead()`` hit the cache and
+    skip the network call.
+
+    Parameters
+    ----------
+    tickers : list[str]
+        Tickers to pre-fetch earnings for.
+    max_workers : int
+        Max concurrent threads per batch (default 4).
+    batch_size : int
+        Tickers per batch before pausing (default 50).
+    batch_delay : float
+        Seconds to wait between batches (default 2.0).
+    """
+    import time
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    # Only fetch tickers not already cached
+    with _cache_lock:
+        uncached = [t for t in tickers if t not in _pead_cache]
+    if not uncached:
+        return
+
+    log.info(
+        f"Pre-fetching earnings data for {len(uncached)} tickers "
+        f"({max_workers} threads, batches of {batch_size})..."
+    )
+
+    def _fetch_one(ticker: str) -> tuple[str, bool]:
+        try:
+            result = fetch_earnings_surprises(
+                ticker, use_cache=True, retries=1,
+            )
+            return ticker, result is not None
+        except Exception:
+            return ticker, False
+
+    ok = 0
+    failed: list[str] = []
+    total = len(uncached)
+
+    # Process in batches to avoid rate limiting
+    for batch_start in range(0, total, batch_size):
+        batch = uncached[batch_start:batch_start + batch_size]
+
+        try:
+            with ThreadPoolExecutor(
+                max_workers=max_workers
+            ) as pool:
+                futures = {
+                    pool.submit(_fetch_one, t): t
+                    for t in batch
+                }
+                for future in as_completed(futures):
+                    _ticker, success = future.result()
+                    if success:
+                        ok += 1
+                    else:
+                        failed.append(_ticker)
+        except KeyboardInterrupt:
+            log.info("Earnings pre-fetch interrupted by user")
+            break
+
+        # Cooldown between batches (skip after last batch)
+        if batch_start + batch_size < total:
+            time.sleep(batch_delay)
+
+    log.info(
+        f"Earnings pre-fetch complete: {ok}/{total} succeeded"
+    )
+    if failed:
+        log.warning(
+            f"No earnings data for {len(failed)} tickers: "
+            f"{', '.join(sorted(failed))}"
+        )
 
 
 def clear_cache() -> None:

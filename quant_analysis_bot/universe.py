@@ -224,14 +224,34 @@ def _get_market_caps(
 def fetch_top_us_stocks(
     n: int = 1000, cache_dir: str = _UNIVERSE_CACHE_DIR
 ) -> List[str]:
-    """
-    Fetch the top N US stocks by market cap.
+    """Fetch the top N US stocks by market cap.
+
+    Uses a **tiered approach** to minimise yfinance API calls:
+
+    S&P index membership already groups stocks by market-cap tier:
+      - S&P 500   → large cap  (~500 stocks)
+      - MidCap 400 → mid cap   (~400 stocks)
+      - SmallCap 600 → small cap (~600 stocks)
+
+    Rather than fetching all 1500 tickers and sorting, we:
+      1. Only fetch indices needed to fill N slots.
+      2. Include all tickers from fully-consumed tiers
+         without fetching market caps (they're guaranteed to
+         rank above the next tier).
+      3. Only fetch market caps for the *boundary tier* — the
+         one that straddles the N cutoff — so we can sort
+         within that tier and pick the top remainder.
+
+    Example: ``--top-n 700`` needs all 500 S&P 500 stocks (no
+    market cap fetch needed) + the top 200 from MidCap 400
+    (fetch caps for ~400, sort, take 200).  SmallCap 600 is
+    never touched.  This cuts API calls from ~1500 to ~400.
 
     Fallback chain:
       1. Check daily cache
-      2. Try Wikipedia (S&P 500 + 400 + 600)
+      2. Try Wikipedia (S&P 500 + 400 + 600, as needed)
       3. Fall back to bundled us_tickers.json
-      4. Fetch market caps via yfinance, sort, return top N
+      4. Fetch market caps only for the boundary tier
     """
     os.makedirs(cache_dir, exist_ok=True)
     date_str = datetime.now().strftime("%Y%m%d")
@@ -247,8 +267,6 @@ def fetch_top_us_stocks(
             f"  Loaded {len(cached)} tickers from "
             f"universe cache ({cache_file})"
         )
-        # Still check for extra tickers — user may have added
-        # new ones after the cache was built today.
         extra = load_extra_tickers()
         if extra:
             already = set(cached)
@@ -263,8 +281,7 @@ def fetch_top_us_stocks(
 
     log.info(f"  Building top {n} US stock universe...")
 
-    # 2. Wikipedia
-    all_tickers: set[str] = set()
+    # 2. Fetch tickers per tier from Wikipedia
     wiki_sources = [
         (
             "S&P 500",
@@ -283,54 +300,90 @@ def fetch_top_us_stocks(
         ),
     ]
 
+    # Collect tickers per tier, preserving tier order
+    tiers: List[List[str]] = []
+    seen: set[str] = set()
+    cumulative = 0
+
     for name, url in wiki_sources:
-        tickers = _fetch_wiki_tickers(name, url)
-        all_tickers.update(tickers)
-        if len(all_tickers) >= n * 1.2:
+        raw = _fetch_wiki_tickers(name, url)
+        # Deduplicate across tiers (a ticker might appear in
+        # multiple indices during rebalancing)
+        unique = [t for t in raw if t not in seen]
+        seen.update(unique)
+        tiers.append(unique)
+        cumulative += len(unique)
+        # Stop fetching lower tiers if we already have enough
+        # candidates.  We need at least N tickers to fill the
+        # request.  Add a small buffer for tickers that might
+        # fail market-cap lookup.
+        if cumulative >= n:
             break
 
     # 3. Bundled fallback
-    if len(all_tickers) < 100:
+    total_tickers = sum(len(t) for t in tiers)
+    if total_tickers < 100:
         log.warning(
             "  Wikipedia returned too few tickers, "
             "using bundled list..."
         )
         bundled = _load_bundled_tickers()
-        all_tickers.update(bundled)
+        # Treat bundled as a single unsorted tier
+        unique_bundled = [t for t in bundled if t not in seen]
+        tiers.append(unique_bundled)
+        total_tickers += len(unique_bundled)
 
-    if len(all_tickers) < 50:
+    if total_tickers < 50:
         log.error(
             "  Cannot build stock universe: "
             "no ticker source available."
         )
         return []
 
-    ticker_list = sorted(all_tickers)
-    log.info(f"  Collected {len(ticker_list)} unique tickers")
-
-    # 4. Market caps
-    market_caps = _get_market_caps(ticker_list)
     log.info(
-        f"  Got market caps for {len(market_caps)} tickers"
+        f"  Collected {total_tickers} unique tickers "
+        f"across {len(tiers)} tiers"
     )
 
-    if len(market_caps) < 50:
-        log.error(
-            f"  Only got market caps for {len(market_caps)} "
-            f"stocks -- check your internet"
-        )
-        return []
+    # 4. Tiered selection: include full higher tiers, sort
+    #    only the boundary tier by market cap
+    top_n: List[str] = []
+    market_caps: Dict[str, float] = {}
+    remaining = n
 
-    sorted_tickers = sorted(
-        market_caps.keys(),
-        key=lambda t: market_caps[t],
-        reverse=True,
-    )
-    top_n = sorted_tickers[:n]
+    for i, tier in enumerate(tiers):
+        if remaining <= 0:
+            break
+
+        if len(tier) <= remaining:
+            # This entire tier fits within N — include all
+            # without fetching market caps (they're guaranteed
+            # to outrank the next tier by index construction)
+            top_n.extend(sorted(tier))
+            remaining -= len(tier)
+            log.info(
+                f"  Tier {i + 1}: included all {len(tier)} "
+                f"tickers ({remaining} slots remaining)"
+            )
+        else:
+            # Boundary tier: need to sort by market cap to
+            # pick the top `remaining` from this tier
+            log.info(
+                f"  Tier {i + 1}: sorting {len(tier)} tickers "
+                f"by market cap (need top {remaining})..."
+            )
+            tier_caps = _get_market_caps(tier)
+            market_caps.update(tier_caps)
+
+            sorted_tier = sorted(
+                tier,
+                key=lambda t: tier_caps.get(t, 0),
+                reverse=True,
+            )
+            top_n.extend(sorted_tier[:remaining])
+            remaining = 0
 
     # 5. Append extra tickers (ETFs, commodities, etc.)
-    #    These bypass the market-cap ranking — they're always
-    #    included so the bot can evaluate non-index instruments.
     extra = load_extra_tickers()
     if extra:
         already = set(top_n)
@@ -347,7 +400,7 @@ def fetch_top_us_stocks(
         json.dump(top_n, f)
     log.info(f"  Cached {len(top_n)} tickers to {cache_file}")
 
-    if top_n:
+    if top_n and market_caps:
         top5_str = ", ".join(
             f"{t} (${market_caps[t] / 1e9:.0f}B)"
             for t in top_n[:5]
@@ -355,13 +408,13 @@ def fetch_top_us_stocks(
         )
         if top5_str:
             log.info(f"  Top 5: {top5_str}")
-        # Show the last ticker that was ranked by market cap (not extras)
         ranked = [t for t in top_n if t in market_caps]
-        if len(ranked) >= n:
+        if ranked:
             bottom = ranked[-1]
             log.info(
-                f"  #{n}: {bottom} "
+                f"  Boundary cutoff: {bottom} "
                 f"(${market_caps[bottom] / 1e9:.1f}B)"
             )
 
+    log.info(f"  Final universe: {len(top_n)} tickers")
     return top_n

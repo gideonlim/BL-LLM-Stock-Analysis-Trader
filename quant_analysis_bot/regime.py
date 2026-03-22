@@ -103,32 +103,67 @@ def _build_regime_df(
     start = end - timedelta(days=lookback_days + 250)
     period_str = f"{lookback_days + 250}d"
 
+    import time
+
+    def _download_with_retry(
+        symbol: str, max_retries: int = 3
+    ) -> pd.DataFrame:
+        for attempt in range(max_retries):
+            try:
+                data = yf.download(
+                    symbol,
+                    period=period_str,
+                    progress=False,
+                    auto_adjust=True,
+                )
+                if data is not None and not data.empty:
+                    return data
+            except Exception as exc:
+                exc_str = str(exc)
+                is_rate_limit = "RateLimit" in exc_str or (
+                    "Too Many Requests" in exc_str
+                )
+                if is_rate_limit:
+                    wait = 30 * (attempt + 1)
+                    log.warning(
+                        f"{symbol}: Rate limited, "
+                        f"waiting {wait}s before retry "
+                        f"({attempt + 1}/{max_retries})..."
+                    )
+                else:
+                    wait = 5 * (attempt + 1)
+                    log.debug(
+                        f"{symbol} fetch attempt "
+                        f"{attempt + 1} failed: {exc}"
+                    )
+                if attempt < max_retries - 1:
+                    time.sleep(wait)
+        return pd.DataFrame()
+
     # Fetch VIX
     try:
-        vix_data = yf.download(
-            "^VIX",
-            period=period_str,
-            progress=False,
-            auto_adjust=True,
-        )
+        vix_data = _download_with_retry("^VIX")
         if isinstance(vix_data.columns, pd.MultiIndex):
             vix_data.columns = vix_data.columns.get_level_values(0)
-        vix_close = vix_data["Close"].rename("VIX_Close")
+        vix_close = (
+            vix_data["Close"].rename("VIX_Close")
+            if not vix_data.empty
+            else pd.Series(dtype=float, name="VIX_Close")
+        )
     except Exception as exc:
         log.warning(f"VIX fetch failed: {exc}")
         vix_close = pd.Series(dtype=float, name="VIX_Close")
 
     # Fetch SPY
     try:
-        spy_data = yf.download(
-            "SPY",
-            period=period_str,
-            progress=False,
-            auto_adjust=True,
-        )
+        spy_data = _download_with_retry("SPY")
         if isinstance(spy_data.columns, pd.MultiIndex):
             spy_data.columns = spy_data.columns.get_level_values(0)
-        spy_close = spy_data["Close"].rename("SPY_Close")
+        spy_close = (
+            spy_data["Close"].rename("SPY_Close")
+            if not spy_data.empty
+            else pd.Series(dtype=float, name="SPY_Close")
+        )
     except Exception as exc:
         log.warning(f"SPY fetch failed: {exc}")
         spy_close = pd.Series(dtype=float, name="SPY_Close")

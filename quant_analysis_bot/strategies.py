@@ -274,6 +274,68 @@ class DonchianBreakout(Strategy):
         return state.diff().clip(-1, 1).fillna(0)
 
 
+# ── 52-Week High Momentum ────────────────────────────────────────────
+
+
+class FiftyTwoWeekHighMomentum(Strategy):
+    name = "52-Week High Momentum"
+    description = (
+        "Buy when price is within 5% of 52-week high with "
+        "trend confirmation (above 200-SMA); exit when price "
+        "drops >10% below the high"
+    )
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        """Generate signals based on nearness to 52-week high.
+
+        The 52-week high momentum anomaly: stocks near their
+        52-week high tend to continue outperforming because
+        traders anchor to the high and under-react to positive
+        information that pushes the stock toward it.
+
+        Requires columns:
+          - Nearness_52w_High: Close / 52-week High (0-1 ratio)
+          - SMA_200: 200-day simple moving average
+          - ADX_14: average directional index
+
+        If columns are missing, returns all-zero signals.
+        """
+        signals = pd.Series(0, index=df.index)
+
+        # Graceful degradation
+        required = ["Nearness_52w_High", "SMA_200", "ADX_14"]
+        if not all(col in df.columns for col in required):
+            return signals
+
+        nearness = df["Nearness_52w_High"]
+
+        # ── Entry conditions ────────────────────────────────────
+        # Price within 5% of 52-week high (nearness > 0.95)
+        near_high = nearness > 0.95
+
+        # Trend confirmation: above 200-SMA (uptrend)
+        above_trend = df["Close"] > df["SMA_200"]
+
+        # Trend strength: ADX > 20 (meaningful trend exists)
+        trending = df["ADX_14"] > 20
+
+        # BUY: near 52-week high, in uptrend, with trend strength
+        buy = near_high & above_trend & trending
+        signals[buy] = 1
+
+        # ── Exit conditions ─────────────────────────────────────
+        # Price dropped >10% from 52-week high (momentum faded)
+        faded = nearness < 0.90
+
+        # Or price fell below 200-SMA (trend broken)
+        below_trend = df["Close"] < df["SMA_200"]
+
+        exit_signal = faded | below_trend
+        signals[exit_signal] = -1
+
+        return signals
+
+
 # ── Event-driven ─────────────────────────────────────────────────────
 
 
@@ -362,5 +424,6 @@ ALL_STRATEGIES: List[Strategy] = [
     TrendFollowing_ADX(),
     CompositeScore(),
     DonchianBreakout(),
+    FiftyTwoWeekHighMomentum(),
     PEAD_Drift(),
 ]

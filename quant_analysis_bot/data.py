@@ -71,6 +71,138 @@ def fetch_data(
     return df
 
 
+def batch_fetch_data(
+    tickers: list[str],
+    lookback_days: int,
+    cache_dir: str,
+) -> dict[str, pd.DataFrame]:
+    """Batch-download OHLCV data for multiple tickers in one call.
+
+    Uses ``yf.download(tickers, threads=True)`` which fetches all
+    tickers concurrently via Yahoo's batch API — dramatically faster
+    than one-at-a-time sequential downloads.
+
+    Returns a dict mapping ticker → DataFrame.  Tickers that are
+    already cached on disk are loaded from cache (no download).
+    """
+    os.makedirs(cache_dir, exist_ok=True)
+    date_str = datetime.now().strftime("%Y%m%d")
+
+    results: dict[str, pd.DataFrame] = {}
+    need_download: list[str] = []
+
+    # 1. Load cached tickers, collect uncached ones
+    for ticker in tickers:
+        cache_file = os.path.join(
+            cache_dir, f"{ticker}_{date_str}.parquet"
+        )
+        if os.path.exists(cache_file):
+            results[ticker] = pd.read_parquet(cache_file)
+        else:
+            need_download.append(ticker)
+
+    if not need_download:
+        log.info(f"All {len(tickers)} tickers loaded from cache")
+        return results
+
+    log.info(
+        f"Batch downloading {len(need_download)} tickers "
+        f"({len(results)} from cache)..."
+    )
+
+    # 2. Single batch download for all uncached tickers
+    import time as _time
+
+    end = datetime.now()
+    start = end - timedelta(days=lookback_days + 60)
+
+    raw = pd.DataFrame()
+    for attempt in range(3):
+        try:
+            raw = yf.download(
+                need_download,
+                start=start.strftime("%Y-%m-%d"),
+                end=end.strftime("%Y-%m-%d"),
+                progress=False,
+                auto_adjust=True,
+                threads=True,
+                group_by="ticker",
+            )
+            if raw is not None and not raw.empty:
+                break
+        except Exception as exc:
+            exc_str = str(exc)
+            is_rate_limit = "RateLimit" in exc_str or (
+                "Too Many Requests" in exc_str
+            )
+            if is_rate_limit:
+                wait = 30 * (attempt + 1)
+                log.warning(
+                    f"Batch download rate limited, "
+                    f"waiting {wait}s before retry "
+                    f"({attempt + 1}/3)..."
+                )
+            else:
+                wait = 5 * (attempt + 1)
+                log.warning(
+                    f"Batch download failed: {exc}, "
+                    f"retrying in {wait}s..."
+                )
+            if attempt < 2:
+                _time.sleep(wait)
+
+    if raw is None or raw.empty:
+        log.warning("Batch download returned empty DataFrame")
+        return results
+
+    # 3. Split the multi-ticker result into per-ticker DataFrames
+    if len(need_download) == 1:
+        # Single ticker: yf.download returns flat columns
+        ticker = need_download[0]
+        df = raw.copy()
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        if not df.empty:
+            cache_file = os.path.join(
+                cache_dir, f"{ticker}_{date_str}.parquet"
+            )
+            df.to_parquet(cache_file)
+            results[ticker] = df
+    else:
+        # Multiple tickers: columns are MultiIndex (ticker, field)
+        for ticker in need_download:
+            try:
+                if isinstance(raw.columns, pd.MultiIndex):
+                    df = raw[ticker].copy()
+                else:
+                    df = raw.copy()
+
+                # Drop rows that are all-NaN (ticker had no data)
+                df = df.dropna(how="all")
+
+                if df.empty:
+                    log.debug(f"No data for {ticker} in batch")
+                    continue
+
+                # Flatten if still multi-level
+                if isinstance(df.columns, pd.MultiIndex):
+                    df.columns = df.columns.get_level_values(0)
+
+                cache_file = os.path.join(
+                    cache_dir, f"{ticker}_{date_str}.parquet"
+                )
+                df.to_parquet(cache_file)
+                results[ticker] = df
+            except (KeyError, Exception) as e:
+                log.debug(f"Failed to extract {ticker}: {e}")
+
+    log.info(
+        f"Batch download complete: "
+        f"{len(results)}/{len(tickers)} tickers ready"
+    )
+    return results
+
+
 def enrich_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Add all technical indicators to the dataframe."""
     c, h, l, v = df["Close"], df["High"], df["Low"], df["Volume"]

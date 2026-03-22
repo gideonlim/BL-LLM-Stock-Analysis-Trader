@@ -365,7 +365,7 @@ def deflated_sharpe_ratio(
 def score_single_window(
     result: BacktestResult,
     risk_config: dict,
-    n_strategies_tested: int = 11,
+    n_strategies_tested: int = 14,
     returns_arr: np.ndarray | None = None,
 ) -> float:
     """

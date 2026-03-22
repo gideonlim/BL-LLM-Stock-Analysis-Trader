@@ -14,7 +14,11 @@ from quant_analysis_bot.cscv import (
     format_cscv_report,
     run_cscv_for_ticker,
 )
-from quant_analysis_bot.data import enrich_dataframe, fetch_data
+from quant_analysis_bot.data import (
+    batch_fetch_data,
+    enrich_dataframe,
+    fetch_data,
+)
 from quant_analysis_bot.models import DailySignal
 from quant_analysis_bot.pead import enrich_with_pead
 from quant_analysis_bot.regime import enrich_with_regime, fetch_regime_data
@@ -66,16 +70,33 @@ def run(config: dict) -> None:
     all_trade_logs: dict = {}
     cscv_results: dict = {}
 
-    # ── Fetch market regime data (once for all tickers) ──────────────
+    tickers = config["tickers"]
+    n_tickers = len(tickers)
+    use_progress = n_tickers > 10
+    failed_tickers: list[str] = []
+    skip_pead = config.get("skip_pead", False)
+
+    # ── Fetch market regime data FIRST (only 2 tickers: VIX + SPY)
     regime_df = fetch_regime_data(
         lookback_days=config["lookback_days"],
         vix_fear_threshold=config.get("vix_fear_threshold", 25.0),
     )
 
-    tickers = config["tickers"]
-    n_tickers = len(tickers)
-    use_progress = n_tickers > 10
-    failed_tickers: list[str] = []
+    # ── Batch download price data (all tickers at once) ───────────
+    if n_tickers > 1:
+        log.info("Batch downloading price data...")
+        price_cache = batch_fetch_data(
+            tickers,
+            config["lookback_days"],
+            config["data_cache_dir"],
+        )
+    else:
+        price_cache = {}
+
+    # NOTE: PEAD earnings are fetched inline per-ticker during the
+    # analysis loop (not pre-fetched). This naturally spaces out
+    # requests so Yahoo doesn't rate-limit us. The ~1s of analysis
+    # work per ticker acts as a built-in cooldown between fetches.
 
     ctx = (
         ProgressBar(
@@ -87,20 +108,29 @@ def run(config: dict) -> None:
         else nullcontext()
     )
 
+    interrupted = False
+
     with ctx as pbar:
         for _i, ticker in enumerate(tickers):
+            if interrupted:
+                break
+
             if not use_progress:
                 log.info(f"\n>>> Analyzing {ticker}...")
 
             try:
-                df = fetch_data(
-                    ticker,
-                    config["lookback_days"],
-                    config["data_cache_dir"],
-                )
+                if ticker in price_cache:
+                    df = price_cache[ticker]
+                else:
+                    df = fetch_data(
+                        ticker,
+                        config["lookback_days"],
+                        config["data_cache_dir"],
+                    )
                 df = enrich_dataframe(df)
                 df = enrich_with_regime(df, regime_df)
-                df = enrich_with_pead(df, ticker)
+                if not skip_pead:
+                    df = enrich_with_pead(df, ticker)
 
                 (
                     best_strat,
@@ -169,6 +199,14 @@ def run(config: dict) -> None:
                         f"  Total trades logged: "
                         f"{len(trade_logs)}"
                     )
+
+            except KeyboardInterrupt:
+                log.warning(
+                    f"\nInterrupted at ticker {_i + 1}/{n_tickers}"
+                    f" — outputting partial results..."
+                )
+                interrupted = True
+                break
 
             except Exception as e:
                 if not use_progress:
@@ -348,6 +386,15 @@ def main() -> None:
             "backtest overfitting."
         ),
     )
+    parser.add_argument(
+        "--skip-pead",
+        action="store_true",
+        help=(
+            "Skip PEAD earnings data fetching for faster runs. "
+            "The PEAD Earnings Drift strategy will return HOLD "
+            "for all tickers."
+        ),
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -361,6 +408,7 @@ def main() -> None:
         config["long_only"] = False
 
     config["run_cscv"] = args.validate
+    config["skip_pead"] = args.skip_pead
 
     if args.all_stocks:
         log.info(

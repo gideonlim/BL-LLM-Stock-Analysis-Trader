@@ -1,4 +1,4 @@
-"""Tests for Donchian Breakout and PEAD Drift strategies."""
+"""Tests for Donchian Breakout, 52-Week High Momentum, and PEAD Drift strategies."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import pandas as pd
 
 from quant_analysis_bot.strategies import (
     DonchianBreakout,
+    FiftyTwoWeekHighMomentum,
     PEAD_Drift,
 )
 
@@ -154,6 +155,142 @@ class TestDonchianBreakout(unittest.TestCase):
         signals = self.strategy.generate_signals(df)
         # The last signal should be +1 (transition from exit to entry)
         self.assertEqual(signals.iloc[-1], 1.0)
+
+
+# ── 52-Week High Momentum tests ──────────────────────────────────────
+
+
+class TestFiftyTwoWeekHighMomentum(unittest.TestCase):
+    """Test 52-Week High Momentum strategy."""
+
+    def setUp(self):
+        self.strategy = FiftyTwoWeekHighMomentum()
+
+    def test_name_and_description(self):
+        self.assertEqual(self.strategy.name, "52-Week High Momentum")
+        self.assertIn("52-week", self.strategy.description.lower())
+
+    def test_missing_columns_returns_hold(self):
+        """Without Nearness_52w_High column, should return all zeros."""
+        df = _make_ohlcv(100)
+        signals = self.strategy.generate_signals(df)
+        self.assertTrue((signals == 0).all())
+
+    def test_buys_near_high_in_uptrend(self):
+        """Price near 52-week high + above SMA_200 + ADX > 20 → BUY."""
+        df = _make_ohlcv(100)
+        df["SMA_200"] = 50.0  # price always above
+        df["ADX_14"] = 30.0  # strong trend
+        df["Nearness_52w_High"] = 0.97  # within 5% of high
+
+        signals = self.strategy.generate_signals(df)
+        buy_count = (signals > 0).sum()
+        self.assertGreater(buy_count, 0)
+
+    def test_no_buy_when_far_from_high(self):
+        """Price far from 52-week high (< 0.95) → no BUY."""
+        df = _make_ohlcv(100)
+        df["SMA_200"] = 50.0
+        df["ADX_14"] = 30.0
+        df["Nearness_52w_High"] = 0.80  # 20% below high
+
+        signals = self.strategy.generate_signals(df)
+        buy_count = (signals > 0).sum()
+        self.assertEqual(buy_count, 0)
+
+    def test_no_buy_below_sma200(self):
+        """Above SMA_200 filter required → no BUY when below."""
+        df = _make_ohlcv(100)
+        df["SMA_200"] = df["Close"] * 2.0  # way above price
+        df["ADX_14"] = 30.0
+        df["Nearness_52w_High"] = 0.98
+
+        signals = self.strategy.generate_signals(df)
+        buy_count = (signals > 0).sum()
+        self.assertEqual(buy_count, 0)
+
+    def test_no_buy_low_adx(self):
+        """ADX < 20 (no trend) → no BUY even near high."""
+        df = _make_ohlcv(100)
+        df["SMA_200"] = 50.0
+        df["ADX_14"] = 10.0  # weak trend
+        df["Nearness_52w_High"] = 0.98
+
+        signals = self.strategy.generate_signals(df)
+        buy_count = (signals > 0).sum()
+        self.assertEqual(buy_count, 0)
+
+    def test_exit_when_momentum_fades(self):
+        """Price drops > 10% from high (nearness < 0.90) → EXIT."""
+        df = _make_ohlcv(100)
+        df["SMA_200"] = 50.0
+        df["ADX_14"] = 30.0
+        df["Nearness_52w_High"] = 0.85  # faded momentum
+
+        signals = self.strategy.generate_signals(df)
+        exit_count = (signals < 0).sum()
+        self.assertGreater(exit_count, 0)
+
+    def test_exit_when_below_sma200(self):
+        """Price falls below SMA_200 → EXIT (trend broken)."""
+        df = _make_ohlcv(100)
+        df["SMA_200"] = df["Close"] * 2.0  # below SMA
+        df["ADX_14"] = 30.0
+        df["Nearness_52w_High"] = 0.92  # between 0.90 and 0.95
+
+        signals = self.strategy.generate_signals(df)
+        exit_count = (signals < 0).sum()
+        self.assertGreater(exit_count, 0)
+
+    def test_boundary_nearness_0_95(self):
+        """Nearness exactly at 0.95 should NOT trigger buy (> 0.95 required)."""
+        df = _make_ohlcv(50)
+        df["SMA_200"] = 50.0
+        df["ADX_14"] = 30.0
+        df["Nearness_52w_High"] = 0.95  # exactly at boundary
+
+        signals = self.strategy.generate_signals(df)
+        buy_count = (signals > 0).sum()
+        self.assertEqual(buy_count, 0)
+
+    def test_boundary_nearness_0_90(self):
+        """Nearness exactly at 0.90 should NOT trigger exit (< 0.90 required)."""
+        df = _make_ohlcv(50)
+        df["SMA_200"] = 50.0  # above trend (no below-SMA exit)
+        df["ADX_14"] = 30.0
+        df["Nearness_52w_High"] = 0.90  # exactly at boundary
+
+        signals = self.strategy.generate_signals(df)
+        # Should be 0 — neither buy (< 0.95) nor exit (>= 0.90)
+        self.assertTrue((signals == 0).all())
+
+    def test_mixed_conditions(self):
+        """Mixed nearness values: buys near high, exits when faded."""
+        df = _make_ohlcv(100)
+        df["SMA_200"] = 50.0
+        df["ADX_14"] = 30.0
+        df["Nearness_52w_High"] = 0.92  # initialize column
+
+        # First half: far from high (no buy, no exit since 0.92 > 0.90)
+        df.iloc[:50, df.columns.get_loc("Nearness_52w_High")] = 0.92
+        # Second half: near high → buy
+        df.iloc[50:, df.columns.get_loc("Nearness_52w_High")] = 0.97
+
+        signals = self.strategy.generate_signals(df)
+        self.assertEqual((signals.iloc[:50] > 0).sum(), 0)
+        self.assertGreater((signals.iloc[50:] > 0).sum(), 0)
+
+    def test_signal_values_constrained(self):
+        """Signal values should only be -1, 0, or 1."""
+        df = _make_ohlcv(200)
+        df["SMA_200"] = 50.0
+        df["ADX_14"] = 30.0
+        rng = np.random.RandomState(99)
+        df["Nearness_52w_High"] = rng.uniform(0.80, 1.0, 200)
+
+        signals = self.strategy.generate_signals(df)
+        unique_vals = set(signals.unique())
+        self.assertTrue(unique_vals.issubset({-1, 0, 1}))
 
 
 class TestPEAD_Drift(unittest.TestCase):
