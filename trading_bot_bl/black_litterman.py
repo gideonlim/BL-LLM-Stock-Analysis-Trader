@@ -951,46 +951,11 @@ def _fetch_returns(
     tickers: list[str],
     lookback_days: int = 60,
 ) -> pd.DataFrame | None:
-    """Fetch daily returns for tickers using yfinance."""
-    try:
-        import yfinance as yf
-    except ImportError:
-        log.warning("yfinance not installed — BL unavailable")
-        return None
+    """Fetch daily returns for tickers using the shared cache."""
+    from trading_bot_bl.returns_cache import fetch_returns
 
-    end = datetime.now()
-    start = end - timedelta(days=lookback_days + 30)
-
-    try:
-        data = yf.download(
-            tickers,
-            start=start.strftime("%Y-%m-%d"),
-            end=end.strftime("%Y-%m-%d"),
-            progress=False,
-            auto_adjust=True,
-        )
-        if data.empty:
-            return None
-
-        if isinstance(data.columns, pd.MultiIndex):
-            prices = data["Close"]
-        else:
-            prices = data[["Close"]].rename(
-                columns={"Close": tickers[0]}
-            )
-
-        returns = prices.pct_change().dropna()
-        returns = returns.tail(lookback_days)
-
-        # Drop tickers with too little data
-        min_data = int(len(returns) * 0.8)
-        returns = returns.dropna(axis=1, thresh=min_data)
-
-        return returns
-
-    except Exception as e:
-        log.warning(f"Could not fetch returns: {e}")
-        return None
+    result = fetch_returns(tickers, lookback_days)
+    return result if not result.empty else None
 
 
 def _estimate_market_risk_aversion(

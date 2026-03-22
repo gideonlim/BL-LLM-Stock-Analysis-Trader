@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from typing import Optional
 
 import numpy as np
@@ -228,48 +227,10 @@ def fetch_returns_matrix(
     tickers: list[str],
     lookback_days: int = LOOKBACK_DAYS,
 ) -> pd.DataFrame:
-    """Fetch daily returns for a list of tickers."""
-    try:
-        import yfinance as yf
-    except ImportError:
-        log.warning(
-            "yfinance not installed — skipping optimization"
-        )
-        return pd.DataFrame()
+    """Fetch daily returns for a list of tickers (cached)."""
+    from trading_bot_bl.returns_cache import fetch_returns
 
-    if not tickers:
-        return pd.DataFrame()
-
-    end = datetime.now()
-    start = end - timedelta(days=lookback_days + 30)
-
-    try:
-        data = yf.download(
-            tickers,
-            start=start.strftime("%Y-%m-%d"),
-            end=end.strftime("%Y-%m-%d"),
-            progress=False,
-            auto_adjust=True,
-        )
-        if data.empty:
-            return pd.DataFrame()
-
-        if isinstance(data.columns, pd.MultiIndex):
-            prices = data["Close"]
-        else:
-            prices = data[["Close"]].rename(
-                columns={"Close": tickers[0]}
-            )
-
-        returns = prices.pct_change().dropna()
-        returns = returns.tail(lookback_days)
-        min_data = int(len(returns) * 0.8)
-        returns = returns.dropna(axis=1, thresh=min_data)
-        return returns
-
-    except Exception as e:
-        log.warning(f"Could not fetch returns data: {e}")
-        return pd.DataFrame()
+    return fetch_returns(tickers, lookback_days)
 
 
 def compute_portfolio_sharpe(

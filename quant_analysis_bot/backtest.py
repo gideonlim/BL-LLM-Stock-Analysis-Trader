@@ -428,7 +428,7 @@ def score_single_window(
 
     # ── Deflated Sharpe Ratio penalty ──────────────────────────────
     # Penalizes strategies that may have high Sharpe by chance due
-    # to testing 11 strategies × 3 timeframes = 33 hypotheses
+    # to testing 14 strategies × 3 timeframes = 42 hypotheses
     if result.sharpe_ratio > 0 and result.total_trades >= 5:
         skew = 0.0
         kurt_excess = 0.0

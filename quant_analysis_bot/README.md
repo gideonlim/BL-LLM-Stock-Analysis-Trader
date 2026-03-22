@@ -87,7 +87,7 @@ quant_analysis_bot/
 
 ## Strategies
 
-The bot tests 11 strategies per stock across 3 timeframes (3-month, 6-month, 12-month):
+The bot tests 14 strategies per stock across 3 timeframes (3-month, 6-month, 12-month):
 
 1. SMA Crossover (10/50)
 2. EMA Crossover (9/21)
@@ -100,6 +100,9 @@ The bot tests 11 strategies per stock across 3 timeframes (3-month, 6-month, 12-
 9. VWAP Trend
 10. ADX Trend Following
 11. Composite Multi-Indicator
+12. Donchian Breakout (20/55)
+13. 52-Week High Momentum
+14. PEAD Earnings Drift
 
 The best strategy is selected via a weighted composite score across all timeframes, with recent performance weighted higher (3mo: 50%, 6mo: 30%, 12mo: 20%).
 

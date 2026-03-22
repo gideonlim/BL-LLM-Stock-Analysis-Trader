@@ -1,6 +1,6 @@
 # Quant Analysis Bot + Automated Trading
 
-A two-stage system: (1) a quant analysis bot that backtests 11 trading strategies across multiple timeframes and generates daily signals, and (2) a Black-Litterman portfolio-optimized trading bot that executes those signals via Alpaca with bracket orders, limit entry, and position monitoring.
+A two-stage system: (1) a quant analysis bot that backtests 14 trading strategies across multiple timeframes and generates daily signals, and (2) a Black-Litterman portfolio-optimized trading bot that executes those signals via Alpaca with bracket orders, limit entry, and position monitoring.
 
 ## Quick Start
 
@@ -91,7 +91,7 @@ Each run creates three types of output:
 
 ### Backtest Report (`reports/`)
 
-- `backtest_report_YYYY-MM-DD.txt` -- Full leaderboard of all 11 strategies per stock, broken out by timeframe (3mo/6mo/12mo), with annualized returns, Sharpe ratio, win rate, max drawdown, and composite ranking.
+- `backtest_report_YYYY-MM-DD.txt` -- Full leaderboard of all 14 strategies per stock, broken out by timeframe (3mo/6mo/12mo), with annualized returns, Sharpe ratio, win rate, max drawdown, and composite ranking.
 
 ### Trade Logs (`trade_logs/`)
 
@@ -158,7 +158,7 @@ Each signal includes:
 
 - **signal** -- BUY, EXIT, or HOLD (long-only) / BUY, SELL/SHORT, or HOLD (long+short)
 - **confidence** -- HIGH, MEDIUM, or LOW (based on Sharpe, win rate, profit factor, and trade count)
-- **strategy** -- Which of the 11 strategies was selected for this stock
+- **strategy** -- Which of the 14 strategies was selected for this stock
 - **annual_return_pct** -- Annualized return of the strategy during backtesting
 - **annual_excess_pct** -- How much the strategy beat buy-and-hold (annualized)
 - **backtest_period** -- Exact date range and number of trading days tested

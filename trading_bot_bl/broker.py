@@ -25,6 +25,8 @@ try:
         OrderSide,
         TimeInForce,
     )
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockLatestTradeRequest
 except ImportError as exc:
     raise ImportError(
         "alpaca-py is required. Install with: "
@@ -42,6 +44,10 @@ class AlpacaBroker:
             api_key=config.api_key,
             secret_key=config.api_secret,
             paper=config.paper,
+        )
+        self._data_client = StockHistoricalDataClient(
+            api_key=config.api_key,
+            secret_key=config.api_secret,
         )
         mode = "PAPER" if config.paper else "LIVE"
         log.info(f"Connected to Alpaca ({mode})")
@@ -202,21 +208,12 @@ class AlpacaBroker:
         is unavailable.
         """
         try:
-            from alpaca.data.historical import (
-                StockHistoricalDataClient,
-            )
-            from alpaca.data.requests import (
-                StockLatestTradeRequest,
-            )
-
-            data_client = StockHistoricalDataClient(
-                api_key=self._config.api_key,
-                secret_key=self._config.api_secret,
-            )
             request = StockLatestTradeRequest(
                 symbol_or_symbols=ticker
             )
-            trades = data_client.get_stock_latest_trade(request)
+            trades = self._data_client.get_stock_latest_trade(
+                request
+            )
             if ticker in trades:
                 return float(trades[ticker].price)
             return None
@@ -233,21 +230,12 @@ class AlpacaBroker:
         if not tickers:
             return {}
         try:
-            from alpaca.data.historical import (
-                StockHistoricalDataClient,
-            )
-            from alpaca.data.requests import (
-                StockLatestTradeRequest,
-            )
-
-            data_client = StockHistoricalDataClient(
-                api_key=self._config.api_key,
-                secret_key=self._config.api_secret,
-            )
             request = StockLatestTradeRequest(
                 symbol_or_symbols=tickers
             )
-            trades = data_client.get_stock_latest_trade(request)
+            trades = self._data_client.get_stock_latest_trade(
+                request
+            )
             return {
                 sym: float(t.price)
                 for sym, t in trades.items()
