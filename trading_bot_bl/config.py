@@ -137,6 +137,14 @@ class RiskLimits:
     earnings_blackout_pre_days: int = 3   # days before earnings
     earnings_blackout_post_days: int = 1  # days after earnings
 
+    # ── ADV liquidity filter ────────────────────────────────
+    # Block entries in illiquid stocks where slippage and exit
+    # risk are high.  Uses yfinance average daily volume.
+    adv_liquidity_enabled: bool = True
+    min_adv_shares: int = 500_000       # min avg daily shares
+    min_adv_dollar_volume: float = 5_000_000.0  # min avg daily $
+    max_adv_participation_pct: float = 1.0  # max position as % of ADV$
+
 
 @dataclass
 class TradingConfig:
@@ -296,6 +304,20 @@ class TradingConfig:
             ),
             earnings_blackout_post_days=int(
                 os.getenv("EARNINGS_BLACKOUT_POST_DAYS", "1")
+            ),
+            adv_liquidity_enabled=(
+                os.getenv(
+                    "ADV_LIQUIDITY_ENABLED", "true"
+                ).lower() == "true"
+            ),
+            min_adv_shares=int(
+                os.getenv("MIN_ADV_SHARES", "500000")
+            ),
+            min_adv_dollar_volume=float(
+                os.getenv("MIN_ADV_DOLLAR_VOLUME", "5000000")
+            ),
+            max_adv_participation_pct=float(
+                os.getenv("MAX_ADV_PARTICIPATION_PCT", "1.0")
             ),
         )
         return cls(

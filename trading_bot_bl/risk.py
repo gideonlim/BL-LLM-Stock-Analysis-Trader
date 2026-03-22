@@ -10,6 +10,7 @@ from typing import Optional
 from trading_bot_bl.config import RiskLimits
 from trading_bot_bl.earnings import check_earnings_blackout
 from trading_bot_bl.history import TradeHistory
+from trading_bot_bl.liquidity import check_liquidity
 from trading_bot_bl.models import OrderIntent, PortfolioSnapshot, Signal
 
 log = logging.getLogger(__name__)
@@ -209,6 +210,33 @@ class RiskManager:
             log.debug(f"Earnings check failed for {ticker}: {e}")
         return None
 
+    def check_adv_liquidity(
+        self, ticker: str, notional: float,
+    ) -> str | None:
+        """
+        Check if a ticker has sufficient average daily volume.
+        Returns rejection reason or None if OK.
+
+        Gracefully degrades if yfinance data is unavailable.
+        """
+        try:
+            info = check_liquidity(
+                ticker,
+                notional,
+                min_adv_shares=self.limits.min_adv_shares,
+                min_dollar_volume=(
+                    self.limits.min_adv_dollar_volume
+                ),
+                max_participation_pct=(
+                    self.limits.max_adv_participation_pct
+                ),
+            )
+            if not info.passes:
+                return info.rejection_reason
+        except Exception as e:
+            log.debug(f"ADV check failed for {ticker}: {e}")
+        return None
+
     def check_strategy_history(
         self, intent: OrderIntent
     ) -> str | None:
@@ -358,6 +386,19 @@ class RiskManager:
             if earnings_issue:
                 return RiskVerdict(
                     approved=False, reason=earnings_issue
+                )
+
+        # ── ADV liquidity check ──────────────────────────────────
+        if (
+            intent.side == "buy"
+            and self.limits.adv_liquidity_enabled
+        ):
+            liquidity_issue = self.check_adv_liquidity(
+                intent.ticker, intent.notional,
+            )
+            if liquidity_issue:
+                return RiskVerdict(
+                    approved=False, reason=liquidity_issue,
                 )
 
         # ── Strategy history check ────────────────────────────────

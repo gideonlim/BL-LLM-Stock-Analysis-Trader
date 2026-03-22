@@ -10,6 +10,7 @@ from pathlib import Path
 
 from trading_bot_bl.broker import AlpacaBroker
 from trading_bot_bl.config import RiskLimits
+from trading_bot_bl.earnings import check_earnings_blackout
 from trading_bot_bl.models import (
     OrderResult,
     PortfolioSnapshot,
@@ -144,6 +145,48 @@ def monitor_positions(
 
         # Fetch ATR for volatility-aware stop management
         atr = _fetch_atr(ticker)
+
+        # ── Earnings proximity warning ───────────────────────
+        if limits.earnings_blackout_enabled:
+            try:
+                ei = check_earnings_blackout(
+                    ticker,
+                    pre_days=limits.earnings_blackout_pre_days,
+                    post_days=limits.earnings_blackout_post_days,
+                )
+                if (
+                    ei.days_until_earnings is not None
+                    and 0 < ei.days_until_earnings
+                    <= limits.earnings_blackout_pre_days + 2
+                ):
+                    severity = (
+                        "warning"
+                        if ei.days_until_earnings
+                        <= limits.earnings_blackout_pre_days
+                        else "info"
+                    )
+                    alert = PositionAlert(
+                        ticker=ticker,
+                        alert_type="earnings_approaching",
+                        severity=severity,
+                        message=(
+                            f"Earnings in {ei.days_until_earnings}d "
+                            f"({ei.next_earnings_date}) — "
+                            f"consider closing to avoid gap risk"
+                        ),
+                        current_price=current_price,
+                        entry_price=entry_price,
+                        unrealized_pnl_pct=round(
+                            (current_price - entry_price)
+                            / entry_price * 100, 2
+                        ),
+                    )
+                    report.alerts.append(alert)
+                    log.warning(
+                        f"  {ticker}: {alert.message}"
+                    )
+            except Exception:
+                pass  # non-critical
 
         pnl_pct = (
             (current_price - entry_price) / entry_price * 100

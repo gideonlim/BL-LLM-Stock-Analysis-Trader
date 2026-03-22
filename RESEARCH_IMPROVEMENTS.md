@@ -4,7 +4,7 @@
 
 ### Implementation Progress
 
-> **13 Fully Implemented** | **3 Partially Implemented** | **18 Not Implemented** (as of March 2026)
+> **13 Fully Implemented** | **4 Partially Implemented** | **17 Not Implemented** (as of March 2026)
 
 | Status | Meaning |
 |--------|---------|
@@ -467,7 +467,9 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 
 **Implementation difficulty:** Medium. Requires a paid data subscription. The analysis logic is straightforward once data is available. Most valuable as a confirmation layer rather than a primary signal.
 
-### 8.6 Earnings Sentiment & Post-Earnings Announcement Drift (PEAD) ⬜
+### 8.6 Earnings Sentiment & Post-Earnings Announcement Drift (PEAD) 🔶
+
+> **Partially implemented:** Earnings blackout filter in `trading_bot_bl/earnings.py`. Blocks new entries within configurable pre/post day window of earnings (default 3d pre, 1d post). Uses yfinance `.calendar` for free earnings date lookup with module-level caching. Integrated into RiskManager signal quality gate. Position monitor warns about held positions approaching earnings. Full PEAD alpha strategy (SUE-based signal source) not yet implemented.
 
 **What it is:** The well-documented anomaly where stocks continue drifting in the direction of an earnings surprise for 60-90 days after the announcement. A positive earnings surprise (beat estimates) leads to continued positive drift; a negative surprise leads to continued decline. The effect is strongest when combined with investor attention metrics.
 
@@ -604,7 +606,7 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | **Factor-aware signals** | signals.py | Medium-High | Medium | ⬜ Not implemented |
 | **Limit order entries** | broker.py | Medium | Medium | ✅ Implemented |
 | **Random Matrix Theory denoising** | portfolio_optimizer.py | Medium | Medium | ⬜ Not implemented |
-| **PEAD strategy** | strategies.py | Medium | Medium-High | ⬜ Not implemented |
+| **PEAD strategy** | strategies.py / earnings.py | Medium | Medium-High | 🔶 Earnings blackout filter implemented |
 | **Institutional 13F sentiment** | new module | Medium | Medium | ⬜ Not implemented |
 | **Options flow integration** | new module | Medium | Medium-High | ⬜ Not implemented |
 | **Composite sentiment layer** | new sentiment module | Medium-High | High | 🔶 Partial (VIX + P/C + SPY + LLM) |

@@ -1,0 +1,26 @@
+# Extra tickers — instruments outside the S&P index universe.
+#
+# These are always included in --all-stocks runs regardless of
+# market cap ranking.  They go through the same backtest pipeline
+# and must produce a strong signal to pass risk checks.
+#
+# One ticker per line.  Blank lines and # comments are ignored.
+# Edit this file any time — changes take effect on the next run
+# (no need to clear the cache).
+#
+# You can also set EXTRA_TICKERS=USO,GLD,... as an env var.
+
+# ── Commodity ETFs ──────────────────────────────────────────
+USO       # United States Oil Fund (crude oil)
+GLD       # SPDR Gold Shares
+SLV       # iShares Silver Trust
+DBA       # Invesco DB Agriculture Fund
+
+# ── Sector ETFs ─────────────────────────────────────────────
+XLE       # Energy Select Sector SPDR
+XLU       # Utilities Select Sector SPDR
+XLV       # Health Care Select Sector SPDR
+XLP       # Consumer Staples Select Sector SPDR
+
+# ── Fixed income / safe havens ──────────────────────────────
+TLT       # iShares 20+ Year Treasury Bond ETF
