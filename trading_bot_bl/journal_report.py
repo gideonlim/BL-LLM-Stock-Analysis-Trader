@@ -89,16 +89,28 @@ def _chart_equity_curve(snapshots: list[EquitySnapshot]) -> Optional[io.BytesIO]
     import matplotlib.dates as mdates
     from datetime import datetime as dt
 
-    dates = []
-    equity = []
-    hwm = []
+    # Parse timestamps, skip entries that can't be parsed
+    parsed: list[tuple[dt, EquitySnapshot]] = []
     for s in snapshots:
         try:
-            dates.append(dt.fromisoformat(s.timestamp))
+            parsed.append((dt.fromisoformat(s.timestamp), s))
         except Exception:
-            dates.append(dt.now())
-        equity.append(s.equity)
-        hwm.append(s.high_water_mark)
+            continue  # drop unparseable entries rather than injecting now()
+
+    if len(parsed) < 2:
+        return None
+
+    # Sort by timestamp and deduplicate (keep last entry per timestamp)
+    parsed.sort(key=lambda x: x[0])
+    seen: dict[str, int] = {}
+    for i, (ts, _snap) in enumerate(parsed):
+        seen[ts.isoformat()] = i
+    unique_indices = sorted(seen.values())
+    parsed = [parsed[i] for i in unique_indices]
+
+    dates = [ts for ts, _ in parsed]
+    equity = [s.equity for _, s in parsed]
+    hwm = [s.high_water_mark for _, s in parsed]
 
     fig, (ax1, ax2) = plt.subplots(
         2, 1, figsize=(10, 5), height_ratios=[3, 1],
@@ -117,8 +129,8 @@ def _chart_equity_curve(snapshots: list[EquitySnapshot]) -> Optional[io.BytesIO]
     ax1.grid(True, alpha=0.3)
     ax1.set_title("Equity Curve", fontsize=12, fontweight="bold")
 
-    # Drawdown
-    dd = [s.drawdown_pct for s in snapshots]
+    # Drawdown — recompute from sorted data
+    dd = [s.drawdown_pct for _, s in parsed]
     ax2.fill_between(dates, dd, 0, alpha=0.4, color="#ef4444")
     ax2.plot(dates, dd, color="#ef4444", linewidth=1)
     ax2.set_ylabel("Drawdown (%)")

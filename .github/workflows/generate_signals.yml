@@ -6,7 +6,8 @@ on:
   schedule:
     - cron: "0 9 * * 1-5"    # 9:00 AM ET, weekdays
       timezone: America/New_York
-  workflow_dispatch:           # allow manual trigger
+  workflow_call:               # allow other workflows to invoke this
+  workflow_dispatch:           # allow manual trigger (disabled while GitHub timezone bug exists)
 
 permissions:
   contents: write              # needed to commit signal files

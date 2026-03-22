@@ -7,7 +7,8 @@ on:
   schedule:
     - cron: "0 8 * * 0"    # 8:00 AM ET, every Sunday
       timezone: America/New_York
-  workflow_dispatch:        # allow manual trigger any time
+  workflow_call:             # allow other workflows to invoke this
+  workflow_dispatch:        # allow manual trigger (disabled while GitHub timezone bug exists)
 
 permissions:
   contents: write           # needed to commit report files
@@ -45,19 +46,12 @@ jobs:
           fi
 
       - name: Generate PDF report
-        env:
-          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
-          ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
-          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
         run: python -m trading_bot_bl --report-pdf
         # No Alpaca credentials needed — reads only local journal files
 
       - name: Generate CSV export
-        env:
-          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
-          ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
-          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
         run: python -m trading_bot_bl --report-csv
+        # No Alpaca credentials needed — reads only local journal files
 
       - name: Show report files
         run: |

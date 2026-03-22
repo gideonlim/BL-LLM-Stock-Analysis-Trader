@@ -17,7 +17,8 @@ on:
       timezone: America/New_York
     - cron: "0 15 * * 1-5"    #  3 PM ET
       timezone: America/New_York
-  workflow_dispatch:
+  workflow_call:               # allow other workflows to invoke this
+  workflow_dispatch:           # allow manual trigger (disabled while GitHub timezone bug exists)
 
 jobs:
   monitor:

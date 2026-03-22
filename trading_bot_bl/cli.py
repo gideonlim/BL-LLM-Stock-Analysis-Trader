@@ -459,20 +459,13 @@ def main() -> None:
         )
     log.info(f"{'=' * 60}")
 
-    if not config.dry_run:
-        try:
-            config.alpaca.validate()
-        except ValueError as e:
-            log.error(str(e))
-            sys.exit(1)
-
     execution_log_dir = Path(args.log_dir)
 
     # ── Reset history ─────────────────────────────────────────────
     if args.reset_history:
         _archive_logs(execution_log_dir)
 
-    # ── Report mode ────────────────────────────────────────────────
+    # ── Report modes (no Alpaca credentials needed) ───────────────
     if args.report or args.report_json:
         _run_report(
             execution_log_dir, as_json=args.report_json
@@ -504,6 +497,14 @@ def main() -> None:
         generate_csv_export(execution_log_dir, csv_path)
         log.info(f"  CSV export: {csv_path}")
         return
+
+    # ── Validate Alpaca credentials (only needed for trading/monitoring) ──
+    if not config.dry_run:
+        try:
+            config.alpaca.validate()
+        except ValueError as e:
+            log.error(str(e))
+            sys.exit(1)
 
     # ── Monitor-only mode ─────────────────────────────────────────
     if args.monitor_only:
