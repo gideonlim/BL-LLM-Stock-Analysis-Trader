@@ -20,8 +20,10 @@ from quant_analysis_bot.indicators import (
     adx,
     atr,
     bollinger_bands,
+    donchian_channels,
     ema,
     macd,
+    on_balance_volume,
     rate_of_change,
     rsi,
     sma,
@@ -95,6 +97,18 @@ def enrich_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     # Trend
     df["ADX_14"] = adx(h, l, c, 14)
 
+    # Breakout channels
+    df["Donchian_Upper_20"], df["Donchian_Lower_20"] = (
+        donchian_channels(h, l, 20)
+    )
+    df["Donchian_Upper_55"], df["Donchian_Lower_55"] = (
+        donchian_channels(h, l, 55)
+    )
+
+    # 52-week high (for nearness-to-high feature)
+    df["High_52w"] = h.rolling(window=252, min_periods=126).max()
+    df["Nearness_52w_High"] = c / df["High_52w"].replace(0, 1e-10)
+
     # Statistical
     df["ZScore_20"] = zscore(c, 20)
 
@@ -102,6 +116,7 @@ def enrich_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     df["Vol_SMA_20"] = sma(v, 20)
     df["Vol_Ratio"] = v / df["Vol_SMA_20"]
     df["VWAP"] = vwap(h, l, c, v)
+    df["OBV"] = on_balance_volume(c, v)
 
     # Price features
     df["Daily_Return"] = c.pct_change()

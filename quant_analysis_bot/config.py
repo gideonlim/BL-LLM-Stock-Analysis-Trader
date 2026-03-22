@@ -37,6 +37,9 @@ DEFAULT_CONFIG: dict = {
     "walk_forward_validation_pct": 0.30,
     # Next-bar execution: signals on bar[i] execute at close[i+1]
     "next_bar_execution": True,
+    # Regime-dependent mean-reversion gate:
+    # VIX threshold above which the regime is classified as "fear"
+    "vix_fear_threshold": 25.0,
 }
 
 RISK_PROFILES: dict = {

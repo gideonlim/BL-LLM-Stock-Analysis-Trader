@@ -8,6 +8,19 @@ import numpy as np
 import pandas as pd
 
 
+def _fear_mask(df: pd.DataFrame) -> pd.Series:
+    """Return a boolean mask indicating fear/stress regime.
+
+    Used by mean-reversion strategies to gate buy signals.
+    If the ``Regime_Fear`` column is present (from regime.py
+    enrichment), use it.  Otherwise default to True everywhere
+    so strategies behave as if unfiltered (backward compatible).
+    """
+    if "Regime_Fear" in df.columns:
+        return df["Regime_Fear"].fillna(True).astype(bool)
+    return pd.Series(True, index=df.index)
+
+
 class Strategy:
     """Base class for all strategies."""
 
@@ -53,23 +66,28 @@ class EMA_Crossover(Strategy):
 class RSI_MeanReversion(Strategy):
     name = "RSI Mean Reversion"
     description = (
-        "Buy when RSI<30 (oversold), sell when RSI>70 (overbought)"
+        "Buy when RSI<30 (oversold) during fear regime, "
+        "sell when RSI>70 (overbought)"
     )
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         signals = pd.Series(0, index=df.index)
-        signals[df["RSI_14"] < 30] = 1
+        fear = _fear_mask(df)
+        signals[fear & (df["RSI_14"] < 30)] = 1
         signals[df["RSI_14"] > 70] = -1
         return signals
 
 
 class BollingerBand_Reversion(Strategy):
     name = "Bollinger Band Mean Reversion"
-    description = "Buy at lower band, sell at upper band"
+    description = (
+        "Buy at lower band during fear regime, sell at upper band"
+    )
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         signals = pd.Series(0, index=df.index)
-        signals[df["Close"] < df["BB_Lower"]] = 1
+        fear = _fear_mask(df)
+        signals[fear & (df["Close"] < df["BB_Lower"])] = 1
         signals[df["Close"] > df["BB_Upper"]] = -1
         return signals
 
@@ -77,12 +95,14 @@ class BollingerBand_Reversion(Strategy):
 class ZScore_MeanReversion(Strategy):
     name = "Z-Score Mean Reversion"
     description = (
-        "Buy when price >1.5 std below mean, sell >1.5 std above"
+        "Buy when price >1.5 std below mean during fear regime, "
+        "sell >1.5 std above"
     )
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         signals = pd.Series(0, index=df.index)
-        signals[df["ZScore_20"] < -1.5] = 1
+        fear = _fear_mask(df)
+        signals[fear & (df["ZScore_20"] < -1.5)] = 1
         signals[df["ZScore_20"] > 1.5] = -1
         return signals
 
@@ -210,6 +230,123 @@ class CompositeScore(Strategy):
         return signals
 
 
+# ── Breakout ─────────────────────────────────────────────────────────
+
+
+class DonchianBreakout(Strategy):
+    name = "Donchian Breakout (20/55)"
+    description = (
+        "Buy when price breaks above 20d high with ADX>20 "
+        "and above 200-SMA; sell on break below 55d low"
+    )
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        # Use *previous* day's channel to avoid look-ahead bias
+        upper_20 = df["Donchian_Upper_20"].shift(1)
+        lower_55 = df["Donchian_Lower_55"].shift(1)
+
+        # Filters: trend must exist (ADX>20) and price above
+        # 200-SMA (uptrend filter prevents counter-trend entries)
+        trend_filter = (df["ADX_14"] > 20) & (
+            df["Close"] > df["SMA_200"]
+        )
+
+        # Build a position state: +1 when in long, -1 when
+        # breakout conditions lost, 0 otherwise.
+        # Entry: close breaks above yesterday's 20d high
+        # with trend confirmation.
+        long_entry = trend_filter & (df["Close"] > upper_20)
+
+        # Exit: close breaks below yesterday's 55d low
+        # (wider exit channel lets winners run — asymmetric
+        # entry/exit is the classic turtle trader insight)
+        long_exit = df["Close"] < lower_55
+
+        # Build state vector: only emit crossover signals.
+        # A buy entry that doesn't pass filters stays at 0.
+        state = pd.Series(0, index=df.index)
+        state[long_entry] = 1
+        state[long_exit] = -1
+
+        # Forward-fill state so we're "in" or "out",
+        # then diff to get transition signals only.
+        state = state.replace(0, np.nan).ffill().fillna(0)
+        return state.diff().clip(-1, 1).fillna(0)
+
+
+# ── Event-driven ─────────────────────────────────────────────────────
+
+
+class PEAD_Drift(Strategy):
+    name = "PEAD Earnings Drift"
+    description = (
+        "Buy after positive earnings surprise with confirming "
+        "price gap; ride drift for up to 60 days post-earnings"
+    )
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        """Generate signals based on post-earnings announcement drift.
+
+        Requires PEAD columns to be present in the DataFrame:
+          - PEAD_Surprise_Pct: standardised earnings surprise (%)
+          - PEAD_Days_Since: trading days since last earnings
+          - PEAD_Gap_Pct: price gap on earnings day (%)
+
+        If columns are missing (no earnings data available),
+        returns all-zero signals (HOLD).
+        """
+        signals = pd.Series(0, index=df.index)
+
+        # Graceful degradation: no PEAD columns → no signals
+        required = [
+            "PEAD_Surprise_Pct",
+            "PEAD_Days_Since",
+            "PEAD_Gap_Pct",
+        ]
+        if not all(col in df.columns for col in required):
+            return signals
+
+        surprise = df["PEAD_Surprise_Pct"]
+        days_since = df["PEAD_Days_Since"]
+        gap_pct = df["PEAD_Gap_Pct"]
+
+        # ── Entry conditions ────────────────────────────────────
+        # Positive surprise: actual beat estimate by > 5%
+        positive_surprise = surprise > 5.0
+
+        # Confirming price reaction: stock gapped up > 1%
+        # on earnings day (market agrees with surprise)
+        confirmed_reaction = gap_pct > 1.0
+
+        # Within drift window: 2-60 trading days post-earnings
+        # Start at day 2 to avoid the immediate post-earnings
+        # volatility (and respect the 1-day blackout post-period)
+        in_drift_window = (days_since >= 2) & (days_since <= 60)
+
+        # Trend filter: only ride drift in uptrend (above 200-SMA)
+        above_trend = df["Close"] > df["SMA_200"]
+
+        # BUY signal: all conditions met
+        buy = (
+            positive_surprise
+            & confirmed_reaction
+            & in_drift_window
+            & above_trend
+        )
+        signals[buy] = 1
+
+        # EXIT signal: drift window expired (>60 days)
+        # or negative surprise with confirming gap down
+        negative_surprise = surprise < -5.0
+        negative_gap = gap_pct < -1.0
+        exit_drift = (days_since > 60) | (
+            negative_surprise & negative_gap & in_drift_window
+        )
+        signals[exit_drift] = -1
+
+        return signals
+
+
 # ── Registry ──────────────────────────────────────────────────────────
 
 ALL_STRATEGIES: List[Strategy] = [
@@ -224,4 +361,6 @@ ALL_STRATEGIES: List[Strategy] = [
     VWAP_Strategy(),
     TrendFollowing_ADX(),
     CompositeScore(),
+    DonchianBreakout(),
+    PEAD_Drift(),
 ]

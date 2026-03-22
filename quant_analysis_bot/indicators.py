@@ -111,6 +111,34 @@ def rate_of_change(series: pd.Series, period: int = 10) -> pd.Series:
     return series.pct_change(periods=period) * 100
 
 
+def donchian_channels(
+    high: pd.Series,
+    low: pd.Series,
+    period: int = 20,
+) -> Tuple[pd.Series, pd.Series]:
+    """Donchian Channels -- N-period high and low breakout levels.
+
+    Returns (upper, lower) where:
+      upper = highest high over the last `period` bars
+      lower = lowest low over the last `period` bars
+    """
+    upper = high.rolling(window=period, min_periods=period).max()
+    lower = low.rolling(window=period, min_periods=period).min()
+    return upper, lower
+
+
+def on_balance_volume(
+    close: pd.Series, volume: pd.Series,
+) -> pd.Series:
+    """On Balance Volume -- cumulative volume flow indicator.
+
+    OBV adds volume on up-days and subtracts on down-days.
+    Useful as a confirmation feature (not standalone signal).
+    """
+    direction = np.sign(close.diff())
+    return (volume * direction).fillna(0).cumsum()
+
+
 def adx(
     high: pd.Series,
     low: pd.Series,

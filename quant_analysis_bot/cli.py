@@ -16,6 +16,8 @@ from quant_analysis_bot.cscv import (
 )
 from quant_analysis_bot.data import enrich_dataframe, fetch_data
 from quant_analysis_bot.models import DailySignal
+from quant_analysis_bot.pead import enrich_with_pead
+from quant_analysis_bot.regime import enrich_with_regime, fetch_regime_data
 from quant_analysis_bot.output import (
     write_backtest_report,
     write_signals,
@@ -64,6 +66,12 @@ def run(config: dict) -> None:
     all_trade_logs: dict = {}
     cscv_results: dict = {}
 
+    # ── Fetch market regime data (once for all tickers) ──────────────
+    regime_df = fetch_regime_data(
+        lookback_days=config["lookback_days"],
+        vix_fear_threshold=config.get("vix_fear_threshold", 25.0),
+    )
+
     tickers = config["tickers"]
     n_tickers = len(tickers)
     use_progress = n_tickers > 10
@@ -91,6 +99,8 @@ def run(config: dict) -> None:
                     config["data_cache_dir"],
                 )
                 df = enrich_dataframe(df)
+                df = enrich_with_regime(df, regime_df)
+                df = enrich_with_pead(df, ticker)
 
                 (
                     best_strat,
