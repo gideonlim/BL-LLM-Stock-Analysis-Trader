@@ -2,12 +2,13 @@ name: Generate Signals
 
 # Runs before market open to generate fresh signals.
 # US market opens 9:30 AM ET.
+# Two crons cover both DST offsets; a guard step skips the wrong one.
 on:
   schedule:
-    - cron: "0 9 * * 1-5"    # 9:00 AM ET, weekdays
-      timezone: America/New_York
+    - cron: "0 13 * * 1-5"    # 9 AM EDT (UTC-4, Mar–Nov)
+    - cron: "0 14 * * 1-5"    # 9 AM EST (UTC-5, Nov–Mar)
   workflow_call:               # allow other workflows to invoke this
-  workflow_dispatch:           # allow manual trigger (disabled while GitHub timezone bug exists)
+  workflow_dispatch:           # allow manual trigger
 
 permissions:
   contents: write              # needed to commit signal files
@@ -21,16 +22,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: DST guard — skip if not 9 AM ET
+        if: github.event_name == 'schedule'
+        run: |
+          ET_HOUR=$(TZ=America/New_York date +%H)
+          echo "Current ET hour: $ET_HOUR"
+          if [ "$ET_HOUR" != "09" ]; then
+            echo "Not 9 AM ET (got hour $ET_HOUR), skipping run."
+            echo "SKIP_RUN=true" >> "$GITHUB_ENV"
+          fi
+
       - name: Set up Python
+        if: env.SKIP_RUN != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
       - name: Install dependencies
+        if: env.SKIP_RUN != 'true'
         run: pip install -r requirements.txt
 
       - name: Generate signals
+        if: env.SKIP_RUN != 'true'
         env:
           EXTRA_TICKERS: ${{ vars.EXTRA_TICKERS || '' }}
         run: python -m quant_analysis_bot --all-stocks --top-n 900
@@ -40,6 +54,7 @@ jobs:
         # Use --top-n 1000 for full universe (takes ~60 min).
 
       - name: Upload signals as artifact
+        if: env.SKIP_RUN != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: signals
@@ -47,6 +62,7 @@ jobs:
           retention-days: 7
 
       - name: Commit signals to repo
+        if: env.SKIP_RUN != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

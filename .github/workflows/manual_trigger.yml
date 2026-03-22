@@ -1,8 +1,7 @@
 name: Manual Trigger
 
-# Workaround: workflow_dispatch fails when `timezone` is present in the
-# same file (GitHub bug — see community/community#13454).
-# Use this workflow to manually run any of the scheduled workflows.
+# Convenience wrapper — pick a workflow from the dropdown and run it.
+# Each workflow also has its own workflow_dispatch, so this is optional.
 on:
   workflow_dispatch:
     inputs:

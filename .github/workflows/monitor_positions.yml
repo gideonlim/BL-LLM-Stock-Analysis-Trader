@@ -3,22 +3,13 @@ name: Monitor Positions
 # Checks existing positions for health issues every hour
 # during market hours (10 AM - 3 PM ET, Mon-Fri).
 # Handles: orphaned brackets, emergency losses, stale SL/TP, gap detection.
+# Cron range covers both DST offsets (14-20 UTC); a guard step skips
+# runs that fall outside the 10 AM – 3 PM ET window.
 on:
   schedule:
-    - cron: "0 10 * * 1-5"    # 10 AM ET
-      timezone: America/New_York
-    - cron: "0 11 * * 1-5"    # 11 AM ET
-      timezone: America/New_York
-    - cron: "0 12 * * 1-5"    # 12 PM ET
-      timezone: America/New_York
-    - cron: "0 13 * * 1-5"    #  1 PM ET
-      timezone: America/New_York
-    - cron: "0 14 * * 1-5"    #  2 PM ET
-      timezone: America/New_York
-    - cron: "0 15 * * 1-5"    #  3 PM ET
-      timezone: America/New_York
-  workflow_call:               # allow other workflows to invoke this
-  workflow_dispatch:           # allow manual trigger (disabled while GitHub timezone bug exists)
+    - cron: "0 14-20 * * 1-5"   # covers 10 AM EDT through 3 PM EST
+  workflow_call:                  # allow other workflows to invoke this
+  workflow_dispatch:              # allow manual trigger
 
 jobs:
   monitor:
@@ -29,16 +20,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: DST guard — skip if outside 10 AM – 3 PM ET
+        if: github.event_name == 'schedule'
+        run: |
+          ET_HOUR=$(TZ=America/New_York date +%H)
+          echo "Current ET hour: $ET_HOUR"
+          if [ "$ET_HOUR" -lt 10 ] || [ "$ET_HOUR" -gt 15 ]; then
+            echo "Outside 10–15 ET window (got hour $ET_HOUR), skipping run."
+            echo "SKIP_RUN=true" >> "$GITHUB_ENV"
+          fi
+
       - name: Set up Python
+        if: env.SKIP_RUN != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
       - name: Install dependencies
+        if: env.SKIP_RUN != 'true'
         run: pip install -r requirements.txt
 
       - name: Monitor positions
+        if: env.SKIP_RUN != 'true'
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
@@ -46,7 +50,7 @@ jobs:
         run: python -m trading_bot_bl --monitor-only
 
       - name: Upload monitor logs
-        if: always()
+        if: always() && env.SKIP_RUN != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: monitor-logs-${{ github.run_number }}
