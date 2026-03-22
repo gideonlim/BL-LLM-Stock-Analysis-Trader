@@ -13,7 +13,8 @@
 5. [Covariance & Return Estimation](#5-covariance--return-estimation)
 6. [Execution & Market Microstructure](#6-execution--market-microstructure)
 7. [Backtesting & Overfitting Prevention](#7-backtesting--overfitting-prevention)
-8. [Implementation Roadmap](#8-implementation-roadmap)
+8. [Market Sentiment & Alternative Data](#8-market-sentiment--alternative-data)
+9. [Implementation Roadmap](#9-implementation-roadmap)
 
 ---
 
@@ -324,7 +325,198 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 ---
 
-## 8. Implementation Roadmap
+## 8. Market Sentiment & Alternative Data
+
+Our bot currently uses only price/volume-derived technical indicators. Incorporating market sentiment — from news headlines, social media, options flow, and institutional filings — provides orthogonal information that technical analysis alone cannot capture. Research consistently shows that sentiment signals are most powerful when combined with (not replacing) quantitative signals.
+
+### 8.1 News Headline Sentiment via FinBERT
+
+**What it is:** FinBERT is a BERT-based language model fine-tuned on financial text (ProsusAI/finBERT). It classifies financial headlines into positive, negative, or neutral with a confidence score. Unlike generic sentiment tools (VADER, TextBlob), FinBERT understands financial language — it correctly interprets "the company beat expectations" as positive and "the stock was downgraded" as negative.
+
+**Why it matters for us:** Our signals are purely technical. A stock might show a perfect SMA crossover while the company just announced an SEC investigation. FinBERT headline sentiment adds a qualitative filter that catches what price action hasn't priced in yet. Research from the S&P 500 (2018–2023) shows FinBERT-enhanced models consistently outperform technical-only baselines in both AUC, F1-score, and simulated trading profitability.
+
+**How to integrate:** Fetch recent headlines for each ticker (via Alpaca News API — we already have Alpaca credentials, or Finnhub's free tier). Run FinBERT on each headline to get a sentiment score (-1 to +1). Aggregate into a daily sentiment score per ticker: `daily_sentiment = mean(headline_scores, weighted_by_recency)`. Use as a signal filter or confidence modifier — a BUY signal with negative sentiment gets its confidence demoted; a BUY with strong positive sentiment gets a boost.
+
+**The math:** FinBERT outputs softmax probabilities for [negative, neutral, positive]. The composite score: `sent = P(positive) - P(negative)`, ranging from -1.0 to +1.0. For aggregation across N headlines: `daily_sent = Σ(sent_i × w_i) / Σ(w_i)`, where w_i = exp(-λ × age_hours_i) (exponential recency decay, λ ≈ 0.1).
+
+**Implementation:** The `transformers` library from Hugging Face provides FinBERT inference in ~5 lines of Python. The model is ~400MB and runs on CPU in ~50ms per headline. For our pipeline (scoring ~20 tickers × ~5 headlines each), total overhead is ~5 seconds.
+
+**Implementation difficulty:** Low-Medium. The NLP inference is trivial. The work is building a reliable headline fetcher and deciding how sentiment modifies the signal pipeline.
+
+**Key papers:**
+- Araci (2019), "FinBERT: Financial Sentiment Analysis with Pre-Trained Language Models"
+- FinBERT-LSTM integration for stock movement prediction (ACM 2024) — combined sentiment with LSTM price model for market/industry/stock-level news
+- Tak & Pele (2025), S&P 500 empirical evaluation showing FinBERT outperforms lexicon-based approaches
+
+### 8.2 LLM-Based Sentiment Scoring (GPT/Claude)
+
+**What it is:** Instead of a specialized model like FinBERT, use a general-purpose LLM (GPT-4, Claude, Llama 3) with domain-specific prompting to score financial news. Advanced techniques include Chain-of-Thought (CoT) prompting, Domain Knowledge Chain-of-Thought (DK-CoT), and few-shot examples to improve accuracy.
+
+**Why it matters for us:** We already have LLM infrastructure in `llm_views.py` for Black-Litterman view generation. Extending this to headline sentiment scoring requires minimal new code. LLMs can also provide reasoning for their sentiment scores, which FinBERT cannot. Research shows generative LLMs (Llama 3.1, GPT-4) outperform discriminative models (BERT, FinBERT) on financial sentiment tasks when prompted correctly.
+
+**How to integrate:** Our existing `news_fetcher.py` already fetches headlines. Add a `score_headlines_llm()` function that batches headlines for a ticker and prompts the LLM: "Rate each headline's impact on {ticker}'s stock price from -1.0 (very negative) to +1.0 (very positive). Consider financial context." The LLM returns structured JSON scores. Aggregate identically to FinBERT approach.
+
+**Key techniques from research:**
+- **DK-CoT (Domain Knowledge Chain-of-Thought):** Inject domain-specific financial knowledge into the reasoning chain. E.g., "This company is in the semiconductor sector; supply chain disruptions are typically negative for chip stocks."
+- **FinDPO (Preference Optimization):** Fine-tune LLMs on human-preference-ranked financial sentiment datasets. Achieves state-of-the-art results on small financial corpora.
+- **Repeated sampling:** Generate N sentiment scores per headline and take the mode — reduces noise from LLM stochasticity. (We already use this pattern in `llm_views.py`.)
+
+**Trade-offs vs. FinBERT:** LLMs are 100-1000× slower per headline and cost API credits. FinBERT is free, fast, and deterministic. For our pipeline, a hybrid approach makes sense: FinBERT as the default (fast, free), with LLM scoring as an optional enrichment for high-confidence signals or pre-earnings periods.
+
+**Implementation difficulty:** Low (we already have the LLM and news infrastructure).
+
+**Key papers:**
+- FinLlama (ACM ICAIF 2024) — Llama 2 7B fine-tuned for financial sentiment with quantified strength
+- Springer (2025) — DK-CoT strategy with knowledge-enhanced LLM sentiment prediction
+- FinDPO (ACM 2025) — Preference optimization for financial sentiment
+
+### 8.3 Market-Wide Sentiment Indicators (VIX, Put/Call, Fear & Greed)
+
+**What it is:** Quantitative market-wide sentiment gauges that measure aggregate investor emotion: the VIX (CBOE Volatility Index, "fear gauge"), the equity put/call ratio, and the CNN Fear & Greed Index (a composite of 7 sub-indicators).
+
+**Why it matters for us:** These indicators capture regime-level sentiment that individual stock analysis misses. High VIX (>30) and elevated put/call ratios (>1.0) historically coincide with market bottoms — contrarian buying opportunities. Low VIX (<15) with extreme greed readings often precede corrections. Our position sizing and risk management should scale with market-wide fear/greed.
+
+**How to integrate:** Fetch VIX from Yahoo Finance (ticker `^VIX` — we already use yfinance). Put/call ratio from CBOE daily data. Compute a composite market sentiment score: `market_sentiment = normalize(vix_z_score, put_call_z_score)`. Use as a portfolio-level modifier:
+- Extreme fear (VIX > 30, P/C > 1.2): increase position sizes by 10-20% (contrarian) or reduce new entries (momentum)
+- Extreme greed (VIX < 15, P/C < 0.6): tighten stops, reduce new position sizes
+- Neutral: no modification
+
+**The math:** VIX z-score: `z_vix = (VIX_current - VIX_mean_252) / VIX_std_252`. Put/call z-score: similarly normalized against 1-year history. Market sentiment index: `MSI = -0.5 × z_vix - 0.5 × z_pc` (negative because high VIX/P-C = fear = potentially contrarian bullish).
+
+**Dual-use strategy (backed by research):** The most effective practitioners combine momentum and contrarian approaches: ride sentiment-driven momentum in trending markets, flip to contrarian positioning when sentiment hits extremes. Our HMM regime detection (Section 3.1) would determine which mode to use.
+
+**Implementation difficulty:** Very Low. VIX is a free yfinance download. The logic is a few lines of z-score computation added to the risk manager or portfolio optimizer.
+
+### 8.4 Social Media Sentiment (Reddit, Twitter/X)
+
+**What it is:** Extracting sentiment from social media platforms — particularly finance-focused communities like r/WallStreetBets, StockTwits, and Financial Twitter — to gauge retail investor sentiment and detect momentum buildups before they appear in price.
+
+**Why it matters for us:** Research shows Reddit discussions (particularly r/WallStreetBets) exhibit stronger predictive signals for abrupt volatility shifts than traditional news, while Twitter sentiment aligns more with gradual market reactions. Simpler volume metrics (comment count, Google Trends) often outperform sophisticated NLP sentiment scores.
+
+**Critical caveats from research:**
+- Social media sentiment has only a **weak correlation** with actual stock prices when measured directly
+- **Volume-based metrics** (number of mentions, comment count, Google Trends) are often more predictive than NLP sentiment scores
+- Reddit/WSB attention **increases risk-taking** and **reduces holding-period returns**: positions created during peak WSB attention realize -8.5% holding period returns on average
+- Social media sentiment shows **herding behavior** — peer influence drives sentiment contagion, not independent analysis
+- Predictive power is strongest for **meme stocks** and decays for large-cap liquid equities
+
+**Practical implementation approach:** Rather than attempting full social media NLP (which is noisy), use volume-based signals: track mention counts for held tickers via StockTwits API or Reddit API. A sudden spike in social mentions for a held position is a **risk signal** (potential meme/pump dynamics) — trigger tighter stops or reduced position size, not a buy signal.
+
+**The math:** Mention z-score: `z_mentions = (mentions_today - mentions_mean_30d) / mentions_std_30d`. If `z_mentions > 3.0` for a held position: flag for review, tighten trailing stop. If `z_mentions > 3.0` for a signal candidate: consider reducing confidence score.
+
+**Implementation difficulty:** Medium. Reddit and Twitter APIs require authentication. StockTwits is easier (public API). The value proposition is lower than news sentiment for our use case (fundamentals-driven large-cap trading).
+
+**Key papers:**
+- Li & Li (2024, SSRN) — Google search sentiment predicts meme stock returns at 3-7 day horizons, Bloomberg news at 7-14 day horizons
+- ScienceDirect (2024) — WSB attention increases uninformed trading and reduces holding-period returns
+- ResearchGate (2025) — Reddit stronger for volatility prediction, Twitter for gradual reactions
+
+### 8.5 Options Flow & Unusual Activity
+
+**What it is:** Monitoring large or unusual options trades from institutional players — hedge funds, market makers, and proprietary desks that drive the majority of options volume. Unusual options activity (high volume relative to open interest, especially out-of-the-money contracts expiring within 35 days) often precedes significant price moves.
+
+**Why it matters for us:** Options markets price in information before the equity market does. A large block of calls bought on a stock we're considering is a confirmation signal; a surge in puts on a held position is an early warning. Dark pool prints (large block trades executed off-exchange) reveal hidden institutional accumulation or distribution.
+
+**How to integrate:** Use the Unusual Whales API or FlowAlgo API (paid, ~$30-50/month) to fetch daily unusual options activity for our universe. Compute a net options sentiment score: `options_sent = (bullish_premium - bearish_premium) / total_premium`. Integrate as a signal confirmation/filter: a BUY signal confirmed by net bullish options flow gets a confidence boost; a BUY contradicted by heavy put buying gets a confidence penalty.
+
+**Key metrics:**
+- **Net premium flow:** `bullish_premium - bearish_premium` — measures directional institutional conviction
+- **Put/call volume ratio per ticker:** Elevated put volume on a specific stock vs. its norm = bearish institutional positioning
+- **Sweep detection:** Options "sweeps" (aggressive fills across multiple exchanges) indicate urgency — institutions willing to pay up
+- **Dark pool net flow:** Net buying vs. selling in dark pools signals hidden accumulation/distribution
+
+**Implementation difficulty:** Medium. Requires a paid data subscription. The analysis logic is straightforward once data is available. Most valuable as a confirmation layer rather than a primary signal.
+
+### 8.6 Earnings Sentiment & Post-Earnings Announcement Drift (PEAD)
+
+**What it is:** The well-documented anomaly where stocks continue drifting in the direction of an earnings surprise for 60-90 days after the announcement. A positive earnings surprise (beat estimates) leads to continued positive drift; a negative surprise leads to continued decline. The effect is strongest when combined with investor attention metrics.
+
+**Why it matters for us:** Our backtesting doesn't account for earnings events. A strategy might generate a BUY signal right before a negative earnings report, leading to a large gap-down that blows through the stop loss. Conversely, PEAD provides a well-researched alpha source: buying stocks that beat earnings and riding the 60-day drift.
+
+**Quantified alpha (recent research):**
+- A hedge portfolio going long top SUE (Standardized Unexpected Earnings) decile and short bottom decile generates 5.1% risk-adjusted returns over 3 months (~20% annualized) — Garfinkel, Hribar & Hsiao (2024)
+- Chinese market evidence: 6.78% quarterly excess return from earnings surprise strategy
+- AI-enhanced PEAD: CNN analysis of visual earnings data patterns predicts drift with 3.6% spread over 63 days
+
+**How to integrate (two uses):**
+
+**Use 1 — Earnings event filter (risk management):** Before generating signals, check if any ticker has earnings in the next 3 days (Yahoo Finance earnings calendar via yfinance). If so, either skip the signal (too risky — gaps can exceed SL) or widen the stop loss to accommodate gap risk. After earnings, if the stock beat estimates, boost confidence; if it missed, demote.
+
+**Use 2 — PEAD as a signal source:** After each earnings release, compute the earnings surprise: `SUE = (EPS_actual - EPS_estimate) / std(EPS_surprises_8q)`. If SUE is in the top decile, generate a BUY signal with a 60-day time horizon and wider stops. This would be a new strategy added to `strategies.py`.
+
+**Important caveat:** Recent debate (2025) questions whether PEAD still generates alpha for liquid large-caps after excluding microcaps (t-stat drops from 2.18 to 1.43). The effect may be stronger for mid/small-caps in our universe. AI/LLM-driven analysis may be accelerating information absorption, reducing the drift window.
+
+**The math:** Standardized Unexpected Earnings: `SUE = (EPS_actual - EPS_consensus) / σ(EPS_surprise_history)`. Earnings surprise as a sentiment modifier: `conf_adjustment = clip(SUE * 0.5, -2, +2)` — applied to the signal's confidence score.
+
+**Implementation difficulty:** Low-Medium. Earnings dates and estimates are available from yfinance. The earnings filter is trivial; a full PEAD strategy requires more work.
+
+**Key papers:**
+- Garfinkel, Hribar & Hsiao (2024) — CNN-based PEAD prediction, 3.6% 63-day spread
+- Lan et al. (2024, ScienceDirect) — Earnings surprise + investor attention + PEAD investing strategy
+- CFA Institute (2025) — Discussion of whether generative AI is disrupting PEAD effectiveness
+
+### 8.7 Institutional Ownership Changes (13F Filings)
+
+**What it is:** SEC Form 13F requires institutional investment managers with >$100M in AUM to disclose their equity holdings quarterly. By computing changes between filings, you can measure net institutional flow — where the biggest players are accumulating or distributing.
+
+**Why it matters for us:** Institutional ownership changes are a slow-moving but high-conviction sentiment signal. Research shows stocks with the highest institutional sentiment scores have outperformed those with the lowest by 12% per annum from 2007–2024, with a Sharpe ratio of 0.83 and low turnover of 1.7%/day.
+
+**Key patterns that generate alpha:**
+- **Cluster buying:** Multiple institutions initiating new positions in the same quarter
+- **Inflection points:** A stock that was being sold by institutions for 2+ quarters suddenly sees buying
+- **Cessation of selling:** Insiders who had been consistently selling stop — often precedes positive catalysts
+
+**How to integrate:** Fetch quarterly 13F data from SEC EDGAR (free) or a provider like WhaleWisdom / Fintel API. Compute a quarterly institutional sentiment score: `inst_sent = (new_positions + increased_positions - decreased_positions - closed_positions) / total_filers`. Use as a slow-moving signal modifier: positive institutional flow → confidence boost for BUY signals on that ticker; negative flow → confidence penalty.
+
+**Important caveat:** 13F data is reported with a 45-day lag (filed 45 days after quarter end). This makes it a confirmation/positioning signal rather than a timing signal. Most useful for filtering out stocks that institutions are actively exiting.
+
+**Implementation difficulty:** Medium. SEC EDGAR provides free XML/JSON 13F data. Parsing and aggregating across filers requires some work. Commercial APIs (ExtractAlpha, WhaleWisdom) simplify this significantly.
+
+**Key research:**
+- ExtractAlpha 13F Sentiment Signal — 12% annual outperformance, 0.83 Sharpe (2007–2024)
+- Alpha Architect — Cluster insider buying patterns and their predictive power
+
+### 8.8 Composite Sentiment Integration Architecture
+
+**What it is:** Rather than using any single sentiment source, build a multi-source sentiment layer that aggregates news, market-wide, options, earnings, and institutional signals into a unified sentiment score per ticker.
+
+**Why it matters for us:** Each sentiment source has different characteristics — news sentiment is fast but noisy, institutional flow is slow but high-conviction, options flow captures informed positioning. A composite approach captures the best of each while diversifying away noise from any single source.
+
+**Proposed architecture:**
+
+```
+Per-ticker sentiment aggregation:
+┌──────────────────────────────────────────────────────┐
+│ Source              │ Weight │ Update Freq │ Latency  │
+├──────────────────────────────────────────────────────┤
+│ News (FinBERT)      │ 0.30   │ Hourly      │ Minutes  │
+│ Market-wide (VIX)   │ 0.15   │ Daily       │ Real-time│
+│ Options flow        │ 0.20   │ Daily       │ Same-day │
+│ Earnings surprise   │ 0.20   │ Quarterly   │ Same-day │
+│ Institutional (13F) │ 0.15   │ Quarterly   │ 45-day   │
+└──────────────────────────────────────────────────────┘
+
+composite_sentiment = Σ(source_score × weight × availability_flag)
+                      / Σ(weight × availability_flag)
+```
+
+**How it modifies the pipeline:**
+
+1. **Signal generation (quant_analysis_bot):** `composite_sentiment` becomes an additional feature in the confidence scoring function (signals.py). A BUY signal with strongly positive composite sentiment: confidence +1. Strongly negative: confidence -1 (may force HOLD if total drops below threshold).
+
+2. **Portfolio optimization (trading_bot_bl):** Sentiment can inform Black-Litterman view confidence (Ω). Positive sentiment → tighter Ω (more confident view) → larger BL weight.
+
+3. **Risk management:** Market-wide extreme fear → either halt new entries (momentum-preservation) or scale up entries (contrarian). Configurable per strategy.
+
+4. **Position monitoring:** Sudden negative sentiment shift for a held position → tighten trailing stop or trigger early exit review.
+
+**Graceful degradation:** If any source is unavailable (API down, no recent headlines), the composite score is computed from available sources only — the denominator adjusts. No single source is required.
+
+**Implementation difficulty:** Medium overall. Each individual source is Low-Medium; the integration layer is the main work.
+
+---
+
+## 9. Implementation Roadmap
 
 Prioritized by impact-to-effort ratio. Grouped into three phases.
 
@@ -339,6 +531,8 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | **Execution timing** | cli.py / GitHub Actions | Very Low | Low-Medium | Delay market orders by 30-60 min after open to avoid wide spreads |
 | **ATR Chandelier exits** | monitor.py | Low | Medium | Replace simple trailing stop with volatility-adaptive stops |
 | **Exponentially weighted covariance** | portfolio_optimizer.py | Very Low | Medium | Weight recent returns more heavily in covariance estimation |
+| **VIX / market-wide sentiment** | risk.py / signals.py | Very Low | Medium | Use VIX z-score + put/call ratio to scale position sizes and tighten stops in extreme regimes |
+| **Earnings event filter** | signals.py / risk.py | Low | Medium-High | Check earnings calendar before signal generation; skip or widen stops around earnings dates |
 
 ### Phase 2: Meaningful Upgrades (Medium effort, high impact)
 
@@ -352,6 +546,9 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | **Fractional differentiation** | new preprocessing | Low-Medium | Medium | Make features stationary while preserving memory — foundation for future ML |
 | **Slippage model** | backtest.py | Low | Medium | Add realistic slippage to backtest costs |
 | **Correlation breakdown monitoring** | monitor.py / risk.py | Low | Medium | Track portfolio correlation and reduce exposure when correlations spike |
+| **FinBERT news sentiment** | new sentiment module | Low-Medium | High | Score news headlines per ticker via FinBERT; use as confidence modifier for signals |
+| **LLM headline scoring** | llm_views.py extension | Low | Medium-High | Extend existing LLM infrastructure to score news sentiment; DK-CoT prompting for accuracy |
+| **Social media mention volume** | new module | Medium | Medium | Track ticker mention spikes on StockTwits/Reddit as a risk signal (not buy signal) |
 
 ### Phase 3: Advanced Capabilities (Higher effort, potentially transformative)
 
@@ -365,6 +562,10 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | **Factor-aware signals** | signals.py | Medium-High | Medium | Add momentum, value, quality factor exposures to signal generation |
 | **Limit order entries** | broker.py | Medium | Medium | Use limit orders for lower-confidence signals to save spread |
 | **Random Matrix Theory denoising** | portfolio_optimizer.py | Medium | Medium | Denoise covariance matrix using Marchenko-Pastur distribution |
+| **PEAD strategy** | strategies.py | Medium | Medium-High | Add post-earnings announcement drift as a new strategy; buy top-decile earnings surprises with 60-day horizon |
+| **Institutional 13F sentiment** | new module | Medium | Medium | Parse SEC 13F filings to detect institutional accumulation/distribution as a slow-moving confidence modifier |
+| **Options flow integration** | new module | Medium | Medium-High | Use unusual options activity (net premium, sweep detection) as signal confirmation layer; requires paid API |
+| **Composite sentiment layer** | new sentiment module | Medium-High | High | Multi-source sentiment aggregation (news + VIX + options + earnings + 13F) as unified pipeline modifier |
 
 ---
 
@@ -390,6 +591,20 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 - Antonacci, G. — "Dual Momentum Investing" (2014)
 - Ehlers, J. — "Fractal Adaptive Moving Average" (Technical Analysis of Stocks & Commodities)
 
+### Papers (Sentiment & Alternative Data)
+- Araci, D. — "FinBERT: Financial Sentiment Analysis with Pre-Trained Language Models" (2019, arXiv)
+- Tak, R. & Pele, D.T. — "Enhancing Trading Performance Through Sentiment Analysis with LLMs: Evidence from the S&P 500" (2025, PICBE)
+- FinLlama — "LLM-Based Financial Sentiment Analysis for Algorithmic Trading" (2024, ACM ICAIF)
+- FinDPO — "Financial Sentiment Analysis for Algorithmic Trading through Preference Optimization of LLMs" (2025, ACM)
+- Springer (2025) — "Leveraging LLMs as News Sentiment Predictor: A Knowledge-Enhanced Strategy" (Discover Computing)
+- Li, J. & Li, Z. — "Sentiment, Social Media, and Meme Stock Return Predictability" (2024, SSRN)
+- ScienceDirect (2024) — "Social Media Attention and Retail Investor Behavior: Evidence from r/WallStreetBets"
+- ICCS (2025) — "Predicting Stock Prices with ChatGPT-Annotated Reddit Sentiment"
+- Garfinkel, J., Hribar, P. & Hsiao, P. — "Can Generative AI Disrupt PEAD?" (2024/2025, CFA Institute)
+- Lan, Q. et al. — "Post-Earnings Announcement Drift: Earnings Surprise, Investor Attention, and Strategy" (2024, ScienceDirect)
+- ExtractAlpha — "13F Stock Sentiment Signal" (2024, Fact Sheet — 12% annual outperformance, 0.83 Sharpe)
+- ScienceDirect (2025) — "GNN-Based Social Media Sentiment Analysis for Stock Market Forecasting"
+
 ---
 
 ## Recommended Python Libraries
@@ -403,7 +618,11 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | `pypfopt` | Black-Litterman, HRP, risk models | `pip install pyportfolioopt` |
 | `scipy.cluster.hierarchy` | Hierarchical clustering for HRP | (included in scipy) |
 | `scipy.optimize` | Risk parity optimization | (included in scipy) |
+| `transformers` | FinBERT / LLM sentiment inference | `pip install transformers torch` |
+| `finnhub-python` | Free financial news API | `pip install finnhub-python` |
+| `praw` | Reddit API wrapper (social media sentiment) | `pip install praw` |
+| `yfinance` | VIX data, earnings dates, fundamentals | (already installed) |
 
 ---
 
-*Last updated: March 13, 2026*
+*Last updated: March 14, 2026*
