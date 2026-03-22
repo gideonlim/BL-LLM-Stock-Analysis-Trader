@@ -3,11 +3,10 @@ name: Execute Trades
 # Runs after market opens to execute signals via Alpaca.
 # US market opens 9:30 AM ET. We wait 45 min to let opening
 # volatility settle before entering positions.
-# Two crons cover both DST offsets; a guard step skips the wrong one.
 on:
   schedule:
-    - cron: "15 14 * * 1-5"   # 10:15 AM EDT (UTC-4, Mar–Nov)
-    - cron: "15 15 * * 1-5"   # 10:15 AM EST (UTC-5, Nov–Mar)
+    - cron: "15 10 * * 1-5"   # 10:15 AM ET, weekdays
+      timezone: America/New_York
   workflow_call:               # allow other workflows to invoke this
   workflow_dispatch:           # allow manual trigger
 
@@ -26,33 +25,19 @@ jobs:
           # Pull latest commit (may include freshly generated signals)
           ref: ${{ github.ref }}
 
-      - name: DST guard — skip if not 10 AM ET
-        if: github.event_name == 'schedule'
-        run: |
-          ET_HOUR=$(TZ=America/New_York date +%H)
-          echo "Current ET hour: $ET_HOUR"
-          if [ "$ET_HOUR" != "10" ]; then
-            echo "Not 10 AM ET (got hour $ET_HOUR), skipping run."
-            echo "SKIP_RUN=true" >> "$GITHUB_ENV"
-          fi
-
       - name: Pull latest changes
-        if: env.SKIP_RUN != 'true'
         run: git pull --rebase origin ${{ github.ref_name }}
 
       - name: Set up Python
-        if: env.SKIP_RUN != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
       - name: Install dependencies
-        if: env.SKIP_RUN != 'true'
         run: pip install -r requirements.txt
 
       - name: Check signals exist
-        if: env.SKIP_RUN != 'true'
         run: |
           if ! ls signals/signals_*.json 1>/dev/null 2>&1; then
             echo "::error::No signal files found. Run generate_signals first."
@@ -62,7 +47,6 @@ jobs:
           ls -la signals/signals_*.json | tail -3
 
       - name: Execute trades
-        if: env.SKIP_RUN != 'true'
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
@@ -88,7 +72,7 @@ jobs:
         run: python -m trading_bot_bl
 
       - name: Upload execution logs
-        if: always() && env.SKIP_RUN != 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: execution-logs-${{ github.run_number }}
@@ -96,7 +80,7 @@ jobs:
           retention-days: 30
 
       - name: Commit execution logs
-        if: always() && env.SKIP_RUN != 'true'
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
