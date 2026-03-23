@@ -177,14 +177,16 @@ Edit the `tickers` list in `DEFAULT_CONFIG` at the top of the script, or pass `-
 
 ## Estimated Run Times
 
-| Stocks | Approximate Time |
-|---|---|
-| 5-10 | ~30 seconds |
-| 100 | ~5 minutes |
-| 500 | ~25 minutes |
-| 1000 | ~50 minutes |
+Analysis runs in parallel by default (`--workers 0` auto-detects CPU cores, capped at 8).
 
-Times depend on your internet speed and Yahoo Finance rate limits. The stock universe fetch (with `--all-stocks`) adds a few extra minutes on the first run but is cached afterward.
+| Stocks | 1 worker (sequential) | 2 workers (GH Actions) | 8 workers (local) |
+|---|---|---|---|
+| 5-10 | ~30 seconds | ~30 seconds | ~30 seconds |
+| 100 | ~5 minutes | ~3 minutes | ~1.5 minutes |
+| 500 | ~25 minutes | ~14 minutes | ~5 minutes |
+| 1000 | ~50 minutes | ~28 minutes | ~10 minutes |
+
+Times depend on your internet speed and Yahoo Finance rate limits. The stock universe fetch (with `--all-stocks`) adds a few extra minutes on the first run but is cached afterward. Use `--workers 1` to disable multiprocessing.
 
 ## Automated Trading (trading_bot_bl)
 
