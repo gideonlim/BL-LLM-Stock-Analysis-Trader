@@ -4,38 +4,179 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import nullcontext
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
 
-from quant_analysis_bot.backtest import select_best_strategy
 from quant_analysis_bot.config import load_config
-from quant_analysis_bot.cscv import (
-    format_cscv_report,
-    run_cscv_for_ticker,
-)
-from quant_analysis_bot.data import (
-    batch_fetch_data,
-    enrich_dataframe,
-    fetch_data,
-)
-from quant_analysis_bot.models import DailySignal
-from quant_analysis_bot.pead import enrich_with_pead
-from quant_analysis_bot.regime import enrich_with_regime, fetch_regime_data
+from quant_analysis_bot.models import DailySignal, TradeRecord
 from quant_analysis_bot.output import (
     write_backtest_report,
     write_signals,
     write_trade_logs,
 )
 from quant_analysis_bot.progress import ProgressBar
-from quant_analysis_bot.signals import generate_daily_signal
 from quant_analysis_bot.universe import fetch_top_us_stocks
 
 log = logging.getLogger(__name__)
 
 
+# ── Per-ticker result container ──────────────────────────────────────
+
+@dataclass
+class _TickerResult:
+    """Everything produced by analysing a single ticker."""
+
+    ticker: str
+    signal: DailySignal
+    per_window: dict = field(default_factory=dict)
+    composite_scores: dict = field(default_factory=dict)
+    best_strategy_name: str = ""
+    trade_logs: list[TradeRecord] = field(default_factory=list)
+    cscv_result: object = None          # CSCVResult | None
+    error: Optional[str] = None
+
+
+# ── Worker function (runs in child process) ──────────────────────────
+
+def _analyze_ticker(
+    ticker: str,
+    price_df_or_none: Optional[object],
+    regime_df: object,
+    config: dict,
+    today: str,
+) -> _TickerResult:
+    """Analyse one ticker end-to-end.
+
+    This is a **module-level** function so it can be pickled by
+    ``ProcessPoolExecutor``.  It imports everything it needs inside
+    the function body to avoid serialising heavy modules.
+    """
+    from quant_analysis_bot.backtest import select_best_strategy
+    from quant_analysis_bot.cscv import run_cscv_for_ticker
+    from quant_analysis_bot.data import enrich_dataframe, fetch_data
+    from quant_analysis_bot.pead import enrich_with_pead
+    from quant_analysis_bot.regime import enrich_with_regime
+    from quant_analysis_bot.signals import generate_daily_signal
+
+    skip_pead = config.get("skip_pead", False)
+    run_cscv_flag = config.get("run_cscv", False)
+
+    try:
+        # 1. Price data — from pre-fetched cache or individual download
+        if price_df_or_none is not None:
+            df = price_df_or_none
+        else:
+            df = fetch_data(
+                ticker,
+                config["lookback_days"],
+                config["data_cache_dir"],
+            )
+
+        # 2. Feature enrichment
+        df = enrich_dataframe(df)
+        df = enrich_with_regime(df, regime_df)
+        if not skip_pead:
+            df = enrich_with_pead(df, ticker)
+
+        # 3. Strategy selection (14 strategies × 3 timeframes)
+        (
+            best_strat,
+            best_result,
+            per_window,
+            comp_scores,
+            trade_logs,
+        ) = select_best_strategy(df, ticker, config)
+
+        # 4. Signal generation
+        signal = generate_daily_signal(
+            df, ticker, best_strat, best_result, config
+        )
+
+        # 5. CSCV overfitting check (for BUY signals or --validate)
+        cscv_res = None
+        should_cscv = run_cscv_flag or signal.signal == "BUY"
+        if should_cscv:
+            try:
+                cscv_res = run_cscv_for_ticker(df, ticker, config)
+                if cscv_res.is_valid:
+                    best_result.pbo = cscv_res.pbo
+                    signal = generate_daily_signal(
+                        df, ticker, best_strat,
+                        best_result, config,
+                    )
+                else:
+                    cscv_res = None
+            except Exception:
+                cscv_res = None
+
+        return _TickerResult(
+            ticker=ticker,
+            signal=signal,
+            per_window=per_window,
+            composite_scores=comp_scores,
+            best_strategy_name=best_strat.name,
+            trade_logs=trade_logs,
+            cscv_result=cscv_res,
+        )
+
+    except Exception as e:
+        return _TickerResult(
+            ticker=ticker,
+            signal=DailySignal(
+                generated_at=datetime.now().isoformat(
+                    timespec="seconds"
+                ),
+                date=today,
+                ticker=ticker,
+                signal="ERROR",
+                signal_raw=0,
+                strategy="N/A",
+                confidence="N/A",
+                confidence_score=0,
+                composite_score=0.0,
+                current_price=0.0,
+                stop_loss_pct=0.0,
+                stop_loss_price=0.0,
+                take_profit_pct=0.0,
+                take_profit_price=0.0,
+                suggested_position_size_pct=0.0,
+                signal_expires=today,
+                sharpe=0.0,
+                sortino=0.0,
+                win_rate=0.0,
+                profit_factor=0.0,
+                annual_return_pct=0.0,
+                annual_excess_pct=0.0,
+                max_drawdown_pct=0.0,
+                avg_holding_days=0.0,
+                total_trades=0,
+                backtest_period="N/A",
+                pbo=-1.0,
+                rsi=0.0,
+                vol_20=0.0,
+                sma_50=0.0,
+                sma_200=0.0,
+                trend="N/A",
+                volatility="N/A",
+                notes=str(e),
+            ),
+            error=str(e),
+        )
+
+
+# ── Main pipeline ────────────────────────────────────────────────────
+
 def run(config: dict) -> None:
     """Main execution pipeline."""
+    from quant_analysis_bot.cscv import format_cscv_report
+    from quant_analysis_bot.data import batch_fetch_data
+    from quant_analysis_bot.regime import fetch_regime_data
+
     today = datetime.now().strftime("%Y-%m-%d")
     mode = (
         "LONG-ONLY"
@@ -59,9 +200,10 @@ def run(config: dict) -> None:
         f"  Timeframes: "
         f"{', '.join(config['backtest_windows'].keys())}"
     )
+    n_workers = config.get("workers", 1)
+    if n_workers > 1:
+        log.info(f"  Workers: {n_workers}")
     log.info(f"{'=' * 60}")
-
-    run_cscv_flag = config.get("run_cscv", False)
 
     all_signals: list[DailySignal] = []
     all_window_results: dict = {}
@@ -74,7 +216,6 @@ def run(config: dict) -> None:
     n_tickers = len(tickers)
     use_progress = n_tickers > 10
     failed_tickers: list[str] = []
-    skip_pead = config.get("skip_pead", False)
 
     # ── Fetch market regime data FIRST (only 2 tickers: VIX + SPY)
     regime_df = fetch_regime_data(
@@ -93,10 +234,7 @@ def run(config: dict) -> None:
     else:
         price_cache = {}
 
-    # NOTE: PEAD earnings are fetched inline per-ticker during the
-    # analysis loop (not pre-fetched). This naturally spaces out
-    # requests so Yahoo doesn't rate-limit us. The ~1s of analysis
-    # work per ticker acts as a built-in cooldown between fetches.
+    # ── Analyze all tickers ──────────────────────────────────────
 
     ctx = (
         ProgressBar(
@@ -108,153 +246,107 @@ def run(config: dict) -> None:
         else nullcontext()
     )
 
-    interrupted = False
+    if n_workers > 1 and n_tickers > 1:
+        # ── Parallel execution ───────────────────────────────────
+        results: list[_TickerResult] = []
 
-    with ctx as pbar:
-        for _i, ticker in enumerate(tickers):
-            if interrupted:
-                break
-
-            if not use_progress:
-                log.info(f"\n>>> Analyzing {ticker}...")
-
-            try:
-                if ticker in price_cache:
-                    df = price_cache[ticker]
-                else:
-                    df = fetch_data(
+        with ctx as pbar:
+            with ProcessPoolExecutor(max_workers=n_workers) as pool:
+                futures = {
+                    pool.submit(
+                        _analyze_ticker,
                         ticker,
-                        config["lookback_days"],
-                        config["data_cache_dir"],
-                    )
-                df = enrich_dataframe(df)
-                df = enrich_with_regime(df, regime_df)
-                if not skip_pead:
-                    df = enrich_with_pead(df, ticker)
+                        price_cache.get(ticker),
+                        regime_df,
+                        config,
+                        today,
+                    ): ticker
+                    for ticker in tickers
+                }
 
-                (
-                    best_strat,
-                    best_result,
-                    per_window,
-                    comp_scores,
-                    trade_logs,
-                ) = select_best_strategy(df, ticker, config)
-
-                if not use_progress:
-                    log.info(
-                        f"  Best strategy: {best_strat.name} "
-                        f"(Composite="
-                        f"{best_result.composite_score:.1f}, "
-                        f"Sharpe={best_result.sharpe_ratio}, "
-                        f"Ann.Return="
-                        f"{best_result.annual_return_pct}%, "
-                        f"WinRate={best_result.win_rate:.1%})"
-                    )
-
-                # CSCV overfitting analysis
-                # Auto-run for BUY signals (executor needs PBO to gate
-                # entries). Also run for all tickers when --validate.
-                signal = generate_daily_signal(
-                    df, ticker, best_strat, best_result, config
-                )
-
-                should_cscv = (
-                    run_cscv_flag or signal.signal == "BUY"
-                )
-                if should_cscv:
-                    try:
-                        cscv_res = run_cscv_for_ticker(
-                            df, ticker, config
-                        )
-                        if cscv_res.is_valid:
-                            cscv_results[ticker] = cscv_res
-                            best_result.pbo = cscv_res.pbo
-                            # Re-generate signal with PBO attached
-                            signal = generate_daily_signal(
-                                df, ticker, best_strat,
-                                best_result, config,
+                try:
+                    for future in as_completed(futures):
+                        ticker = futures[future]
+                        try:
+                            result = future.result()
+                        except Exception as e:
+                            # Should not happen — _analyze_ticker
+                            # catches internally — but just in case.
+                            result = _TickerResult(
+                                ticker=ticker,
+                                signal=_make_error_signal(
+                                    ticker, today, str(e)
+                                ),
+                                error=str(e),
                             )
-                            if not use_progress:
-                                log.info(
-                                    f"  CSCV PBO: {cscv_res.pbo:.1%}"
-                                )
-                    except Exception as e:
-                        log.debug(
-                            f"  CSCV failed for {ticker}: {e}"
-                        )
+                        results.append(result)
 
-                all_window_results[ticker] = per_window
-                all_composite_scores[ticker] = comp_scores
-                best_strategies[ticker] = best_strat.name
-                all_trade_logs[ticker] = trade_logs
+                        if use_progress and pbar:
+                            pbar.update(1, suffix=ticker)
 
-                all_signals.append(signal)
+                except KeyboardInterrupt:
+                    log.warning(
+                        "\nInterrupted — cancelling remaining "
+                        "workers and outputting partial results..."
+                    )
+                    pool.shutdown(
+                        wait=False, cancel_futures=True
+                    )
 
+        # Sort results back into original ticker order
+        order = {t: i for i, t in enumerate(tickers)}
+        results.sort(key=lambda r: order.get(r.ticker, 999999))
+
+    else:
+        # ── Sequential execution (original path) ─────────────────
+        results = []
+
+        with ctx as pbar:
+            for _i, ticker in enumerate(tickers):
                 if not use_progress:
-                    log.info(
-                        f"  Signal: {signal.signal} "
-                        f"(Confidence: {signal.confidence})"
-                    )
-                    log.info(
-                        f"  Total trades logged: "
-                        f"{len(trade_logs)}"
-                    )
+                    log.info(f"\n>>> Analyzing {ticker}...")
 
-            except KeyboardInterrupt:
-                log.warning(
-                    f"\nInterrupted at ticker {_i + 1}/{n_tickers}"
-                    f" — outputting partial results..."
+                result = _analyze_ticker(
+                    ticker,
+                    price_cache.get(ticker),
+                    regime_df,
+                    config,
+                    today,
                 )
-                interrupted = True
-                break
+                results.append(result)
 
-            except Exception as e:
-                if not use_progress:
-                    log.error(f"  FAILED for {ticker}: {e}")
-                failed_tickers.append(ticker)
-                all_signals.append(
-                    DailySignal(
-                        generated_at=datetime.now().isoformat(
-                            timespec="seconds"
-                        ),
-                        date=today,
-                        ticker=ticker,
-                        signal="ERROR",
-                        signal_raw=0,
-                        strategy="N/A",
-                        confidence="N/A",
-                        confidence_score=0,
-                        composite_score=0.0,
-                        current_price=0.0,
-                        stop_loss_pct=0.0,
-                        stop_loss_price=0.0,
-                        take_profit_pct=0.0,
-                        take_profit_price=0.0,
-                        suggested_position_size_pct=0.0,
-                        signal_expires=today,
-                        sharpe=0.0,
-                        sortino=0.0,
-                        win_rate=0.0,
-                        profit_factor=0.0,
-                        annual_return_pct=0.0,
-                        annual_excess_pct=0.0,
-                        max_drawdown_pct=0.0,
-                        avg_holding_days=0.0,
-                        total_trades=0,
-                        backtest_period="N/A",
-                        pbo=-1.0,
-                        rsi=0.0,
-                        vol_20=0.0,
-                        sma_50=0.0,
-                        sma_200=0.0,
-                        trend="N/A",
-                        volatility="N/A",
-                        notes=str(e),
+                if not use_progress and result.error is None:
+                    log.info(
+                        f"  Best strategy: "
+                        f"{result.best_strategy_name} "
+                        f"(Signal: {result.signal.signal}, "
+                        f"Confidence: "
+                        f"{result.signal.confidence})"
                     )
-                )
+                elif not use_progress and result.error:
+                    log.error(
+                        f"  FAILED for {ticker}: {result.error}"
+                    )
 
-            if use_progress and pbar:
-                pbar.update(1, suffix=ticker)
+                if use_progress and pbar:
+                    pbar.update(1, suffix=ticker)
+
+    # ── Collect results ──────────────────────────────────────────
+    for result in results:
+        all_signals.append(result.signal)
+        if result.error:
+            failed_tickers.append(result.ticker)
+            continue
+        all_window_results[result.ticker] = result.per_window
+        all_composite_scores[result.ticker] = (
+            result.composite_scores
+        )
+        best_strategies[result.ticker] = (
+            result.best_strategy_name
+        )
+        all_trade_logs[result.ticker] = result.trade_logs
+        if result.cscv_result is not None:
+            cscv_results[result.ticker] = result.cscv_result
 
     # Report failures summary for large runs
     if use_progress and failed_tickers:
@@ -328,6 +420,48 @@ def run(config: dict) -> None:
     print(f"{'=' * 70}\n")
 
 
+def _make_error_signal(
+    ticker: str, today: str, error: str
+) -> DailySignal:
+    """Build an ERROR signal for a failed ticker."""
+    return DailySignal(
+        generated_at=datetime.now().isoformat(timespec="seconds"),
+        date=today,
+        ticker=ticker,
+        signal="ERROR",
+        signal_raw=0,
+        strategy="N/A",
+        confidence="N/A",
+        confidence_score=0,
+        composite_score=0.0,
+        current_price=0.0,
+        stop_loss_pct=0.0,
+        stop_loss_price=0.0,
+        take_profit_pct=0.0,
+        take_profit_price=0.0,
+        suggested_position_size_pct=0.0,
+        signal_expires=today,
+        sharpe=0.0,
+        sortino=0.0,
+        win_rate=0.0,
+        profit_factor=0.0,
+        annual_return_pct=0.0,
+        annual_excess_pct=0.0,
+        max_drawdown_pct=0.0,
+        avg_holding_days=0.0,
+        total_trades=0,
+        backtest_period="N/A",
+        pbo=-1.0,
+        rsi=0.0,
+        vol_20=0.0,
+        sma_50=0.0,
+        sma_200=0.0,
+        trend="N/A",
+        volatility="N/A",
+        notes=error,
+    )
+
+
 def main() -> None:
     """CLI entry point."""
     logging.basicConfig(
@@ -395,6 +529,16 @@ def main() -> None:
             "for all tickers."
         ),
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help=(
+            "Number of parallel worker processes for analysis. "
+            "0 (default) = auto-detect CPU cores (capped at 8). "
+            "1 = sequential (no multiprocessing)."
+        ),
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -409,6 +553,12 @@ def main() -> None:
 
     config["run_cscv"] = args.validate
     config["skip_pead"] = args.skip_pead
+
+    # Worker count: 0 = auto, 1 = sequential, N = explicit
+    if args.workers == 0:
+        config["workers"] = min(os.cpu_count() or 1, 8)
+    else:
+        config["workers"] = max(1, args.workers)
 
     if args.all_stocks:
         log.info(

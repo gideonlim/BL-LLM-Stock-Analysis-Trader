@@ -35,9 +35,10 @@ jobs:
           EXTRA_TICKERS: ${{ vars.EXTRA_TICKERS || '' }}
         run: python -m quant_analysis_bot --all-stocks --top-n 900
         # Adjust --top-n to control how many stocks to analyze.
-        # 200 is a good balance of coverage vs runtime (~10-20 min).
-        # 900 if there is a lot fo time, runtime (~15-25 min).
-        # Use --top-n 1000 for full universe (takes ~60 min).
+        # Analysis runs in parallel (auto-detects cores).
+        # GH Actions runners have 2 cores, so expect roughly:
+        #   200 → ~6 min,  500 → ~14 min,  900 → ~25 min
+        # Use --workers 1 to force sequential if needed.
 
       - name: Upload signals as artifact
         uses: actions/upload-artifact@v4
