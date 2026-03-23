@@ -3,13 +3,12 @@ name: Weekly Performance Report
 # Runs every Sunday morning to produce a PDF performance report
 # and CSV trade export covering the past week.  Both files are
 # committed to the reports/ folder and uploaded as a build artifact.
-# Two crons cover both DST offsets; a guard step skips the wrong one.
 on:
   schedule:
-    - cron: "0 12 * * 0"    # 8 AM EDT (UTC-4, Mar–Nov)
-    - cron: "0 13 * * 0"    # 8 AM EST (UTC-5, Nov–Mar)
-  workflow_call:             # allow other workflows to invoke this
-  workflow_dispatch:         # allow manual trigger
+    - cron: "0 8 * * 0"    # 8:00 AM ET, every Sunday
+      timezone: America/New_York
+  workflow_call:            # allow other workflows to invoke this
+  workflow_dispatch:        # allow manual trigger
 
 permissions:
   contents: write           # needed to commit report files
@@ -25,33 +24,19 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: DST guard — skip if not 8 AM ET
-        if: github.event_name == 'schedule'
-        run: |
-          ET_HOUR=$(TZ=America/New_York date +%H)
-          echo "Current ET hour: $ET_HOUR"
-          if [ "$ET_HOUR" != "08" ]; then
-            echo "Not 8 AM ET (got hour $ET_HOUR), skipping run."
-            echo "SKIP_RUN=true" >> "$GITHUB_ENV"
-          fi
-
       - name: Pull latest changes
-        if: env.SKIP_RUN != 'true'
         run: git pull --rebase origin ${{ github.ref_name }}
 
       - name: Set up Python
-        if: env.SKIP_RUN != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
       - name: Install dependencies
-        if: env.SKIP_RUN != 'true'
         run: pip install -r requirements.txt
 
       - name: Check journal data exists
-        if: env.SKIP_RUN != 'true'
         run: |
           if [ ! -d "execution_logs/journal" ]; then
             echo "::warning::No journal data found in execution_logs/journal — report will be empty."
@@ -61,23 +46,18 @@ jobs:
           fi
 
       - name: Generate PDF report
-        if: env.SKIP_RUN != 'true'
         run: python -m trading_bot_bl --report-pdf
-        # No Alpaca credentials needed — reads only local journal files
 
       - name: Generate CSV export
-        if: env.SKIP_RUN != 'true'
         run: python -m trading_bot_bl --report-csv
-        # No Alpaca credentials needed — reads only local journal files
 
       - name: Show report files
-        if: env.SKIP_RUN != 'true'
         run: |
           echo "Generated reports:"
           ls -lh reports/performance/report_*.pdf reports/trades_*.csv 2>/dev/null || echo "No report files found."
 
       - name: Upload reports as artifact
-        if: always() && env.SKIP_RUN != 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: weekly-report-${{ github.run_number }}
@@ -87,7 +67,7 @@ jobs:
           retention-days: 90
 
       - name: Commit reports to repository
-        if: always() && env.SKIP_RUN != 'true'
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
