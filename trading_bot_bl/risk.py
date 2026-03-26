@@ -252,9 +252,10 @@ class RiskManager:
         strategy = intent.signal.strategy
         ticker = intent.ticker
 
-        # Check if this strategy has been underperforming
-        # Only considers strategy-attributable outcomes (signal
-        # quality skips), not broker errors or portfolio limits
+        # Check if this strategy has been underperforming.
+        # After the history.py fix, only genuine strategy-level
+        # failures count here (not signal-level quality filters
+        # like composite score, PBO, or trade-count).
         if self.history.strategy_is_underperforming(
             strategy,
             min_orders=5,

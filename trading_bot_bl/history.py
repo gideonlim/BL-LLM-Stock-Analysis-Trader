@@ -39,6 +39,20 @@ _INFRA_PATTERNS = [
     # Strategy history itself (don't double-count)
     r"has poor track record",
     r"currently losing",
+    # Signal-level quality filters — these reflect individual signal
+    # weakness, NOT the strategy being bad.  A VWAP signal scoring 80
+    # should not be penalised because another VWAP signal scored 15.
+    # Counting these against the strategy creates a feedback loop in
+    # bear markets where regime filters legitimately block most signals,
+    # which tanks the strategy "success rate" and then blocks ALL signals
+    # from that strategy — even excellent ones.
+    r"Composite score .* < min",
+    r"Too few backtest trades",
+    r"PBO .* exceeds max",
+    r"Confidence score .* < min",
+    r"Signal expired",
+    r"Notional .* below minimum",
+    r"ADV .* below minimum",
 ]
 
 _INFRA_RE = re.compile("|".join(_INFRA_PATTERNS), re.IGNORECASE)
@@ -46,12 +60,16 @@ _INFRA_RE = re.compile("|".join(_INFRA_PATTERNS), re.IGNORECASE)
 
 def _is_strategy_attributable(error: str) -> bool:
     """
-    Return True if a skip/rejection reason reflects genuine
-    strategy weakness (bad signal quality, too few trades, etc.).
+    Return True if a skip reason reflects the strategy *itself*
+    being unreliable — e.g. historically losing money on filled
+    trades.
 
-    Returns False for infrastructure errors, portfolio limits,
-    broker bugs, and duplicate-detection skips — none of which
-    say anything about the strategy itself.
+    Returns False for:
+    - Infrastructure errors, portfolio limits, broker bugs
+    - Signal-level quality filters (composite score, PBO, trade
+      count, confidence, expiry).  These reflect individual signal
+      weakness, not strategy weakness.  Counting them against the
+      strategy creates a feedback loop in bear markets.
     """
     if not error:
         return False
@@ -59,9 +77,9 @@ def _is_strategy_attributable(error: str) -> bool:
     # the strategy's fault
     if _INFRA_RE.search(error):
         return False
-    # Everything else (composite score too low, confidence too
-    # low, signal expired, too few backtest trades) IS the
-    # strategy's fault
+    # Anything not matching the exclusion patterns is genuinely
+    # attributable to the strategy (e.g. a novel rejection reason
+    # we haven't categorised yet).
     return True
 
 

@@ -5,10 +5,16 @@ Based on the ICLR 2025 paper "Integrating LLM-Generated Views
 into Mean-Variance Optimization Using the Black-Litterman Model"
 by Young & Bin.
 
-Key insight: prompt the LLM N times with temperature > 0,
-then use the mean prediction as the view (Q) and the variance
-of predictions as the uncertainty (Ω). Higher variance → less
-confident → view has less influence on the posterior.
+Key insight: prompt the LLM N times with different *scenario
+framings* (bull, bear, base, stress, momentum) and use the mean
+prediction as the view (Q) and the variance of predictions as
+the uncertainty (Ω).  Higher variance → less confident → view
+has less influence on the posterior.
+
+Using scenario conditioning instead of identical prompts ensures
+meaningful variance even with small / deterministic models that
+would otherwise return the same number every time at temperature
+0.7.
 
 Supports:
     - Anthropic Claude (preferred)
@@ -33,8 +39,8 @@ log = logging.getLogger(__name__)
 # ── Configuration ─────────────────────────────────────────────────
 
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
-DEFAULT_SAMPLES = 10       # number of repeated predictions
-DEFAULT_TEMPERATURE = 0.7  # needs variation for uncertainty
+DEFAULT_SAMPLES = 5        # one per scenario (bull/bear/base/stress/momentum)
+DEFAULT_TEMPERATURE = 0.7  # some randomness on top of scenario conditioning
 DEFAULT_MAX_TOKENS = 512
 DEFAULT_MAX_TICKERS = 10   # only query LLM for top-N highest confidence signals
 
@@ -103,23 +109,65 @@ STOP LOSS / TAKE PROFIT:
 
 {news_section}
 
-TASK: Estimate the expected return for {ticker} over the next {holding_period} trading days.
+SCENARIO: {scenario}
+
+TASK: Under the scenario described above, estimate the expected return for {ticker} over the next {holding_period} trading days.
 
 Consider:
 1. Whether the technical setup supports the signal direction
 2. Risk/reward ratio implied by the SL/TP levels
 3. Quality of backtest evidence (Sharpe, win rate, trade count)
 4. Current market regime and volatility
+5. How the scenario framing shifts your estimate relative to a neutral base case
 {news_consideration}
 
 Respond with ONLY a JSON object (no other text):
 {{"expected_return_pct": <number between -20 and 40>, "confidence": "<high/medium/low>", "reasoning": "<one sentence>"}}"""
 
 
+# ── Scenario Definitions ─────────────────────────────────────────
+# Each scenario nudges the LLM toward a different corner of the
+# return distribution.  The spread across scenarios produces
+# meaningful variance that reflects genuine uncertainty.
+
+SCENARIOS: list[str] = [
+    (
+        "BASE CASE — Assume the broad market behaves in line with "
+        "recent trends.  No major surprises.  Weigh the technical "
+        "and backtest evidence at face value."
+    ),
+    (
+        "BULL CASE — Assume a favorable macro backdrop: positive "
+        "earnings surprises in the sector, declining volatility, "
+        "and strong institutional inflows.  How much upside is "
+        "plausible given the data?"
+    ),
+    (
+        "BEAR CASE — Assume a challenging environment: rising "
+        "rates, sector rotation away from this name, or a "
+        "broader market pullback of 3-5%.  How much downside "
+        "risk exists despite the BUY signal?"
+    ),
+    (
+        "STRESS CASE — Assume a tail-risk event: an unexpected "
+        "earnings miss, a geopolitical shock, or a liquidity "
+        "crunch.  What is a realistic worst-case return over "
+        "the holding period?"
+    ),
+    (
+        "MOMENTUM CASE — Assume recent price momentum persists "
+        "and accelerates.  The trend is your friend.  Focus on "
+        "the technical setup and recent return trajectory to "
+        "extrapolate forward."
+    ),
+]
+
+
 def build_prompt(
     signal,
     news_headlines: list[str] | None = None,
     holding_period: int = 10,
+    scenario: str = "",
 ) -> str:
     """
     Build the LLM prompt for a single stock view.
@@ -128,11 +176,11 @@ def build_prompt(
         signal: Signal object from the quant bot.
         news_headlines: Optional recent news for context.
         holding_period: Expected holding period in trading days.
+        scenario: Scenario framing text (e.g. bull/bear case).
 
     Returns:
         Formatted prompt string.
     """
-    # Calculate SL/TP percentages
     price = signal.current_price
     sl_pct = (
         abs(price - signal.stop_loss_price) / price
@@ -143,22 +191,17 @@ def build_prompt(
         if price > 0 else 0
     )
 
-    # Estimate 20-day return from available data
-    # (we don't have this directly, so use a placeholder)
-    return_20d = 0.0  # will be enriched if data available
+    return_20d = 0.0  # enriched by caller if available
 
-    # News section
     news_section = ""
     news_consideration = ""
     if news_headlines:
         headlines_text = "\n".join(
             f"  - {h}" for h in news_headlines[:5]
         )
-        news_section = (
-            f"RECENT NEWS:\n{headlines_text}\n"
-        )
+        news_section = f"RECENT NEWS:\n{headlines_text}\n"
         news_consideration = (
-            "5. Any relevant news that could impact "
+            "6. Any relevant news that could impact "
             "near-term performance"
         )
 
@@ -166,14 +209,14 @@ def build_prompt(
         ticker=signal.ticker,
         current_price=price,
         return_20d=return_20d,
-        rsi=0.0,  # enriched by caller if available
+        rsi=0.0,
         trend="UNKNOWN",
         volatility="UNKNOWN",
         strategy=signal.strategy,
         confidence=signal.confidence_score,
         composite=signal.composite_score,
         sharpe=signal.sharpe,
-        win_rate=signal.win_rate / 100,  # stored as 0-100, format needs 0-1
+        win_rate=signal.win_rate / 100,
         total_trades=signal.total_trades,
         stop_loss=signal.stop_loss_price,
         take_profit=signal.take_profit_price,
@@ -183,6 +226,7 @@ def build_prompt(
         news_section=news_section,
         news_consideration=news_consideration,
         holding_period=holding_period,
+        scenario=scenario or SCENARIOS[0],
     )
 
 
@@ -191,9 +235,10 @@ def build_enriched_prompt(
     market_data: dict | None = None,
     news_headlines: list[str] | None = None,
     holding_period: int = 10,
+    scenario: str = "",
 ) -> str:
     """
-    Build prompt with enriched market data (RSI, trend, vol).
+    Build prompt with enriched market data and scenario framing.
 
     Args:
         signal: Signal object.
@@ -201,6 +246,7 @@ def build_enriched_prompt(
             'volatility', 'return_20d'.
         news_headlines: Recent news for the ticker.
         holding_period: Expected holding days.
+        scenario: Scenario framing text (e.g. bull/bear case).
 
     Returns:
         Formatted prompt string.
@@ -225,7 +271,7 @@ def build_enriched_prompt(
         )
         news_section = f"RECENT NEWS:\n{headlines_text}\n"
         news_consideration = (
-            "5. Any relevant news that could impact "
+            "6. Any relevant news that could impact "
             "near-term performance"
         )
 
@@ -240,7 +286,7 @@ def build_enriched_prompt(
         confidence=signal.confidence_score,
         composite=signal.composite_score,
         sharpe=signal.sharpe,
-        win_rate=signal.win_rate / 100,  # stored as 0-100, format needs 0-1
+        win_rate=signal.win_rate / 100,
         total_trades=signal.total_trades,
         stop_loss=signal.stop_loss_price,
         take_profit=signal.take_profit_price,
@@ -250,6 +296,7 @@ def build_enriched_prompt(
         news_section=news_section,
         news_consideration=news_consideration,
         holding_period=holding_period,
+        scenario=scenario or SCENARIOS[0],
     )
 
 
@@ -366,7 +413,7 @@ def _parse_response(text: str) -> dict | None:
     return None
 
 
-# ── Repeated Sampling (ICLR 2025 Method) ────────────────────────
+# ── Scenario-Conditioned Sampling (ICLR 2025 + Extensions) ──────
 
 def generate_view_for_ticker(
     signal,
@@ -376,15 +423,17 @@ def generate_view_for_ticker(
     holding_period: int = 10,
 ) -> BLView | None:
     """
-    Generate a single BLView for a ticker using repeated
-    LLM sampling.
+    Generate a single BLView for a ticker using scenario-
+    conditioned LLM sampling.
 
-    Prompts the LLM N times and uses:
+    Each sample uses a different scenario framing (bull, bear,
+    base, stress, momentum) so the LLM is nudged toward
+    different parts of the return distribution.  This produces
+    meaningful variance even with small / deterministic models.
+
+    Uses:
     - Mean of predictions → expected return (Q)
     - Variance of predictions → uncertainty (Ω)
-
-    This is the key insight from the ICLR 2025 paper:
-    higher prediction variance = less confident view.
 
     Args:
         signal: Signal object for the ticker.
@@ -396,34 +445,44 @@ def generate_view_for_ticker(
     Returns:
         BLView with expected return and confidence, or None.
     """
-    prompt = build_enriched_prompt(
-        signal, market_data, news_headlines, holding_period
-    )
-
     predictions: list[float] = []
     confidences: list[str] = []
     reasonings: list[str] = []
+    scenario_labels: list[str] = []
+
+    n = config.num_samples
 
     log.info(
-        f"  LLM: sampling {config.num_samples}x for "
+        f"  LLM: sampling {n} scenarios for "
         f"{signal.ticker}..."
     )
 
-    for i in range(config.num_samples):
+    for i in range(n):
+        # Cycle through scenarios; if num_samples > len(SCENARIOS)
+        # we wrap around (extra samples reuse scenarios with
+        # temperature-based variation on top).
+        scenario = SCENARIOS[i % len(SCENARIOS)]
+        scenario_tag = scenario.split("—")[0].strip()
+
+        prompt = build_enriched_prompt(
+            signal, market_data, news_headlines,
+            holding_period, scenario=scenario,
+        )
+
         response_text = _call_llm(prompt, config)
         parsed = _parse_response(response_text)
 
         if parsed and "expected_return_pct" in parsed:
             ret = float(parsed["expected_return_pct"])
-            # Sanity check: clip to reasonable range
             ret = np.clip(ret, -30.0, 50.0)
-            predictions.append(ret / 100)  # convert to decimal
+            predictions.append(ret / 100)
             confidences.append(
                 parsed.get("confidence", "medium")
             )
             reasonings.append(
                 parsed.get("reasoning", "")
             )
+            scenario_labels.append(scenario_tag)
 
     if len(predictions) < 3:
         log.warning(
@@ -436,39 +495,58 @@ def generate_view_for_ticker(
     mean_return = float(np.mean(predictions))
     std_return = float(np.std(predictions))
 
-    # Map variance to confidence (0-1)
-    # Low std → high confidence, high std → low confidence
-    # Calibrated so std=0.02 (2%) → confidence=0.8
-    # and std=0.10 (10%) → confidence=0.2
-    if std_return < 0.01:
-        confidence = 0.95
-    elif std_return < 0.03:
-        confidence = 0.8
-    elif std_return < 0.06:
-        confidence = 0.5
+    # Map scenario-spread to confidence (0-1).
+    # With scenario conditioning we *expect* some spread, so
+    # the thresholds are wider than the old identical-prompt
+    # approach.  Typical healthy spread is 3-8 pp.
+    #   std < 2 pp  → scenarios agree tightly  → high confidence
+    #   std 2-5 pp  → moderate disagreement     → good confidence
+    #   std 5-10 pp → wide disagreement          → low confidence
+    #   std > 10 pp → scenarios wildly diverge   → very uncertain
+    if std_return < 0.02:
+        stat_confidence = 0.90
+    elif std_return < 0.05:
+        stat_confidence = 0.70
     elif std_return < 0.10:
-        confidence = 0.3
+        stat_confidence = 0.45
+    elif std_return < 0.15:
+        stat_confidence = 0.25
     else:
-        confidence = 0.15
+        stat_confidence = 0.10
 
     # Also factor in LLM's self-reported confidence
     conf_map = {"high": 0.8, "medium": 0.5, "low": 0.2}
-    avg_self_conf = np.mean([
+    avg_self_conf = float(np.mean([
         conf_map.get(c.lower(), 0.5) for c in confidences
-    ])
-    # Blend statistical and self-reported confidence
-    final_confidence = 0.7 * confidence + 0.3 * avg_self_conf
+    ]))
+    # Blend: statistical spread (70%) + self-reported (30%)
+    final_confidence = 0.7 * stat_confidence + 0.3 * avg_self_conf
 
-    # Most common reasoning
-    best_reasoning = max(
-        set(reasonings), key=reasonings.count
-    ) if reasonings else ""
+    # Pick the base-case reasoning if available, else most common
+    base_idx = next(
+        (i for i, lbl in enumerate(scenario_labels)
+         if "BASE" in lbl),
+        None,
+    )
+    if base_idx is not None:
+        best_reasoning = reasonings[base_idx]
+    else:
+        best_reasoning = max(
+            set(reasonings), key=reasonings.count
+        ) if reasonings else ""
+
+    # Compact per-scenario breakdown for the log
+    scenario_details = ", ".join(
+        f"{lbl}={pred:+.1%}"
+        for lbl, pred in zip(scenario_labels, predictions)
+    )
 
     log.info(
         f"  LLM: {signal.ticker} → "
         f"return={mean_return:+.1%} "
         f"(std={std_return:.1%}, n={len(predictions)}) "
-        f"confidence={final_confidence:.2f}"
+        f"confidence={final_confidence:.2f}  "
+        f"[{scenario_details}]"
     )
 
     return BLView(
