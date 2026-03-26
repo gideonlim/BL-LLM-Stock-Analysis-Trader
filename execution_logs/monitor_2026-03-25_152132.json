@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-03-25T15:21:32",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "MS",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "MS up 4.7% \u2014 moving SL to breakeven $156.86 (was $0.00)",
+      "action_taken": "Failed to move SL to breakeven",
+      "current_price": 164.3,
+      "entry_price": 156.86,
+      "pnl_pct": 4.74,
+      "timestamp": "2026-03-25T15:21:32"
+    }
+  ]
+}
