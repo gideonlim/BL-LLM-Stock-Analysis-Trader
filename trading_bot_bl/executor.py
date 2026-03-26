@@ -525,6 +525,19 @@ def execute(
                     strategy=strategy_name,
                 )
             )
+            # Update portfolio snapshot even in dry-run so that
+            # subsequent risk checks (max positions, exposure cap)
+            # account for orders already "placed" in this run.
+            if intent.side == "buy":
+                portfolio.cash -= approved_order.notional
+                portfolio.market_value += approved_order.notional
+                portfolio.positions[approved_order.ticker] = {
+                    "qty": 0,
+                    "market_value": approved_order.notional,
+                    "avg_entry": 0,
+                    "unrealized_pnl": 0,
+                    "side": "long",
+                }
             continue
 
         # EXIT signals: close position directly (no bracket)
