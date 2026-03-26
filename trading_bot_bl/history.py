@@ -52,6 +52,7 @@ _INFRA_PATTERNS = [
     # bear markets where regime filters legitimately block most signals,
     # which tanks the strategy "success rate" and then blocks ALL signals
     # from that strategy — even excellent ones.
+    r"Signal is (?:HOLD|ERROR)",     # signal says don't trade
     r"Composite score .* < min",
     r"Too few backtest trades",
     r"PBO .* exceeds max",
