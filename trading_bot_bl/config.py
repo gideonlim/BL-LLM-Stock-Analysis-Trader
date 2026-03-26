@@ -225,7 +225,7 @@ class TradingConfig:
     spy_bear_confirmation_days: int = 3
 
     # In BEAR regime: reduce max concurrent positions to this
-    spy_bear_max_positions: int = 4
+    spy_bear_max_positions: int = 5
 
     # In BEAR regime: raise min composite score to this
     spy_bear_min_composite_score: float = 30.0
@@ -375,7 +375,7 @@ class TradingConfig:
                 os.getenv("SPY_BEAR_CONFIRMATION_DAYS", "3")
             ),
             spy_bear_max_positions=int(
-                os.getenv("SPY_BEAR_MAX_POSITIONS", "4")
+                os.getenv("SPY_BEAR_MAX_POSITIONS", "5")
             ),
             spy_bear_min_composite_score=float(
                 os.getenv("SPY_BEAR_MIN_COMPOSITE_SCORE", "30.0")
