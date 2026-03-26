@@ -6,13 +6,16 @@ All chart images are rendered in-memory (no temp files needed).
 
 from __future__ import annotations
 
+import dataclasses
 import io
 import json
 import logging
 from dataclasses import fields as dc_fields
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
+
+import numpy as np
 
 from trading_bot_bl.journal_analytics import (
     JournalMetrics,
@@ -21,6 +24,180 @@ from trading_bot_bl.journal_analytics import (
 from trading_bot_bl.models import EquitySnapshot, JournalEntry
 
 log = logging.getLogger(__name__)
+
+
+# ── Benchmark helpers ────────────────────────────────────────────
+
+
+@dataclasses.dataclass
+class BenchmarkStats:
+    """Side-by-side performance stats for bot vs benchmark."""
+
+    # Bot
+    bot_cumulative_return: float = 0.0
+    bot_annualized_return: float = 0.0
+    bot_sharpe: float = 0.0
+    bot_sortino: float = 0.0
+    bot_max_drawdown: float = 0.0
+    bot_volatility: float = 0.0
+    # Benchmark
+    bench_cumulative_return: float = 0.0
+    bench_annualized_return: float = 0.0
+    bench_sharpe: float = 0.0
+    bench_sortino: float = 0.0
+    bench_max_drawdown: float = 0.0
+    bench_volatility: float = 0.0
+    # Relative
+    alpha: float = 0.0
+    beta: float = 0.0
+    information_ratio: float = 0.0
+    correlation: float = 0.0
+
+
+def _fetch_spy_prices(
+    start_date: datetime,
+    end_date: datetime,
+) -> Optional[list[tuple[datetime, float]]]:
+    """Fetch SPY daily close prices for the given date range.
+
+    Returns list of (date, price) sorted by date, or None on failure.
+    """
+    try:
+        import yfinance as yf
+    except ImportError:
+        log.warning("yfinance not installed — cannot fetch SPY benchmark")
+        return None
+
+    try:
+        # Pad start by a few days to ensure we get data on/before start_date
+        padded_start = start_date - timedelta(days=5)
+        data = yf.download(
+            "SPY",
+            start=padded_start.strftime("%Y-%m-%d"),
+            end=(end_date + timedelta(days=1)).strftime("%Y-%m-%d"),
+            progress=False,
+            auto_adjust=True,
+        )
+        if data.empty:
+            log.warning("SPY download returned empty data")
+            return None
+
+        prices: list[tuple[datetime, float]] = []
+        for idx, row in data.iterrows():
+            ts = idx.to_pydatetime()  # type: ignore[union-attr]
+            close = float(row["Close"].iloc[0])
+            prices.append((ts, close))
+        prices.sort(key=lambda x: x[0])
+        return prices
+    except Exception as e:
+        log.warning(f"Could not fetch SPY benchmark: {e}")
+        return None
+
+
+def _compute_benchmark_stats(
+    bot_dates: list[datetime],
+    bot_equity: list[float],
+    spy_prices: list[tuple[datetime, float]],
+) -> Optional[BenchmarkStats]:
+    """Compute side-by-side bot vs SPY statistics."""
+    if len(bot_dates) < 3 or len(spy_prices) < 3:
+        return None
+
+    # Build daily bot returns from equity series
+    bot_returns: list[float] = []
+    for i in range(1, len(bot_equity)):
+        if bot_equity[i - 1] != 0:
+            bot_returns.append(bot_equity[i] / bot_equity[i - 1] - 1)
+        else:
+            bot_returns.append(0.0)
+
+    # Build daily SPY returns from price series
+    spy_returns: list[float] = []
+    for i in range(1, len(spy_prices)):
+        prev_price = spy_prices[i - 1][1]
+        if prev_price != 0:
+            spy_returns.append(spy_prices[i][1] / prev_price - 1)
+        else:
+            spy_returns.append(0.0)
+
+    # Align to same length (use shorter)
+    min_len = min(len(bot_returns), len(spy_returns))
+    if min_len < 2:
+        return None
+    bot_r = np.array(bot_returns[-min_len:])
+    spy_r = np.array(spy_returns[-min_len:])
+
+    trading_days = 252
+
+    def _annualized_return(returns: np.ndarray) -> float:
+        cum = np.prod(1 + returns) - 1
+        n_days = len(returns)
+        if n_days == 0:
+            return 0.0
+        return float((1 + cum) ** (trading_days / n_days) - 1)
+
+    def _cumulative_return(returns: np.ndarray) -> float:
+        return float(np.prod(1 + returns) - 1)
+
+    def _sharpe(returns: np.ndarray) -> float:
+        if returns.std() == 0:
+            return 0.0
+        return float(returns.mean() / returns.std() * np.sqrt(trading_days))
+
+    def _sortino(returns: np.ndarray) -> float:
+        downside = returns[returns < 0]
+        if len(downside) == 0 or downside.std() == 0:
+            return 0.0
+        return float(
+            returns.mean() / downside.std() * np.sqrt(trading_days)
+        )
+
+    def _max_dd(returns: np.ndarray) -> float:
+        cum = np.cumprod(1 + returns)
+        hwm = np.maximum.accumulate(cum)
+        dd = (cum - hwm) / hwm
+        return float(dd.min()) if len(dd) > 0 else 0.0
+
+    def _volatility(returns: np.ndarray) -> float:
+        return float(returns.std() * np.sqrt(trading_days))
+
+    # Beta & alpha (CAPM)
+    cov = np.cov(bot_r, spy_r)
+    spy_var = cov[1, 1]
+    beta = float(cov[0, 1] / spy_var) if spy_var != 0 else 0.0
+    bot_ann = _annualized_return(bot_r)
+    spy_ann = _annualized_return(spy_r)
+    alpha = bot_ann - beta * spy_ann  # simplified (risk-free ≈ 0)
+
+    # Information ratio
+    excess = bot_r - spy_r
+    ir = (
+        float(excess.mean() / excess.std() * np.sqrt(trading_days))
+        if excess.std() != 0
+        else 0.0
+    )
+
+    corr_matrix = np.corrcoef(bot_r, spy_r)
+    corr = float(corr_matrix[0, 1]) if corr_matrix.shape == (2, 2) else 0.0
+
+    return BenchmarkStats(
+        bot_cumulative_return=_cumulative_return(bot_r),
+        bot_annualized_return=bot_ann,
+        bot_sharpe=_sharpe(bot_r),
+        bot_sortino=_sortino(bot_r),
+        bot_max_drawdown=_max_dd(bot_r),
+        bot_volatility=_volatility(bot_r),
+        bench_cumulative_return=_cumulative_return(spy_r),
+        bench_annualized_return=spy_ann,
+        bench_sharpe=_sharpe(spy_r),
+        bench_sortino=_sortino(spy_r),
+        bench_max_drawdown=_max_dd(spy_r),
+        bench_volatility=_volatility(spy_r),
+        alpha=alpha,
+        beta=beta,
+        information_ratio=ir,
+        correlation=corr,
+    )
 
 
 # ── Data loading ─────────────────────────────────────────────────
@@ -80,59 +257,123 @@ def _fig_to_image(fig) -> io.BytesIO:
     return buf
 
 
-def _chart_equity_curve(snapshots: list[EquitySnapshot]) -> Optional[io.BytesIO]:
-    """Equity over time with drawdown shading."""
-    if len(snapshots) < 2:
-        return None
-
-    import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
-    from datetime import datetime as dt
-
-    # Parse timestamps, skip entries that can't be parsed
-    parsed: list[tuple[dt, EquitySnapshot]] = []
+def _parse_snapshots(
+    snapshots: list[EquitySnapshot],
+) -> list[tuple[datetime, EquitySnapshot]]:
+    """Parse, sort, and deduplicate equity snapshots by timestamp."""
+    parsed: list[tuple[datetime, EquitySnapshot]] = []
     for s in snapshots:
         try:
-            parsed.append((dt.fromisoformat(s.timestamp), s))
+            parsed.append((datetime.fromisoformat(s.timestamp), s))
         except Exception:
-            continue  # drop unparseable entries rather than injecting now()
+            continue  # drop unparseable entries
 
     if len(parsed) < 2:
-        return None
+        return []
 
-    # Sort by timestamp and deduplicate (keep last entry per timestamp)
     parsed.sort(key=lambda x: x[0])
     seen: dict[str, int] = {}
     for i, (ts, _snap) in enumerate(parsed):
         seen[ts.isoformat()] = i
     unique_indices = sorted(seen.values())
-    parsed = [parsed[i] for i in unique_indices]
+    return [parsed[i] for i in unique_indices]
 
-    dates = [ts for ts, _ in parsed]
-    equity = [s.equity for _, s in parsed]
-    hwm = [s.high_water_mark for _, s in parsed]
+
+def _chart_equity_curve(
+    snapshots: list[EquitySnapshot],
+    spy_prices: Optional[list[tuple[datetime, float]]] = None,
+) -> Optional[io.BytesIO]:
+    """Equity over time with drawdown shading and optional SPY overlay.
+
+    When *spy_prices* is provided both series are normalized to 100.
+    Data is aggregated to one point per calendar day (last snapshot)
+    and restricted to trading days where SPY data exists, so the
+    chart stays clean on weekends / holidays.
+    """
+    parsed = _parse_snapshots(snapshots)
+    if len(parsed) < 2:
+        return None
+
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    from datetime import date as date_type
+
+    # ── Aggregate bot snapshots to one per calendar day (last wins) ──
+    daily_bot: dict[date_type, EquitySnapshot] = {}
+    for ts, snap in parsed:
+        daily_bot[ts.date()] = snap  # last snapshot of day wins
+
+    # ── Build SPY lookup by date ─────────────────────────────
+    spy_by_date: dict[date_type, float] = {}
+    if spy_prices and len(spy_prices) >= 2:
+        for ts, price in spy_prices:
+            spy_by_date[ts.date()] = price
+
+    # ── Align series to common dates ─────────────────────────
+    # When SPY data is available, restrict to trading days only
+    # (dates that exist in both bot AND spy data).
+    # When SPY is absent, use all bot dates.
+    if spy_by_date:
+        common_dates = sorted(
+            d for d in daily_bot if d in spy_by_date
+        )
+    else:
+        common_dates = sorted(daily_bot.keys())
+
+    if len(common_dates) < 2:
+        # Not enough aligned data — fall back to all bot dates
+        common_dates = sorted(daily_bot.keys())
+
+    plot_dates = [datetime.combine(d, datetime.min.time()) for d in common_dates]
+    plot_equity = [daily_bot[d].equity for d in common_dates]
+    plot_dd = [daily_bot[d].drawdown_pct for d in common_dates]
+
+    # ── Normalize to growth-of-$100 ──────────────────────────
+    base_eq = plot_equity[0] if plot_equity[0] != 0 else 1.0
+    norm_equity = [e / base_eq * 100 for e in plot_equity]
+
+    norm_spy: Optional[list[float]] = None
+    if spy_by_date and len(common_dates) >= 2:
+        first_spy = spy_by_date.get(common_dates[0])
+        if first_spy and first_spy != 0:
+            norm_spy = [
+                spy_by_date[d] / first_spy * 100
+                for d in common_dates
+                if d in spy_by_date
+            ]
+            # Guard: lengths must match after filtering
+            if len(norm_spy) != len(common_dates):
+                norm_spy = None
+
+    has_spy = norm_spy is not None
 
     fig, (ax1, ax2) = plt.subplots(
-        2, 1, figsize=(10, 5), height_ratios=[3, 1],
+        2, 1, figsize=(10, 5.5), height_ratios=[3, 1],
         sharex=True, gridspec_kw={"hspace": 0.08},
     )
 
-    # Equity + HWM
-    ax1.plot(dates, equity, color="#2563eb", linewidth=1.5, label="Equity")
-    ax1.plot(dates, hwm, color="#94a3b8", linewidth=1, linestyle="--",
-             label="High Water Mark", alpha=0.7)
-    ax1.fill_between(dates, equity, hwm, alpha=0.08, color="red",
-                     where=[e < h for e, h in zip(equity, hwm)],
-                     interpolate=True)
-    ax1.set_ylabel("Equity ($)")
+    # ── Top panel: normalized performance ─────────────────────
+    ax1.plot(
+        plot_dates, norm_equity,
+        color="#2563eb", linewidth=1.5, marker="o", markersize=3,
+        label="Bot",
+    )
+    if has_spy:
+        ax1.plot(
+            plot_dates, norm_spy,
+            color="#f59e0b", linewidth=1.3, marker="s", markersize=3,
+            linestyle="--", label="S&P 500 (SPY)", alpha=0.85,
+        )
+    ax1.axhline(y=100, color="#94a3b8", linewidth=0.6, linestyle=":")
+    ax1.set_ylabel("Growth of $100")
     ax1.legend(loc="upper left", fontsize=8)
     ax1.grid(True, alpha=0.3)
-    ax1.set_title("Equity Curve", fontsize=12, fontweight="bold")
+    title = "Performance vs S&P 500" if has_spy else "Equity Curve"
+    ax1.set_title(title, fontsize=12, fontweight="bold")
 
-    # Drawdown — recompute from sorted data
-    dd = [s.drawdown_pct for _, s in parsed]
-    ax2.fill_between(dates, dd, 0, alpha=0.4, color="#ef4444")
-    ax2.plot(dates, dd, color="#ef4444", linewidth=1)
+    # ── Bottom panel: drawdown ────────────────────────────────
+    ax2.fill_between(plot_dates, plot_dd, 0, alpha=0.4, color="#ef4444")
+    ax2.plot(plot_dates, plot_dd, color="#ef4444", linewidth=1)
     ax2.set_ylabel("Drawdown (%)")
     ax2.set_xlabel("")
     ax2.grid(True, alpha=0.3)
@@ -300,6 +541,21 @@ def generate_pdf_report(
 
     trades, snapshots, open_count, pending_count = _load_journal_data(log_dir)
     metrics = compute_journal_metrics(trades, snapshots) if trades else None
+
+    # ── Fetch SPY benchmark data ─────────────────────────────
+    parsed_snaps = _parse_snapshots(snapshots)
+    spy_prices: Optional[list[tuple[datetime, float]]] = None
+    bench_stats: Optional[BenchmarkStats] = None
+    if len(parsed_snaps) >= 2:
+        start_dt = parsed_snaps[0][0]
+        end_dt = parsed_snaps[-1][0]
+        spy_prices = _fetch_spy_prices(start_dt, end_dt)
+        if spy_prices:
+            bot_dates = [ts for ts, _ in parsed_snaps]
+            bot_equity = [s.equity for _, s in parsed_snaps]
+            bench_stats = _compute_benchmark_stats(
+                bot_dates, bot_equity, spy_prices,
+            )
 
     # ── Styles ──────────────────────────────────────────────────
     styles = getSampleStyleSheet()
@@ -469,14 +725,116 @@ def generate_pdf_report(
     # header + chart don't fit on the current page, both move
     # together to the next page.
 
-    # Equity curve
-    eq_buf = _chart_equity_curve(snapshots)
+    # Equity curve (with SPY overlay when available)
+    eq_buf = _chart_equity_curve(snapshots, spy_prices=spy_prices)
     if eq_buf:
+        eq_title = (
+            "Performance vs S&amp;P 500"
+            if spy_prices
+            else "Equity Curve &amp; Drawdown"
+        )
         story.append(KeepTogether([
-            Paragraph("Equity Curve &amp; Drawdown", styles["SectionHead"]),
-            Image(eq_buf, width=width, height=width * 0.5),
+            Paragraph(eq_title, styles["SectionHead"]),
+            Image(eq_buf, width=width, height=width * 0.55),
             Spacer(1, 12),
         ]))
+
+    # Benchmark comparison table
+    if bench_stats:
+        story.append(
+            Paragraph("Benchmark Comparison (SPY)", styles["SectionHead"])
+        )
+
+        def _color_val(val: float, fmt: str = "{:+.2f}") -> Paragraph:
+            """Color a value green/red based on sign."""
+            color = "#22c55e" if val >= 0 else "#ef4444"
+            text = fmt.format(val)
+            return Paragraph(
+                f'<font color="{color}">{text}</font>',
+                styles["CellValue"],
+            )
+
+        bench_header = [_lbl(""), _lbl("Bot"), _lbl("S&amp;P 500")]
+        bs = bench_stats
+        bench_data = [
+            bench_header,
+            [
+                _lbl("Cumulative Return"),
+                _color_val(bs.bot_cumulative_return * 100, "{:+.2f}%"),
+                _color_val(bs.bench_cumulative_return * 100, "{:+.2f}%"),
+            ],
+            [
+                _lbl("Annualized Return"),
+                _color_val(bs.bot_annualized_return * 100, "{:+.2f}%"),
+                _color_val(bs.bench_annualized_return * 100, "{:+.2f}%"),
+            ],
+            [
+                _lbl("Sharpe Ratio"),
+                _val(f"{bs.bot_sharpe:.2f}"),
+                _val(f"{bs.bench_sharpe:.2f}"),
+            ],
+            [
+                _lbl("Sortino Ratio"),
+                _val(f"{bs.bot_sortino:.2f}"),
+                _val(f"{bs.bench_sortino:.2f}"),
+            ],
+            [
+                _lbl("Max Drawdown"),
+                _color_val(bs.bot_max_drawdown * 100, "{:.2f}%"),
+                _color_val(bs.bench_max_drawdown * 100, "{:.2f}%"),
+            ],
+            [
+                _lbl("Volatility (ann.)"),
+                _val(f"{bs.bot_volatility * 100:.2f}%"),
+                _val(f"{bs.bench_volatility * 100:.2f}%"),
+            ],
+        ]
+        t = Table(
+            bench_data,
+            colWidths=[width * 0.34, width * 0.33, width * 0.33],
+        )
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), HexColor("#f8fafc")),
+            ("GRID", (0, 0), (-1, -1), 0.5, HexColor("#e2e8f0")),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+             [HexColor("#ffffff"), HexColor("#f8fafc")]),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ]))
+        story.append(t)
+        story.append(Spacer(1, 8))
+
+        # Alpha / Beta / IR / Correlation row
+        relative_data = [
+            [
+                _lbl("Alpha (ann.)"),
+                _color_val(bs.alpha * 100, "{:+.2f}%"),
+                _lbl("Beta"),
+                _val(f"{bs.beta:.2f}"),
+            ],
+            [
+                _lbl("Information Ratio"),
+                _val(f"{bs.information_ratio:+.2f}"),
+                _lbl("Correlation"),
+                _val(f"{bs.correlation:.2f}"),
+            ],
+        ]
+        t2 = Table(
+            relative_data,
+            colWidths=[
+                width * 0.20, width * 0.30,
+                width * 0.20, width * 0.30,
+            ],
+        )
+        t2.setStyle(TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.5, HexColor("#e2e8f0")),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ]))
+        story.append(t2)
+        story.append(Spacer(1, 16))
 
     # Cumulative P&L
     cum_buf = _chart_cumulative_pnl(trades)
