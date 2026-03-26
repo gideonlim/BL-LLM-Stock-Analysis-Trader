@@ -28,9 +28,15 @@ _INFRA_PATTERNS = [
     r'"code":\d+',        # JSON error responses from Alpaca
     # Portfolio-level limits (not the strategy's fault)
     r"Portfolio exposure .* >= max",
+    r"Already at \d+ positions",       # max concurrent positions cap
+    r"already at \$",                  # per-ticker concentration limit
     r"Adjusted notional .* too small",
     r"Account equity is zero",
     r"Daily loss circuit breaker",
+    # Market regime halts (not strategy quality)
+    r"SEVERE_BEAR.*all new entries halted",
+    # Earnings calendar (not strategy quality)
+    r"Earnings (?:in|TODAY|was) ",
     # Churn / duplicate detection (timing, not strategy quality)
     r"was already bought on",
     r"avoiding churn",

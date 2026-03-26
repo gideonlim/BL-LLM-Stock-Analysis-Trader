@@ -31,6 +31,7 @@ from trading_bot_bl.monitor import (
     monitor_positions,
     write_monitor_log,
 )
+from trading_bot_bl.oil_spike import OilSpikeState, detect_oil_spike
 from trading_bot_bl.portfolio_optimizer import optimize_intents
 from trading_bot_bl.risk import RiskManager
 
@@ -461,12 +462,37 @@ def execute(
     else:
         log.info("  No BUY intents to optimize")
 
+    # ── 8b. Oil spike detection (disabled by default) ──────────────
+    oil_state = OilSpikeState()  # inactive unless enabled
+    oil_tickers: tuple[str, ...] = ()
+    if config.oil_spike_enabled:
+        oil_tickers = tuple(
+            t.strip().upper()
+            for t in config.oil_spike_tickers.split(",")
+            if t.strip()
+        )
+        oil_state = detect_oil_spike(
+            peak_boost=config.oil_spike_boost,
+            window_days=config.oil_spike_window_days,
+            spike_threshold=config.oil_spike_threshold,
+        )
+        if oil_state.active:
+            log.info(
+                f"  Oil spike active: USO "
+                f"+{oil_state.spike_magnitude:.1%} "
+                f"({oil_state.days_since_spike}d ago), "
+                f"boost={oil_state.boost:+.1f} for "
+                f"{', '.join(oil_tickers)}"
+            )
+
     # ── 9. Risk check each intent ─────────────────────────────────
     risk_mgr = RiskManager(
         limits=config.risk,
         history=history,
         sentiment_size_multiplier=sentiment.size_multiplier,
         spy_trend_regime=sentiment.spy_regime.trend_regime,
+        oil_spike_state=oil_state,
+        oil_spike_tickers=oil_tickers,
     )
     # Apply regime-adjusted limits (CAUTION/BEAR/SEVERE_BEAR)
     if config.spy_regime_enabled:

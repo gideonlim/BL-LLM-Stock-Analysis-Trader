@@ -12,6 +12,7 @@ from trading_bot_bl.earnings import check_earnings_blackout
 from trading_bot_bl.history import TradeHistory
 from trading_bot_bl.liquidity import check_liquidity
 from trading_bot_bl.models import OrderIntent, PortfolioSnapshot, Signal
+from trading_bot_bl.oil_spike import OilSpikeState, get_boost_for_ticker
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +41,14 @@ class RiskManager:
     # SPY trend regime — set by executor from SpyRegime.
     # Overrides max_positions and min_composite_score when active.
     spy_trend_regime: str = "BULL"
+
+    # Oil spike state — set by executor when oil_spike_enabled.
+    # Provides a composite-score boost for fertilizer tickers
+    # after large oil price spikes.  Inactive by default.
+    oil_spike_state: OilSpikeState = field(
+        default_factory=OilSpikeState
+    )
+    oil_spike_tickers: tuple[str, ...] = ()
 
     # Regime-adjusted limits (set by apply_spy_regime_overrides).
     # These shadow the base limits during CAUTION/BEAR/SEVERE_BEAR.
@@ -142,7 +151,18 @@ class RiskManager:
                 return f"Signal is {signal.signal} — skipped"
 
         effective_min = self._effective_min_composite
-        if signal.composite_score < effective_min:
+
+        # Oil spike boost: temporarily raise effective composite
+        # score for eligible fertilizer/ag tickers.  This does NOT
+        # mutate the signal — it only affects the threshold check.
+        oil_boost = get_boost_for_ticker(
+            self.oil_spike_state,
+            signal.ticker,
+            self.oil_spike_tickers,
+        )
+        effective_score = signal.composite_score + oil_boost
+
+        if effective_score < effective_min:
             regime_note = ""
             if effective_min > self.limits.min_composite_score:
                 regime_note = (
@@ -152,6 +172,15 @@ class RiskManager:
             return (
                 f"Composite score {signal.composite_score} "
                 f"< min {effective_min}{regime_note}"
+            )
+
+        if oil_boost > 0:
+            log.info(
+                f"  {signal.ticker}: oil spike boost "
+                f"+{oil_boost:.1f} applied "
+                f"({signal.composite_score:.1f} → "
+                f"{effective_score:.1f}, "
+                f"min={effective_min:.1f})"
             )
 
         if signal.confidence_score < self.limits.min_confidence_score:

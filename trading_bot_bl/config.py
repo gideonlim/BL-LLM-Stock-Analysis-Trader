@@ -240,6 +240,28 @@ class TradingConfig:
     # SEVERE_BEAR — halts all new entries entirely
     spy_severe_drawdown_pct: float = 15.0
 
+    # ── Oil spike → fertilizer boost ──────────────────────────
+    # When USO posts a 10%+ weekly gain, temporarily boost
+    # composite scores for fertilizer/ag-chemical tickers.
+    # Backed by 10-year event study: MOS +6.3% / 79% WR at 20d,
+    # survives beta-adjustment and 2022 regime removal.
+    # Disabled by default — flip to True after dry-run testing.
+    oil_spike_enabled: bool = False
+
+    # Peak composite-score boost on spike day (decays linearly
+    # to 0 over oil_spike_window_days).  +8 nudges a score-25
+    # signal past the bear-regime threshold of 30.
+    oil_spike_boost: float = 8.0
+
+    # Trading days over which the boost decays to zero.
+    oil_spike_window_days: int = 20
+
+    # Minimum 5-day USO return to qualify as a spike.
+    oil_spike_threshold: float = 0.10
+
+    # Tickers that receive the boost (comma-separated in .env).
+    oil_spike_tickers: str = "MOS,CF"
+
     # ── LLM view generation ────────────────────────────────────
     # Enable LLM-enhanced views (requires API key)
     llm_views_enabled: bool = False
@@ -389,6 +411,22 @@ class TradingConfig:
             spy_severe_drawdown_pct=float(
                 os.getenv("SPY_SEVERE_DRAWDOWN_PCT", "15.0")
             ),
+            oil_spike_enabled=os.getenv(
+                "OIL_SPIKE_ENABLED", "false"
+            ).lower()
+            in ("true", "1", "yes"),
+            oil_spike_boost=float(
+                os.getenv("OIL_SPIKE_BOOST", "8.0")
+            ),
+            oil_spike_window_days=int(
+                os.getenv("OIL_SPIKE_WINDOW_DAYS", "20")
+            ),
+            oil_spike_threshold=float(
+                os.getenv("OIL_SPIKE_THRESHOLD", "0.10")
+            ),
+            oil_spike_tickers=os.getenv(
+                "OIL_SPIKE_TICKERS", "MOS,CF"
+            ),
             llm_views_enabled=os.getenv(
                 "LLM_VIEWS_ENABLED", "false"
             ).lower() in ("true", "1", "yes"),
@@ -520,6 +558,28 @@ class TradingConfig:
             ):
                 if k in overrides:
                     setattr(config, k, float(overrides[k]))
+
+            # Oil spike overrides
+            if "oil_spike_enabled" in overrides:
+                config.oil_spike_enabled = bool(
+                    overrides["oil_spike_enabled"]
+                )
+            if "oil_spike_boost" in overrides:
+                config.oil_spike_boost = float(
+                    overrides["oil_spike_boost"]
+                )
+            if "oil_spike_window_days" in overrides:
+                config.oil_spike_window_days = int(
+                    overrides["oil_spike_window_days"]
+                )
+            if "oil_spike_threshold" in overrides:
+                config.oil_spike_threshold = float(
+                    overrides["oil_spike_threshold"]
+                )
+            if "oil_spike_tickers" in overrides:
+                config.oil_spike_tickers = str(
+                    overrides["oil_spike_tickers"]
+                )
 
             # LLM view overrides
             if "llm_views_enabled" in overrides:
