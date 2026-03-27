@@ -1,0 +1,294 @@
+{
+  "run": {
+    "run_id": "4bf37e0296e0",
+    "started_at": "2026-03-27T17:45:26.598855",
+    "news_ingested": 82,
+    "signals_extracted": 62,
+    "themes_detected": 2,
+    "hypotheses_generated": 6,
+    "errors": []
+  },
+  "themes": [
+    {
+      "theme": "geopolitical risk",
+      "mention_count": 5,
+      "avg_sentiment": -0.8,
+      "related_tickers": [
+        "CL",
+        "GLD",
+        "HYG",
+        "SPY",
+        "TLT",
+        "USO",
+        "XLE",
+        "XLK"
+      ],
+      "sample_headlines": [
+        "Iran says it is receptive to any request from Spain, alluding to Hormuz transit - Reuters",
+        "Iran War Could Escalate Into A Highly Damaging Energy Crisis",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War",
+        "Trump Ceasefire Plan Meets Iran's 5 Red Lines: How Long Can Markets Ignore The Reality Gap?",
+        "Layered Uncertainty: Conflict, Credit Stress, And AI"
+      ],
+      "first_seen": "2026-03-25T08:45:00+00:00",
+      "last_seen": "2026-03-26T18:40:04+00:00"
+    },
+    {
+      "theme": "monetary policy",
+      "mention_count": 3,
+      "avg_sentiment": -0.667,
+      "related_tickers": [
+        "GLD",
+        "IEF",
+        "QQQ",
+        "TLT",
+        "USO",
+        "XLE"
+      ],
+      "sample_headlines": [
+        "Rates Spark: Aggressive Central Bank Discount Remains Sticky",
+        "M2 Update: Okay For Now, But The Fed Should Ease",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War"
+      ],
+      "first_seen": "2026-03-25T16:30:00+00:00",
+      "last_seen": "2026-03-26T09:30:00+00:00"
+    }
+  ],
+  "hypotheses": [
+    {
+      "hypothesis_id": "geopolitical-risk-upstream_beneficiary-0",
+      "theme": "geopolitical risk",
+      "template": "upstream_beneficiary",
+      "description": "Long integrated oil majors and independent producers as Strait of Hormuz transit risk drives crude prices higher",
+      "causal_chain": "Iran escalation risk \u2192 Hormuz chokepoint supply disruption fears \u2192 WTI/Brent crude spike \u2192 oil producer cash flows and stock prices rise",
+      "target_tickers": [
+        "XOM",
+        "CVX",
+        "COP",
+        "MPC"
+      ],
+      "direction": "long",
+      "holding_days": [
+        3,
+        5,
+        10
+      ],
+      "trigger_description": "When WTI crude breaks above $85/bbl on geopolitical headlines and implied Hormuz disruption risk premium exceeds 5%",
+      "source_headlines": [
+        "Iran says it is receptive to any request from Spain, alluding to Hormuz transit - Reuters",
+        "Iran War Could Escalate Into A Highly Damaging Energy Crisis",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War",
+        "Trump Ceasefire Plan Meets Iran's 5 Red Lines: How Long Can Markets Ignore The Reality Gap?",
+        "Layered Uncertainty: Conflict, Credit Stress, And AI"
+      ],
+      "generated_at": "2026-03-27T17:46:43.897947",
+      "confidence": "high"
+    },
+    {
+      "hypothesis_id": "geopolitical-risk-downstream_loser-1",
+      "theme": "geopolitical risk",
+      "template": "downstream_loser",
+      "description": "Short airlines and shipping companies facing margin compression from elevated energy costs without pricing power",
+      "causal_chain": "Iran conflict escalation \u2192 oil price spike to $85+ \u2192 jet fuel and bunker fuel costs rise 15-25% \u2192 airlines/shippers cannot immediately pass through costs \u2192 margin compression over 5-10 days",
+      "target_tickers": [
+        "DAL",
+        "UAL",
+        "ZIM",
+        "FDX"
+      ],
+      "direction": "short",
+      "holding_days": [
+        3,
+        5,
+        10
+      ],
+      "trigger_description": "When WTI crude exceeds $85/bbl and stays elevated for 3+ consecutive days, with airline fuel hedges already locked in at lower prices",
+      "source_headlines": [
+        "Iran says it is receptive to any request from Spain, alluding to Hormuz transit - Reuters",
+        "Iran War Could Escalate Into A Highly Damaging Energy Crisis",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War",
+        "Trump Ceasefire Plan Meets Iran's 5 Red Lines: How Long Can Markets Ignore The Reality Gap?",
+        "Layered Uncertainty: Conflict, Credit Stress, And AI"
+      ],
+      "generated_at": "2026-03-27T17:46:43.897954",
+      "confidence": "high"
+    },
+    {
+      "hypothesis_id": "geopolitical-risk-substitute_winner-2",
+      "theme": "geopolitical risk",
+      "template": "substitute_winner",
+      "description": "Long defensive/safe-haven assets (long-duration Treasuries, gold) as geopolitical uncertainty spikes risk-off demand",
+      "causal_chain": "Iran escalation narrative accelerates \u2192 equity volatility and tail-risk fears rise \u2192 capital rotates from equities to duration and gold \u2192 TLT and GLD outperform SPY",
+      "target_tickers": [
+        "TLT",
+        "GLD",
+        "SHV"
+      ],
+      "direction": "long",
+      "holding_days": [
+        3,
+        5,
+        10
+      ],
+      "trigger_description": "When VIX exceeds 20 and stays elevated, and 10Y Treasury yield drops below 4.0% on flight-to-safety flows",
+      "source_headlines": [
+        "Iran says it is receptive to any request from Spain, alluding to Hormuz transit - Reuters",
+        "Iran War Could Escalate Into A Highly Damaging Energy Crisis",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War",
+        "Trump Ceasefire Plan Meets Iran's 5 Red Lines: How Long Can Markets Ignore The Reality Gap?",
+        "Layered Uncertainty: Conflict, Credit Stress, And AI"
+      ],
+      "generated_at": "2026-03-27T17:46:43.897957",
+      "confidence": "medium"
+    },
+    {
+      "hypothesis_id": "monetary-policy-downstream_loser-0",
+      "theme": "monetary policy",
+      "template": "downstream_loser",
+      "description": "Aggressive Fed rate hold/hawkishness pressures refiners and airlines that cannot pass through higher financing costs and fuel expenses to consumers in near term",
+      "causal_chain": "Central bank maintains restrictive rates \u2192 refiners (USO/XLE already priced in) face higher capex/debt servicing costs + airlines face higher jet fuel costs \u2192 margin compression in both sectors over 3-10 days as Q earnings guidance deteriorates",
+      "target_tickers": [
+        "DAL",
+        "UAL",
+        "ALK",
+        "PSX",
+        "MPC"
+      ],
+      "direction": "short",
+      "holding_days": [
+        3,
+        5,
+        10
+      ],
+      "trigger_description": "When Fed speakers reinforce 'higher for longer' stance or next CPI print remains sticky above 3.5% YoY",
+      "source_headlines": [
+        "Rates Spark: Aggressive Central Bank Discount Remains Sticky",
+        "M2 Update: Okay For Now, But The Fed Should Ease",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War"
+      ],
+      "generated_at": "2026-03-27T17:46:55.937529",
+      "confidence": "medium"
+    },
+    {
+      "hypothesis_id": "monetary-policy-substitute_winner-1",
+      "theme": "monetary policy",
+      "template": "substitute_winner",
+      "description": "If Fed tightness persists and inflation remains sticky, bond yields (IEF, TLT already moving) become attractive relative to equities, driving rotation into fixed income and away from growth equities",
+      "causal_chain": "Sticky inflation + hawkish Fed \u2192 real yields rise and remain elevated \u2192 QQQ (growth-heavy, rate-sensitive) underperforms relative to bond ETFs (IEF, TLT) \u2192 capital rotates into duration over 5-10 days",
+      "target_tickers": [
+        "QQQ",
+        "IEF",
+        "TLT"
+      ],
+      "direction": "long IEF/TLT, short QQQ",
+      "holding_days": [
+        3,
+        5,
+        10
+      ],
+      "trigger_description": "When 10Y yield breaks above 4.3% and stays there, or when Fed speakers explicitly reject near-term cuts",
+      "source_headlines": [
+        "Rates Spark: Aggressive Central Bank Discount Remains Sticky",
+        "M2 Update: Okay For Now, But The Fed Should Ease",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War"
+      ],
+      "generated_at": "2026-03-27T17:46:55.937535",
+      "confidence": "high"
+    },
+    {
+      "hypothesis_id": "monetary-policy-narrative_momentum-2",
+      "theme": "monetary policy",
+      "template": "narrative_momentum",
+      "description": "Inflation persistence narrative (diesel prices, Fed hawkishness) accelerates demand for inflation hedges; gold miners and commodity producers not yet fully re-rated despite 3-day article surge",
+      "causal_chain": "Media mentions of sticky inflation + diesel/energy spikes \u2192 investors increase allocation to inflation hedges (gold, commodities) \u2192 upstream beneficiaries (gold miners, oil producers) see sustained bid over 5-10 days",
+      "target_tickers": [
+        "NEM",
+        "GOLD",
+        "AEM",
+        "XOM",
+        "CVX"
+      ],
+      "direction": "long",
+      "holding_days": [
+        3,
+        5,
+        10
+      ],
+      "trigger_description": "When gold breaks above $2,050/oz or WTI crude sustains above $85/bbl for 2+ consecutive days",
+      "source_headlines": [
+        "Rates Spark: Aggressive Central Bank Discount Remains Sticky",
+        "M2 Update: Okay For Now, But The Fed Should Ease",
+        "$5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War"
+      ],
+      "generated_at": "2026-03-27T17:46:55.937537",
+      "confidence": "medium"
+    }
+  ],
+  "signals_summary": {
+    "total": 62,
+    "by_event_type": {
+      "sector_rotation": 10,
+      "geopolitical": 15,
+      "labor": 2,
+      "other": 7,
+      "macro": 19,
+      "commodity": 7,
+      "earnings": 1,
+      "supply_chain": 1
+    },
+    "by_sentiment": {
+      "negative": 32,
+      "neutral": 14,
+      "positive": 16
+    },
+    "unique_tickers": [
+      "ARM",
+      "BAC",
+      "BP",
+      "BTC",
+      "CL",
+      "CORN",
+      "CVX",
+      "DXY",
+      "EEM",
+      "EQX",
+      "FXI",
+      "GLD",
+      "GS",
+      "HPS",
+      "HYG",
+      "IAU",
+      "IEF",
+      "IFRA",
+      "IGF",
+      "INDU",
+      "IYM",
+      "JPM",
+      "LTPZ",
+      "MS",
+      "MU",
+      "NVDA",
+      "QQQ",
+      "SHY",
+      "SK",
+      "SLB",
+      "SMHX",
+      "SOYB",
+      "SPY",
+      "TLT",
+      "USO",
+      "VDC",
+      "WFC",
+      "XLB",
+      "XLE",
+      "XLF",
+      "XLI",
+      "XLK",
+      "XLRE",
+      "XLU",
+      "XLV",
+      "XLY",
+      "XOM"
+    ]
+  }
+}

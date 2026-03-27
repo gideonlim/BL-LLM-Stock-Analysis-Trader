@@ -1,0 +1,98 @@
+======================================================================
+RESEARCH PIPELINE — STRATEGY HYPOTHESES
+Generated: 2026-03-27T17:46:55.946385
+======================================================================
+
+--- Hypothesis 1: geopolitical-risk-upstream_beneficiary-0 ---
+  Theme:       geopolitical risk
+  Template:    upstream_beneficiary
+  Direction:   long
+  Confidence:  high
+  Tickers:     XOM, CVX, COP, MPC
+  Holding:     (3, 5, 10) days
+  Description: Long integrated oil majors and independent producers as Strait of Hormuz transit risk drives crude prices higher
+  Causal chain: Iran escalation risk → Hormuz chokepoint supply disruption fears → WTI/Brent crude spike → oil producer cash flows and stock prices rise
+  Trigger:     When WTI crude breaks above $85/bbl on geopolitical headlines and implied Hormuz disruption risk premium exceeds 5%
+  Headlines:
+    - Iran says it is receptive to any request from Spain, alluding to Hormuz transit - Reuters
+    - Iran War Could Escalate Into A Highly Damaging Energy Crisis
+    - $5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War
+
+--- Hypothesis 2: geopolitical-risk-downstream_loser-1 ---
+  Theme:       geopolitical risk
+  Template:    downstream_loser
+  Direction:   short
+  Confidence:  high
+  Tickers:     DAL, UAL, ZIM, FDX
+  Holding:     (3, 5, 10) days
+  Description: Short airlines and shipping companies facing margin compression from elevated energy costs without pricing power
+  Causal chain: Iran conflict escalation → oil price spike to $85+ → jet fuel and bunker fuel costs rise 15-25% → airlines/shippers cannot immediately pass through costs → margin compression over 5-10 days
+  Trigger:     When WTI crude exceeds $85/bbl and stays elevated for 3+ consecutive days, with airline fuel hedges already locked in at lower prices
+  Headlines:
+    - Iran says it is receptive to any request from Spain, alluding to Hormuz transit - Reuters
+    - Iran War Could Escalate Into A Highly Damaging Energy Crisis
+    - $5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War
+
+--- Hypothesis 3: geopolitical-risk-substitute_winner-2 ---
+  Theme:       geopolitical risk
+  Template:    substitute_winner
+  Direction:   long
+  Confidence:  medium
+  Tickers:     TLT, GLD, SHV
+  Holding:     (3, 5, 10) days
+  Description: Long defensive/safe-haven assets (long-duration Treasuries, gold) as geopolitical uncertainty spikes risk-off demand
+  Causal chain: Iran escalation narrative accelerates → equity volatility and tail-risk fears rise → capital rotates from equities to duration and gold → TLT and GLD outperform SPY
+  Trigger:     When VIX exceeds 20 and stays elevated, and 10Y Treasury yield drops below 4.0% on flight-to-safety flows
+  Headlines:
+    - Iran says it is receptive to any request from Spain, alluding to Hormuz transit - Reuters
+    - Iran War Could Escalate Into A Highly Damaging Energy Crisis
+    - $5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War
+
+--- Hypothesis 4: monetary-policy-downstream_loser-0 ---
+  Theme:       monetary policy
+  Template:    downstream_loser
+  Direction:   short
+  Confidence:  medium
+  Tickers:     DAL, UAL, ALK, PSX, MPC
+  Holding:     (3, 5, 10) days
+  Description: Aggressive Fed rate hold/hawkishness pressures refiners and airlines that cannot pass through higher financing costs and fuel expenses to consumers in near term
+  Causal chain: Central bank maintains restrictive rates → refiners (USO/XLE already priced in) face higher capex/debt servicing costs + airlines face higher jet fuel costs → margin compression in both sectors over 3-10 days as Q earnings guidance deteriorates
+  Trigger:     When Fed speakers reinforce 'higher for longer' stance or next CPI print remains sticky above 3.5% YoY
+  Headlines:
+    - Rates Spark: Aggressive Central Bank Discount Remains Sticky
+    - M2 Update: Okay For Now, But The Fed Should Ease
+    - $5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War
+
+--- Hypothesis 5: monetary-policy-substitute_winner-1 ---
+  Theme:       monetary policy
+  Template:    substitute_winner
+  Direction:   long IEF/TLT, short QQQ
+  Confidence:  high
+  Tickers:     QQQ, IEF, TLT
+  Holding:     (3, 5, 10) days
+  Description: If Fed tightness persists and inflation remains sticky, bond yields (IEF, TLT already moving) become attractive relative to equities, driving rotation into fixed income and away from growth equities
+  Causal chain: Sticky inflation + hawkish Fed → real yields rise and remain elevated → QQQ (growth-heavy, rate-sensitive) underperforms relative to bond ETFs (IEF, TLT) → capital rotates into duration over 5-10 days
+  Trigger:     When 10Y yield breaks above 4.3% and stays there, or when Fed speakers explicitly reject near-term cuts
+  Headlines:
+    - Rates Spark: Aggressive Central Bank Discount Remains Sticky
+    - M2 Update: Okay For Now, But The Fed Should Ease
+    - $5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War
+
+--- Hypothesis 6: monetary-policy-narrative_momentum-2 ---
+  Theme:       monetary policy
+  Template:    narrative_momentum
+  Direction:   long
+  Confidence:  medium
+  Tickers:     NEM, GOLD, AEM, XOM, CVX
+  Holding:     (3, 5, 10) days
+  Description: Inflation persistence narrative (diesel prices, Fed hawkishness) accelerates demand for inflation hedges; gold miners and commodity producers not yet fully re-rated despite 3-day article surge
+  Causal chain: Media mentions of sticky inflation + diesel/energy spikes → investors increase allocation to inflation hedges (gold, commodities) → upstream beneficiaries (gold miners, oil producers) see sustained bid over 5-10 days
+  Trigger:     When gold breaks above $2,050/oz or WTI crude sustains above $85/bbl for 2+ consecutive days
+  Headlines:
+    - Rates Spark: Aggressive Central Bank Discount Remains Sticky
+    - M2 Update: Okay For Now, But The Fed Should Ease
+    - $5+ Diesel Could Unleash Inflationary Mindset The Fed Better Not Look Through; Inflation Was Already Hot Before Iran War
+
+======================================================================
+Total: 6 hypotheses.  Review and approve before backtesting.
+======================================================================
