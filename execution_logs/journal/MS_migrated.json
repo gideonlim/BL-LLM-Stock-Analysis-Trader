@@ -56,6 +56,13 @@
       "new_sl": 156.86,
       "reason": "breakeven",
       "price_at_modification": 164.35
+    },
+    {
+      "date": "2026-03-26T15:41:34",
+      "old_sl": 156.86,
+      "new_sl": 156.86,
+      "reason": "breakeven",
+      "price_at_modification": 164.28
     }
   ],
   "price_samples": [
@@ -82,6 +89,10 @@
     {
       "date": "2026-03-25",
       "price": 164.3
+    },
+    {
+      "date": "2026-03-26",
+      "price": 164.28
     }
   ],
   "status": "open",
