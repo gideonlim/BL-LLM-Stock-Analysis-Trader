@@ -23,25 +23,25 @@
   "initial_risk_dollars": 0.0,
   "initial_reward_dollars": 1177.88,
   "planned_rr_ratio": 0.0,
-  "exit_price": 0.0,
-  "exit_date": "",
-  "exit_reason": "",
+  "exit_price": 268.24,
+  "exit_date": "2026-03-27T15:09:22",
+  "exit_reason": "time_exit",
   "exit_order_id": "",
-  "exit_fill_price": 0.0,
+  "exit_fill_price": 268.24,
   "exit_slippage": 0.0,
-  "realized_pnl": 0.0,
-  "realized_pnl_pct": 0.0,
+  "realized_pnl": -8.36,
+  "realized_pnl_pct": -0.07,
   "r_multiple": 0.0,
-  "holding_days": 0,
+  "holding_days": 11,
   "max_favorable_excursion": 271.66,
   "max_adverse_excursion": 261.58,
   "mfe_pct": 1.2,
   "mae_pct": 2.55,
   "mfe_date": "2026-03-26",
   "mae_date": "2026-03-24",
-  "etd": 0.0,
-  "etd_pct": 0.0,
-  "edge_ratio": 0.0,
+  "etd": 3.42,
+  "etd_pct": 1.27,
+  "edge_ratio": 0.47,
   "sl_modifications": [],
   "price_samples": [
     {
@@ -67,11 +67,15 @@
     {
       "date": "2026-03-26",
       "price": 271.66
+    },
+    {
+      "date": "2026-03-27",
+      "price": 268.24
     }
   ],
-  "status": "open",
+  "status": "closed",
   "opened_at": "2026-03-16",
-  "closed_at": "",
+  "closed_at": "2026-03-27T15:09:22",
   "tags": [
     "migrated"
   ],

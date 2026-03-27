@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-03-27T15:09:23",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "CI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "CI exceeded max hold period (10 days). P&L: -0.1%",
+      "action_taken": "Time-exit close: rejected",
+      "current_price": 268.24,
+      "entry_price": 268.43,
+      "pnl_pct": -0.07,
+      "timestamp": "2026-03-27T15:09:22"
+    },
+    {
+      "ticker": "MS",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "MS exceeded max hold period (10 days). P&L: +2.0%",
+      "action_taken": "Time-exit close: rejected",
+      "current_price": 160.07,
+      "entry_price": 156.86,
+      "pnl_pct": 2.05,
+      "timestamp": "2026-03-27T15:09:23"
+    }
+  ]
+}
