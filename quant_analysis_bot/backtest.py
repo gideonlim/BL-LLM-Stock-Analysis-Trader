@@ -377,7 +377,7 @@ def score_single_window(
 
     Components (on a 0-100 target scale):
       - Sharpe ratio:           30%  (capped at 3.0, scaled to ~30 pts)
-      - Annualized excess ret:  20%  (normalized, ~20 pts)
+      - Raw excess return:      20%  (non-annualized, ~20 pts)
       - Win rate:               15%  (centered on 50%, ~15 pts)
       - Profit factor:          15%  (capped at 3.0, ~15 pts)
       - Drawdown penalty:       20%  (meaningful penalty for high DD)
@@ -390,10 +390,15 @@ def score_single_window(
     # Sharpe range ~0-3, mapped to 0-30 points
     score += min(max(result.sharpe_ratio, 0.0), 3.0) * 10.0
 
-    # ── Annualized excess return (20%) ─────────────────────────────
-    # Normalize: 20% excess → 20 points, -20% → -20 points
-    excess_clipped = np.clip(result.annual_excess_pct, -50, 50)
-    score += excess_clipped * 0.4
+    # ── Excess return (20%) ─────────────────────────────────────────
+    # Use RAW (non-annualized) excess return to avoid distortion from
+    # short backtest windows.  Annualizing with 252/n_days amplifies
+    # small differences into extreme values when n_days < 100 (e.g.
+    # -15% raw → -73% annualized at 75 days).  Raw excess treats each
+    # window on its own merit regardless of length.
+    # Clip at ±25% and scale so 25% raw excess → 20 points max.
+    excess_clipped = np.clip(result.excess_return_pct, -25, 25)
+    score += excess_clipped * 0.8
 
     # ── Win rate (15%) ─────────────────────────────────────────────
     # Center on 50%: a 60% WR → +15, a 40% WR → -15
