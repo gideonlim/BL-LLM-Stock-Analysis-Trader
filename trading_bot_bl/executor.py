@@ -31,7 +31,11 @@ from trading_bot_bl.monitor import (
     monitor_positions,
     write_monitor_log,
 )
-from trading_bot_bl.oil_spike import OilSpikeState, detect_oil_spike
+from trading_bot_bl.oil_spike import (
+    OilSpikeState,
+    OilSpikeTier,
+    detect_oil_spike,
+)
 from trading_bot_bl.portfolio_optimizer import optimize_intents
 from trading_bot_bl.risk import RiskManager
 
@@ -465,24 +469,56 @@ def execute(
     # ── 8b. Oil spike detection (disabled by default) ──────────────
     oil_state = OilSpikeState()  # inactive unless enabled
     oil_tickers: tuple[str, ...] = ()
+    oil_spike_tiers: list[OilSpikeTier] = []
     if config.oil_spike_enabled:
-        oil_tickers = tuple(
+        # Tier 1 — fertilizer/ag (immediate boost, 20-day decay)
+        tier1_tickers = tuple(
             t.strip().upper()
             for t in config.oil_spike_tickers.split(",")
             if t.strip()
         )
+        oil_tickers = tier1_tickers  # backward-compat field
+        oil_spike_tiers.append(
+            OilSpikeTier(
+                tickers=tier1_tickers,
+                peak_boost=config.oil_spike_boost,
+                delay_days=0,
+                decay_days=config.oil_spike_window_days,
+            )
+        )
+        # Tier 2 — airlines (delayed entry, shorter decay)
+        tier2_tickers = tuple(
+            t.strip().upper()
+            for t in config.oil_spike_airline_tickers.split(",")
+            if t.strip()
+        )
+        if tier2_tickers:
+            oil_spike_tiers.append(
+                OilSpikeTier(
+                    tickers=tier2_tickers,
+                    peak_boost=config.oil_spike_airline_boost,
+                    delay_days=config.oil_spike_airline_delay_days,
+                    decay_days=config.oil_spike_airline_decay_days,
+                )
+            )
+
         oil_state = detect_oil_spike(
             peak_boost=config.oil_spike_boost,
-            window_days=config.oil_spike_window_days,
+            window_days=max(
+                config.oil_spike_window_days,
+                config.oil_spike_airline_delay_days
+                + config.oil_spike_airline_decay_days,
+            ),
             spike_threshold=config.oil_spike_threshold,
         )
         if oil_state.active:
+            all_tickers = tier1_tickers + tier2_tickers
             log.info(
                 f"  Oil spike active: USO "
                 f"+{oil_state.spike_magnitude:.1%} "
                 f"({oil_state.days_since_spike}d ago), "
                 f"boost={oil_state.boost:+.1f} for "
-                f"{', '.join(oil_tickers)}"
+                f"{', '.join(all_tickers)}"
             )
 
     # ── 9. Risk check each intent ─────────────────────────────────
@@ -493,6 +529,7 @@ def execute(
         spy_trend_regime=sentiment.spy_regime.trend_regime,
         oil_spike_state=oil_state,
         oil_spike_tickers=oil_tickers,
+        oil_spike_tiers=oil_spike_tiers,
     )
     # Apply regime-adjusted limits (CAUTION/BEAR/SEVERE_BEAR)
     if config.spy_regime_enabled:

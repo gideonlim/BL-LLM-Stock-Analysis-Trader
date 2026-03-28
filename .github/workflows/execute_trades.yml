@@ -63,7 +63,7 @@ jobs:
           # SPY trend regime (bear market filter)
           SPY_REGIME_ENABLED: ${{ vars.SPY_REGIME_ENABLED || 'true' }}
           SPY_BEAR_CONFIRMATION_DAYS: ${{ vars.SPY_BEAR_CONFIRMATION_DAYS || '3' }}
-          SPY_BEAR_MAX_POSITIONS: ${{ vars.SPY_BEAR_MAX_POSITIONS || '4' }}
+          SPY_BEAR_MAX_POSITIONS: ${{ vars.SPY_BEAR_MAX_POSITIONS || '5' }}
           SPY_BEAR_MIN_COMPOSITE_SCORE: ${{ vars.SPY_BEAR_MIN_COMPOSITE_SCORE || '30.0' }}
           SPY_SEVERE_DRAWDOWN_PCT: ${{ vars.SPY_SEVERE_DRAWDOWN_PCT || '15.0' }}
           # LLM views (optional — leave ANTHROPIC_API_KEY empty to disable)

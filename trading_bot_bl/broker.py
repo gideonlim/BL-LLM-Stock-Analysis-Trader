@@ -548,7 +548,20 @@ class AlpacaBroker:
             )
 
     def close_position(self, ticker: str) -> OrderResult:
-        """Close an existing position entirely."""
+        """Close an existing position entirely.
+
+        Cancels any open orders (OCO brackets, etc.) for the ticker
+        first so the full quantity is available for the close.
+        """
+        # Cancel existing orders that lock up shares (OCO legs, etc.)
+        open_orders = self.get_orders_for_ticker(ticker)
+        for order in open_orders:
+            oid = str(order.id)
+            log.info(
+                f"  {ticker}: cancelling order {oid} before close"
+            )
+            self.cancel_order(oid)
+
         try:
             self._client.close_position(ticker)
             log.info(f"Position closed: {ticker}")

@@ -259,8 +259,18 @@ class TradingConfig:
     # Minimum 5-day USO return to qualify as a spike.
     oil_spike_threshold: float = 0.10
 
-    # Tickers that receive the boost (comma-separated in .env).
+    # Tier 1 tickers that receive the boost (comma-separated in .env).
     oil_spike_tickers: str = "MOS,CF"
+
+    # ── Oil spike → airline mean-reversion (Tier 2) ──────────
+    # Airlines dip 1-3 days after a crude spike then snap back.
+    # Entry delayed to day 3; smaller boost; shorter decay.
+    # Backed by 21-event study: +1.87% excess vs SPY, 71% WR,
+    # t=2.21.  UAL strongest (t=3.21, 86% WR).
+    oil_spike_airline_tickers: str = "UAL,DAL"
+    oil_spike_airline_boost: float = 5.0
+    oil_spike_airline_delay_days: int = 3
+    oil_spike_airline_decay_days: int = 10
 
     # ── LLM view generation ────────────────────────────────────
     # Enable LLM-enhanced views (requires API key)
@@ -427,6 +437,18 @@ class TradingConfig:
             oil_spike_tickers=os.getenv(
                 "OIL_SPIKE_TICKERS", "MOS,CF"
             ),
+            oil_spike_airline_tickers=os.getenv(
+                "OIL_SPIKE_AIRLINE_TICKERS", "UAL,DAL"
+            ),
+            oil_spike_airline_boost=float(
+                os.getenv("OIL_SPIKE_AIRLINE_BOOST", "5.0")
+            ),
+            oil_spike_airline_delay_days=int(
+                os.getenv("OIL_SPIKE_AIRLINE_DELAY_DAYS", "3")
+            ),
+            oil_spike_airline_decay_days=int(
+                os.getenv("OIL_SPIKE_AIRLINE_DECAY_DAYS", "10")
+            ),
             llm_views_enabled=os.getenv(
                 "LLM_VIEWS_ENABLED", "false"
             ).lower() in ("true", "1", "yes"),
@@ -579,6 +601,22 @@ class TradingConfig:
             if "oil_spike_tickers" in overrides:
                 config.oil_spike_tickers = str(
                     overrides["oil_spike_tickers"]
+                )
+            if "oil_spike_airline_tickers" in overrides:
+                config.oil_spike_airline_tickers = str(
+                    overrides["oil_spike_airline_tickers"]
+                )
+            if "oil_spike_airline_boost" in overrides:
+                config.oil_spike_airline_boost = float(
+                    overrides["oil_spike_airline_boost"]
+                )
+            if "oil_spike_airline_delay_days" in overrides:
+                config.oil_spike_airline_delay_days = int(
+                    overrides["oil_spike_airline_delay_days"]
+                )
+            if "oil_spike_airline_decay_days" in overrides:
+                config.oil_spike_airline_decay_days = int(
+                    overrides["oil_spike_airline_decay_days"]
                 )
 
             # LLM view overrides

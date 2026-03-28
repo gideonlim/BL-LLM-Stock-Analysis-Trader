@@ -12,7 +12,11 @@ from trading_bot_bl.earnings import check_earnings_blackout
 from trading_bot_bl.history import TradeHistory
 from trading_bot_bl.liquidity import check_liquidity
 from trading_bot_bl.models import OrderIntent, PortfolioSnapshot, Signal
-from trading_bot_bl.oil_spike import OilSpikeState, get_boost_for_ticker
+from trading_bot_bl.oil_spike import (
+    OilSpikeState,
+    OilSpikeTier,
+    get_boost_for_ticker,
+)
 
 log = logging.getLogger(__name__)
 
@@ -49,6 +53,7 @@ class RiskManager:
         default_factory=OilSpikeState
     )
     oil_spike_tickers: tuple[str, ...] = ()
+    oil_spike_tiers: list[OilSpikeTier] = field(default_factory=list)
 
     # Regime-adjusted limits (set by apply_spy_regime_overrides).
     # These shadow the base limits during CAUTION/BEAR/SEVERE_BEAR.
@@ -153,12 +158,14 @@ class RiskManager:
         effective_min = self._effective_min_composite
 
         # Oil spike boost: temporarily raise effective composite
-        # score for eligible fertilizer/ag tickers.  This does NOT
+        # score for eligible tickers (tier 1 = fertilizers,
+        # tier 2 = airlines with delayed entry).  This does NOT
         # mutate the signal — it only affects the threshold check.
         oil_boost = get_boost_for_ticker(
             self.oil_spike_state,
             signal.ticker,
             self.oil_spike_tickers,
+            tiers=self.oil_spike_tiers or None,
         )
         effective_score = signal.composite_score + oil_boost
 
