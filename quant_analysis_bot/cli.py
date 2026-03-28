@@ -556,7 +556,7 @@ def main() -> None:
 
     # Worker count: 0 = auto, 1 = sequential, N = explicit
     if args.workers == 0:
-        config["workers"] = min(os.cpu_count() or 1, 8)
+        config["workers"] = min(os.cpu_count() or 1, 4)
     else:
         config["workers"] = max(1, args.workers)
 
