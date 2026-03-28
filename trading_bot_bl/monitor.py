@@ -361,8 +361,12 @@ def monitor_positions(
                     f"-> {result.status}"
                 )
 
-            # Journal: record emergency close
-            if _JOURNAL_AVAILABLE and _j_entry and journal_dir:
+            # Journal: record emergency close — only if close succeeded
+            close_ok = (
+                dry_run
+                or (result is not None and result.status != "rejected")
+            )
+            if close_ok and _JOURNAL_AVAILABLE and _j_entry and journal_dir:
                 try:
                     _journal.close_trade(
                         _j_entry,
@@ -494,8 +498,12 @@ def monitor_positions(
                     f"  GAP CLOSE: {alert.message} "
                     f"-> {result.status}"
                 )
-            # Journal: record gap close
-            if _JOURNAL_AVAILABLE and _j_entry and journal_dir:
+            # Journal: record gap close — only if close succeeded
+            close_ok = (
+                dry_run
+                or (result is not None and result.status != "rejected")
+            )
+            if close_ok and _JOURNAL_AVAILABLE and _j_entry and journal_dir:
                 try:
                     _journal.close_trade(
                         _j_entry,
@@ -752,8 +760,12 @@ def monitor_positions(
                     f"-> {result.status}"
                 )
 
-            # Journal: record time exit
-            if _JOURNAL_AVAILABLE and _j_entry and journal_dir:
+            # Journal: record time exit — only if close succeeded
+            close_ok = (
+                dry_run
+                or (result is not None and result.status != "rejected")
+            )
+            if close_ok and _JOURNAL_AVAILABLE and _j_entry and journal_dir:
                 try:
                     _journal.close_trade(
                         _j_entry,

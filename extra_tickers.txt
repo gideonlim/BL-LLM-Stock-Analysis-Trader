@@ -21,6 +21,12 @@ XLE       # Energy Select Sector SPDR
 XLU       # Utilities Select Sector SPDR
 XLV       # Health Care Select Sector SPDR
 XLP       # Consumer Staples Select Sector SPDR
+XLF       # Financial Select Sector SPDR
+XLI       # Industrial Select Sector SPDR
+
+# ── Commodity ETFs (non-oil) ──────────────────────────────
+UNG       # United States Natural Gas Fund
+COPX      # Global X Copper Miners ETF
 
 # ── Fixed income / safe havens ──────────────────────────────
 TLT       # iShares 20+ Year Treasury Bond ETF
