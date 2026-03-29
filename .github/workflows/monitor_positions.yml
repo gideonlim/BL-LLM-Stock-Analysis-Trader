@@ -22,6 +22,9 @@ on:
   workflow_call:                # allow other workflows to invoke this
   workflow_dispatch:            # allow manual trigger
 
+permissions:
+  contents: write              # needed to commit monitor logs
+
 jobs:
   monitor:
     runs-on: ubuntu-latest
@@ -54,3 +57,14 @@ jobs:
           name: monitor-logs-${{ github.run_number }}
           path: execution_logs/monitor_*.json
           retention-days: 14
+
+      - name: Commit monitor logs
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git add execution_logs/ -f
+          git diff --cached --quiet && echo "No new logs" && exit 0
+          git commit -m "chore: monitor log $(date +%Y-%m-%d_%H%M)"
+          git push

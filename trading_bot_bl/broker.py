@@ -547,33 +547,81 @@ class AlpacaBroker:
                 error=str(e),
             )
 
+    def _wait_for_cancels(
+        self, ticker: str, order_ids: list[str], timeout: float = 15.0
+    ) -> bool:
+        """Poll until all orders are fully cancelled or timeout.
+
+        Alpaca processes cancels asynchronously — an order can sit in
+        ``pending_cancel`` for seconds (sometimes minutes on paper).
+        This polls each order until its status leaves the pending
+        states, or until *timeout* seconds elapse.
+
+        Returns True if all orders resolved, False on timeout.
+        """
+        import time
+
+        pending_states = {"pending_cancel", "pending_new", "accepted"}
+        remaining = set(order_ids)
+        deadline = time.monotonic() + timeout
+
+        while remaining and time.monotonic() < deadline:
+            time.sleep(0.5)
+            still_pending = set()
+            for oid in remaining:
+                try:
+                    order = self._client.get_order_by_id(oid)
+                    status = str(
+                        getattr(order.status, "value", order.status)
+                    )
+                    if status in pending_states:
+                        still_pending.add(oid)
+                    else:
+                        log.info(
+                            f"  {ticker}: order {oid} → {status}"
+                        )
+                except Exception:
+                    # Order gone (already cancelled/filled) — fine
+                    log.info(
+                        f"  {ticker}: order {oid} no longer exists"
+                    )
+            remaining = still_pending
+
+        if remaining:
+            log.warning(
+                f"  {ticker}: {len(remaining)} orders still "
+                f"pending after {timeout}s — proceeding anyway"
+            )
+            return False
+        return True
+
     def close_position(self, ticker: str) -> OrderResult:
         """Close an existing position entirely.
 
         Cancels any open orders (OCO brackets, etc.) for the ticker
-        first so the full quantity is available for the close.
+        first, polls until the cancels settle, then closes. If
+        ``close_position`` fails (e.g. shares still locked), falls
+        back to a direct market SELL order for the held quantity.
         """
-        # Cancel existing orders that lock up shares (OCO legs, etc.)
         import time
 
+        # ── 1. Cancel existing orders that lock up shares ────────
         open_orders = self.get_orders_for_ticker(ticker)
-        had_orders = False
+        cancelled_ids: list[str] = []
         for order in open_orders:
             oid = str(order.id)
             log.info(
                 f"  {ticker}: cancelling order {oid} before close"
             )
             self.cancel_order(oid)
-            had_orders = True
+            cancelled_ids.append(oid)
 
-        # Alpaca processes cancels asynchronously — wait for shares
-        # to be released before attempting the close.
-        if had_orders:
-            time.sleep(1.0)
+        # ── 2. Poll until cancels fully resolve (up to 15s) ─────
+        if cancelled_ids:
+            self._wait_for_cancels(ticker, cancelled_ids, timeout=15.0)
 
-        # Retry once if the first attempt fails (cancel may still
-        # be settling on Alpaca's side).
-        max_attempts = 2 if had_orders else 1
+        # ── 3. Try close_position with one retry ────────────────
+        max_attempts = 2 if cancelled_ids else 1
         last_error = None
         for attempt in range(max_attempts):
             try:
@@ -593,13 +641,47 @@ class AlpacaBroker:
                     )
                     time.sleep(2.0)
 
-        log.error(f"Failed to close {ticker}: {last_error}")
-        return OrderResult(
-            ticker=ticker,
-            status="rejected",
-            side="close",
-            error=str(last_error),
+        # ── 4. Fallback: direct market sell for held qty ─────────
+        log.warning(
+            f"  {ticker}: close_position failed ({last_error}), "
+            f"trying direct market sell as fallback"
         )
+        try:
+            positions = self._client.get_all_positions()
+            pos = next(
+                (p for p in positions if p.symbol == ticker), None
+            )
+            if pos is None:
+                # Position already gone — success
+                log.info(
+                    f"  {ticker}: no position found — already closed"
+                )
+                return OrderResult(
+                    ticker=ticker,
+                    status="submitted",
+                    side="close",
+                )
+            qty = float(pos.qty)
+            side = str(getattr(pos.side, "value", pos.side))
+            sell_side = "sell" if side == "long" else "buy"
+            return self.submit_market_order(
+                ticker=ticker,
+                side=sell_side,
+                qty=qty,
+                time_in_force="day",
+            )
+        except Exception as fallback_err:
+            log.error(
+                f"Failed to close {ticker} (all methods): "
+                f"close_position={last_error}, "
+                f"market_sell={fallback_err}"
+            )
+            return OrderResult(
+                ticker=ticker,
+                status="rejected",
+                side="close",
+                error=str(last_error),
+            )
 
     def close_all_positions(self) -> list[OrderResult]:
         """Emergency: close every open position."""
