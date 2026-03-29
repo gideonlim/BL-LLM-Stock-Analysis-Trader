@@ -317,6 +317,17 @@ def _chart_equity_curve(
         common_dates = sorted(
             d for d in daily_bot if d in spy_by_date
         )
+        # If the latest bot snapshot falls on a non-trading day
+        # (weekend / holiday), carry its equity back to the last
+        # trading date so the chart reflects the most recent value.
+        all_bot_dates = sorted(daily_bot.keys())
+        if all_bot_dates and common_dates:
+            latest_bot = all_bot_dates[-1]
+            last_common = common_dates[-1]
+            if latest_bot > last_common and last_common in spy_by_date:
+                # Overwrite the last trading day's snapshot with the
+                # newer (more accurate) weekend/holiday reading.
+                daily_bot[last_common] = daily_bot[latest_bot]
     else:
         common_dates = sorted(daily_bot.keys())
 
