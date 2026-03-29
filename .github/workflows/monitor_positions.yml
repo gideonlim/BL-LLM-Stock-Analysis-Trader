@@ -17,6 +17,8 @@ on:
       timezone: America/New_York
     - cron: "0 15 * * 1-5"    #  3 PM ET
       timezone: America/New_York
+    - cron: "15 16 * * 1-5"  #  4:15 PM ET (post-close snapshot)
+      timezone: America/New_York
   workflow_call:                # allow other workflows to invoke this
   workflow_dispatch:            # allow manual trigger
 
