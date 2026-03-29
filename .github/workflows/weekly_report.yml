@@ -5,7 +5,7 @@ name: Weekly Performance Report
 # committed to the reports/ folder and uploaded as a build artifact.
 on:
   schedule:
-    - cron: "0 8 * * 0"    # 8:00 AM ET, every Sunday
+    - cron: "0 2 * * 0"    # 2:00 AM ET, every Sunday
       timezone: America/New_York
   workflow_call:            # allow other workflows to invoke this
   workflow_dispatch:        # allow manual trigger
