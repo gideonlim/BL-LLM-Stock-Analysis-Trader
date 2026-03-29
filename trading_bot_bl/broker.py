@@ -554,30 +554,52 @@ class AlpacaBroker:
         first so the full quantity is available for the close.
         """
         # Cancel existing orders that lock up shares (OCO legs, etc.)
+        import time
+
         open_orders = self.get_orders_for_ticker(ticker)
+        had_orders = False
         for order in open_orders:
             oid = str(order.id)
             log.info(
                 f"  {ticker}: cancelling order {oid} before close"
             )
             self.cancel_order(oid)
+            had_orders = True
 
-        try:
-            self._client.close_position(ticker)
-            log.info(f"Position closed: {ticker}")
-            return OrderResult(
-                ticker=ticker,
-                status="submitted",
-                side="close",
-            )
-        except Exception as e:
-            log.error(f"Failed to close {ticker}: {e}")
-            return OrderResult(
-                ticker=ticker,
-                status="rejected",
-                side="close",
-                error=str(e),
-            )
+        # Alpaca processes cancels asynchronously — wait for shares
+        # to be released before attempting the close.
+        if had_orders:
+            time.sleep(1.0)
+
+        # Retry once if the first attempt fails (cancel may still
+        # be settling on Alpaca's side).
+        max_attempts = 2 if had_orders else 1
+        last_error = None
+        for attempt in range(max_attempts):
+            try:
+                self._client.close_position(ticker)
+                log.info(f"Position closed: {ticker}")
+                return OrderResult(
+                    ticker=ticker,
+                    status="submitted",
+                    side="close",
+                )
+            except Exception as e:
+                last_error = e
+                if attempt < max_attempts - 1:
+                    log.info(
+                        f"  {ticker}: close attempt {attempt + 1} "
+                        f"failed, retrying in 2s..."
+                    )
+                    time.sleep(2.0)
+
+        log.error(f"Failed to close {ticker}: {last_error}")
+        return OrderResult(
+            ticker=ticker,
+            status="rejected",
+            side="close",
+            error=str(last_error),
+        )
 
     def close_all_positions(self) -> list[OrderResult]:
         """Emergency: close every open position."""
