@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-03-29T11:36:25",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 3,
+  "alerts": [
+    {
+      "ticker": "BGC",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "BGC exceeded max hold period (10 days). P&L: -3.0%",
+      "action_taken": "Time-exit close: rejected",
+      "current_price": 9.4,
+      "entry_price": 9.69,
+      "pnl_pct": -2.99,
+      "timestamp": "2026-03-29T11:35:32"
+    },
+    {
+      "ticker": "CI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "CI exceeded max hold period (10 days). P&L: -2.4%",
+      "action_taken": "Time-exit close: rejected",
+      "current_price": 261.94,
+      "entry_price": 268.43,
+      "pnl_pct": -2.42,
+      "timestamp": "2026-03-29T11:35:50"
+    },
+    {
+      "ticker": "MS",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "MS exceeded max hold period (10 days). P&L: +1.0%",
+      "action_taken": "Time-exit close: rejected",
+      "current_price": 158.38,
+      "entry_price": 156.86,
+      "pnl_pct": 0.97,
+      "timestamp": "2026-03-29T11:36:08"
+    }
+  ]
+}
