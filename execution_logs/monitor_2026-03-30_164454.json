@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-03-30T16:44:54",
+  "positions_checked": 5,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "C has NO protective orders (SL/TP legs missing). P&L: -0.8%, entry=$109.06, now=$108.22",
+      "action_taken": "Reattached OCO: SL=$102.81, TP=$119.04",
+      "current_price": 108.22,
+      "entry_price": 109.06,
+      "pnl_pct": -0.77,
+      "timestamp": "2026-03-30T16:44:52"
+    }
+  ]
+}
