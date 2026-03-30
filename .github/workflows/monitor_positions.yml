@@ -1,10 +1,13 @@
 name: Monitor Positions
 
-# Checks existing positions for health issues every hour
-# during market hours (10 AM - 3 PM ET, Mon-Fri).
+# Checks existing positions for health issues during market hours.
+# The 9:35 AM run catches any deferred corrective actions (time exits,
+# emergency closes) that were flagged by after-hours monitor runs.
 # Handles: orphaned brackets, emergency losses, stale SL/TP, gap detection.
 on:
   schedule:
+    - cron: "35 9 * * 1-5"    #  9:35 AM ET (market-open, execute deferred actions)
+      timezone: America/New_York
     - cron: "0 10 * * 1-5"    # 10 AM ET
       timezone: America/New_York
     - cron: "0 11 * * 1-5"    # 11 AM ET

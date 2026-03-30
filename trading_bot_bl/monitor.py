@@ -98,6 +98,26 @@ def monitor_positions(
         log.info("  No open positions to monitor")
         return report
 
+    # ── Market-hours gate ────────────────────────────────────
+    # Outside regular hours, Alpaca extended-hours execution is
+    # unreliable (stale prices, paper fills not working).
+    # Cancelling OCO brackets would strip SL/TP protection for
+    # no benefit.  Force dry_run so the monitor still reports
+    # issues and tracks excursions, but defers corrective
+    # actions to the next market-hours run.
+    market_open = broker.is_market_open()
+    if not market_open and not dry_run:
+        log.info(
+            "  Market is closed — deferring corrective "
+            "actions to next market-hours run"
+        )
+        dry_run = True
+
+    # Deferred journal entries — populated during the position loop
+    # and resolved after a 10s settlement wait.  Each item is:
+    # (order_id, journal_entry, exit_price, exit_reason, expected_exit)
+    _deferred_journal: list[tuple] = []
+
     report.positions_checked = len(positions)
     tickers = list(positions.keys())
 
@@ -361,21 +381,20 @@ def monitor_positions(
                     f"-> {result.status}"
                 )
 
-            # Journal: record emergency close — only if close succeeded
-            close_ok = (
-                dry_run
-                or (result is not None and result.status != "rejected")
-            )
-            if close_ok and _JOURNAL_AVAILABLE and _j_entry and journal_dir:
-                try:
-                    _journal.close_trade(
-                        _j_entry,
-                        exit_price=current_price,
-                        exit_reason="emergency_close",
-                        journal_dir=journal_dir,
-                    )
-                except Exception:
-                    pass
+            # Defer journal until order fill is confirmed
+            if (
+                not dry_run
+                and result is not None
+                and result.status != "rejected"
+                and result.order_id
+                and _JOURNAL_AVAILABLE
+                and _j_entry
+                and journal_dir
+            ):
+                _deferred_journal.append((
+                    result.order_id, _j_entry,
+                    current_price, "emergency_close", 0.0,
+                ))
 
             report.alerts.append(alert)
             report.emergency_count += 1
@@ -498,22 +517,20 @@ def monitor_positions(
                     f"  GAP CLOSE: {alert.message} "
                     f"-> {result.status}"
                 )
-            # Journal: record gap close — only if close succeeded
-            close_ok = (
-                dry_run
-                or (result is not None and result.status != "rejected")
-            )
-            if close_ok and _JOURNAL_AVAILABLE and _j_entry and journal_dir:
-                try:
-                    _journal.close_trade(
-                        _j_entry,
-                        exit_price=current_price,
-                        exit_reason="gap_close",
-                        journal_dir=journal_dir,
-                        expected_exit_price=sl_price,
-                    )
-                except Exception:
-                    pass
+            # Defer journal until order fill is confirmed
+            if (
+                not dry_run
+                and result is not None
+                and result.status != "rejected"
+                and result.order_id
+                and _JOURNAL_AVAILABLE
+                and _j_entry
+                and journal_dir
+            ):
+                _deferred_journal.append((
+                    result.order_id, _j_entry,
+                    current_price, "gap_close", sl_price,
+                ))
 
             report.alerts.append(alert)
             report.emergency_count += 1
@@ -760,23 +777,89 @@ def monitor_positions(
                     f"-> {result.status}"
                 )
 
-            # Journal: record time exit — only if close succeeded
-            close_ok = (
-                dry_run
-                or (result is not None and result.status != "rejected")
-            )
-            if close_ok and _JOURNAL_AVAILABLE and _j_entry and journal_dir:
-                try:
-                    _journal.close_trade(
-                        _j_entry,
-                        exit_price=current_price,
-                        exit_reason="time_exit",
-                        journal_dir=journal_dir,
-                    )
-                except Exception:
-                    pass
+            # Defer journal until order fill is confirmed
+            if (
+                not dry_run
+                and result is not None
+                and result.status != "rejected"
+                and result.order_id
+                and _JOURNAL_AVAILABLE
+                and _j_entry
+                and journal_dir
+            ):
+                _deferred_journal.append((
+                    result.order_id, _j_entry,
+                    current_price, "time_exit", 0.0,
+                ))
 
             report.alerts.append(alert)
+
+    # ── Post-action settlement: verify order fills ─────────────
+    # Wait 10s for orders to settle, then check fill status.
+    # Only journal trades whose close orders actually filled.
+    if _deferred_journal and journal_dir:
+        import time
+
+        log.info(
+            f"  Waiting 10s for {len(_deferred_journal)} "
+            f"close order(s) to settle..."
+        )
+        time.sleep(10)
+
+        filled_count = 0
+        pending_count = 0
+        for (
+            order_id, j_entry, exit_price,
+            exit_reason, expected_exit,
+        ) in _deferred_journal:
+            try:
+                order = broker._client.get_order_by_id(order_id)
+                status = str(
+                    getattr(order.status, "value", order.status)
+                )
+                fill_price = getattr(
+                    order, "filled_avg_price", None
+                )
+            except Exception:
+                status = "unknown"
+                fill_price = None
+
+            if status == "filled":
+                # Use actual fill price if available
+                actual_exit = (
+                    float(fill_price) if fill_price else exit_price
+                )
+                try:
+                    _journal.close_trade(
+                        j_entry,
+                        exit_price=actual_exit,
+                        exit_reason=exit_reason,
+                        journal_dir=journal_dir,
+                        expected_exit_price=expected_exit,
+                    )
+                except Exception as exc:
+                    log.warning(
+                        f"  Journal close_trade failed for "
+                        f"{j_entry.trade_id}: {exc}"
+                    )
+                filled_count += 1
+                log.info(
+                    f"  {j_entry.ticker}: order {order_id} "
+                    f"filled @ ${actual_exit:.2f} — "
+                    f"journal updated"
+                )
+            else:
+                pending_count += 1
+                log.info(
+                    f"  {j_entry.ticker}: order {order_id} "
+                    f"status={status} — journal NOT updated "
+                    f"(will resolve on next monitor run)"
+                )
+
+        log.info(
+            f"  Settlement: {filled_count} filled, "
+            f"{pending_count} still pending"
+        )
 
     log.info(f"  Monitor: {report.summary()}")
     return report

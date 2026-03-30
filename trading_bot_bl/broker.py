@@ -652,7 +652,6 @@ class AlpacaBroker:
                 (p for p in positions if p.symbol == ticker), None
             )
             if pos is None:
-                # Position already gone — success
                 log.info(
                     f"  {ticker}: no position found — already closed"
                 )
