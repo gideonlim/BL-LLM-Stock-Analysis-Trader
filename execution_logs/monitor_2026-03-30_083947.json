@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-03-30T08:39:47",
+  "positions_checked": 4,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BGC",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "BGC has NO protective orders (SL/TP legs missing). P&L: -3.0%, entry=$9.69, now=$9.40",
+      "action_taken": "Reattached OCO: SL=$8.93, TP=$10.34",
+      "current_price": 9.4,
+      "entry_price": 9.69,
+      "pnl_pct": -2.99,
+      "timestamp": "2026-03-30T08:39:44"
+    },
+    {
+      "ticker": "CI",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "CI has NO protective orders (SL/TP legs missing). P&L: -2.4%, entry=$268.43, now=$261.94",
+      "action_taken": "Reattached OCO: SL=$248.84, TP=$288.13",
+      "current_price": 261.94,
+      "entry_price": 268.43,
+      "pnl_pct": -2.42,
+      "timestamp": "2026-03-30T08:39:45"
+    },
+    {
+      "ticker": "MS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MS has NO protective orders (SL/TP legs missing). P&L: +1.0%, entry=$156.86, now=$158.38",
+      "action_taken": "Reattached OCO: SL=$150.46, TP=$174.22",
+      "current_price": 158.38,
+      "entry_price": 156.86,
+      "pnl_pct": 0.97,
+      "timestamp": "2026-03-30T08:39:46"
+    }
+  ]
+}
