@@ -29,12 +29,15 @@ def _entry_to_dict(entry: JournalEntry) -> dict:
 
 
 def _dict_to_entry(d: dict) -> JournalEntry:
-    """Reconstruct a JournalEntry from a dict (loaded from JSON)."""
-    # dataclass fields that are lists need no special handling
-    # because asdict already serialises them as plain lists.
+    """Reconstruct a JournalEntry from a dict (loaded from JSON).
+
+    Drops ``None`` values so the dataclass default (typically ``0.0``)
+    applies instead — this prevents ``NoneType`` format errors when
+    optional numeric fields were serialised as ``null``.
+    """
     return JournalEntry(**{
         k: v for k, v in d.items()
-        if k in JournalEntry.__dataclass_fields__
+        if k in JournalEntry.__dataclass_fields__ and v is not None
     })
 
 
@@ -426,12 +429,15 @@ def close_trade(
             )
 
         _save_entry(entry, journal_dir)
+        pnl = entry.realized_pnl or 0.0
+        pnl_pct = entry.realized_pnl_pct or 0.0
+        r_mul = entry.r_multiple or 0.0
         log.info(
             f"  Journal: closed {entry.trade_id} — "
             f"reason={exit_reason}, "
-            f"P&L=${entry.realized_pnl:+.2f} "
-            f"({entry.realized_pnl_pct:+.1f}%), "
-            f"R={entry.r_multiple:+.2f}"
+            f"P&L=${pnl:+.2f} "
+            f"({pnl_pct:+.1f}%), "
+            f"R={r_mul:+.2f}"
         )
 
     except Exception as exc:
