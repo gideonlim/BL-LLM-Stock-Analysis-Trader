@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-03-31T17:52:20",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "C up 3.2% \u2014 moving SL to breakeven $109.06 (was $0.00)",
+      "action_taken": "SL moved to breakeven $109.06",
+      "current_price": 112.58,
+      "entry_price": 109.06,
+      "pnl_pct": 3.23,
+      "timestamp": "2026-03-31T17:52:19"
+    }
+  ]
+}
