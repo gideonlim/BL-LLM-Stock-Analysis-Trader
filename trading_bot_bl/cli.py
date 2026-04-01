@@ -244,7 +244,20 @@ def _run_monitor_only(
 
     log.info(f"{'=' * 60}\n")
 
-    if report.has_critical:
+    # Exit with error only if there are critical alerts that
+    # were NOT resolved by the monitor (i.e. no action was taken
+    # or the action failed).  Resolved criticals (reattached
+    # brackets, successful closes) should not fail the workflow.
+    unresolved = [
+        a for a in report.alerts
+        if a.severity == "critical"
+        and (
+            not a.action_taken
+            or "failed" in a.action_taken.lower()
+            or "DRY RUN" in a.action_taken
+        )
+    ]
+    if unresolved:
         sys.exit(1)
 
 

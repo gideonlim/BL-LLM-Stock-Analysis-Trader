@@ -23,14 +23,14 @@
   "initial_risk_dollars": 0.0,
   "initial_reward_dollars": 1177.88,
   "planned_rr_ratio": 0.0,
-  "exit_price": 261.94,
-  "exit_date": "2026-03-30T21:09:28",
-  "exit_reason": "time_exit",
+  "exit_price": 0.0,
+  "exit_date": "",
+  "exit_reason": "",
   "exit_order_id": "",
-  "exit_fill_price": 261.94,
+  "exit_fill_price": 0.0,
   "exit_slippage": null,
-  "realized_pnl": -285.56,
-  "realized_pnl_pct": -2.42,
+  "realized_pnl": 0.0,
+  "realized_pnl_pct": 0.0,
   "r_multiple": null,
   "holding_days": 14,
   "max_favorable_excursion": 271.66,
@@ -81,9 +81,9 @@
       "price": 261.94
     }
   ],
-  "status": "closed",
+  "status": "open",
   "opened_at": "2026-03-16",
-  "closed_at": "2026-03-30T21:09:28",
+  "closed_at": "",
   "tags": [
     "migrated"
   ],

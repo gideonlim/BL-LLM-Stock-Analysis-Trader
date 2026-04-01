@@ -1,10 +1,13 @@
 name: Generate Signals
 
-# Runs before market open to generate fresh signals.
-# US market opens 9:30 AM ET.
+# Runs well before market open to generate fresh signals.
+# US market opens 9:30 AM ET.  Only needs prior-day close
+# data, so running at 7 AM gives a comfortable buffer for
+# signal generation (~60 min) plus GitHub cron delay (~30 min)
+# to finish before execute_trades fires at 10:15 AM ET.
 on:
   schedule:
-    - cron: "0 9 * * 1-5"    # 9:00 AM ET, weekdays
+    - cron: "0 7 * * 1-5"    # 7:00 AM ET, weekdays
       timezone: America/New_York
   workflow_call:               # allow other workflows to invoke this
   workflow_dispatch:           # allow manual trigger

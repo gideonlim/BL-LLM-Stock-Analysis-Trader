@@ -447,6 +447,58 @@ def close_trade(
         )
 
 
+def _reconcile_premature_closes(
+    current_positions: dict[str, dict],
+    journal_dir: Path,
+) -> int:
+    """Revert journal entries that were prematurely marked closed.
+
+    If a journal entry has ``status='closed'`` but the ticker is
+    still held in the portfolio, the close order never actually
+    filled.  Reset the entry to ``open`` so the next monitor run
+    can re-attempt the close properly.
+
+    Returns the number of entries reverted.
+    """
+    reverted = 0
+    if not journal_dir or not journal_dir.exists():
+        return reverted
+
+    for path in journal_dir.glob("*.json"):
+        try:
+            with open(path, encoding="utf-8") as f:
+                d = json.load(f)
+            if d.get("status") != "closed":
+                continue
+            ticker = d.get("ticker", "")
+            if ticker not in current_positions:
+                continue  # correctly closed — position is gone
+
+            # Position still held but journal says closed → revert
+            d["status"] = "open"
+            d["closed_at"] = ""
+            d["exit_price"] = 0.0
+            d["exit_date"] = ""
+            d["exit_reason"] = ""
+            d["exit_order_id"] = ""
+            d["exit_fill_price"] = 0.0
+            d["exit_slippage"] = None
+            d["realized_pnl"] = 0.0
+            d["realized_pnl_pct"] = 0.0
+            d["r_multiple"] = None
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(d, f, indent=2)
+
+            log.warning(
+                f"  Journal: reverted {d.get('trade_id')} to open "
+                f"— position {ticker} still held"
+            )
+            reverted += 1
+        except Exception:
+            continue
+    return reverted
+
+
 def detect_closed_trades(
     current_positions: dict[str, dict],
     journal_dir: Path,
@@ -458,12 +510,26 @@ def detect_closed_trades(
     positions.  Any entry whose ticker no longer appears in
     positions is considered closed.
 
+    First runs a reconciliation pass: if any journal entry is
+    marked ``closed`` but the ticker is still in the portfolio
+    (i.e. the close order never filled), it reverts the entry
+    to ``open``.
+
     If a broker is provided, queries Alpaca for exit details
     (fill price, exit reason).  Otherwise uses the last known
     price from the entry's price_samples.
 
     Returns list of newly closed entries.
     """
+    # Safety: revert prematurely closed entries
+    reverted = _reconcile_premature_closes(
+        current_positions, journal_dir,
+    )
+    if reverted:
+        log.info(
+            f"  Journal: reconciled {reverted} premature close(s)"
+        )
+
     closed: list[JournalEntry] = []
     try:
         open_entries = load_open_trades(journal_dir)
