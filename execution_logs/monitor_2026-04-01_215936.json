@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-04-01T21:59:36",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "C up 5.7% \u2014 moving SL to breakeven $109.06 (was $0.00)",
+      "action_taken": "DRY RUN: would move SL to breakeven",
+      "current_price": 115.33,
+      "entry_price": 109.06,
+      "pnl_pct": 5.75,
+      "timestamp": "2026-04-01T21:59:35"
+    },
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C bracket is very wide (117% of entry). SL=$0.00, TP=$127.59, now=$115.33 (+5.7%)",
+      "action_taken": "",
+      "current_price": 115.33,
+      "entry_price": 109.06,
+      "pnl_pct": 5.75,
+      "timestamp": "2026-04-01T21:59:35"
+    },
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C up 5.7% \u2014 tightening SL from $0.00 to $109.06 (ATR=3.63)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 115.33,
+      "entry_price": 109.06,
+      "pnl_pct": 5.75,
+      "timestamp": "2026-04-01T21:59:35"
+    }
+  ]
+}
