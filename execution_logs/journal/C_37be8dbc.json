@@ -70,6 +70,13 @@
       "new_sl": 109.06,
       "reason": "breakeven",
       "price_at_modification": 115.65
+    },
+    {
+      "date": "2026-04-01T17:45:06",
+      "old_sl": 109.06,
+      "new_sl": 109.06,
+      "reason": "breakeven",
+      "price_at_modification": 115.56
     }
   ],
   "price_samples": [
