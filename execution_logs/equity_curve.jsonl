@@ -43,3 +43,4 @@
 {"timestamp": "2026-03-30T22:59:02", "equity": 98361.99, "cash": 76125.46, "market_value": 22236.53, "num_positions": 2, "realized_pnl_today": 0.0, "unrealized_pnl": -437.48, "day_pnl": 74.73, "day_pnl_pct": 0.08, "drawdown_pct": 1.193, "high_water_mark": 99549.61, "exposure_pct": 22.61}
 >>>>>>> Stashed changes
 {"timestamp": "2026-04-01T14:50:42", "equity": 99314.7, "cash": 44434.17, "market_value": 54880.53, "num_positions": 5, "realized_pnl_today": 0.0, "unrealized_pnl": 787.51, "day_pnl": 436.22, "day_pnl_pct": 0.44, "drawdown_pct": 0.0, "high_water_mark": 99314.7, "exposure_pct": 55.26}
+{"timestamp": "2026-04-01T14:56:47", "equity": 99348.38, "cash": 44434.17, "market_value": 54914.21, "num_positions": 5, "realized_pnl_today": 0.0, "unrealized_pnl": 821.19, "day_pnl": 469.9, "day_pnl_pct": 0.48, "drawdown_pct": 0.0, "high_water_mark": 99348.38, "exposure_pct": 55.27}
