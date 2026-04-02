@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-02T14:40:03",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "C up 5.5% \u2014 moving SL to breakeven $109.06 (was $103.82)",
+      "action_taken": "SL moved to breakeven $109.06",
+      "current_price": 115.025,
+      "entry_price": 109.06,
+      "pnl_pct": 5.47,
+      "timestamp": "2026-04-02T14:40:02"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "VRSN up 2.4% \u2014 moving SL to breakeven $252.63 (was $243.71)",
+      "action_taken": "Failed to move SL to breakeven",
+      "current_price": 258.79,
+      "entry_price": 252.63,
+      "pnl_pct": 2.44,
+      "timestamp": "2026-04-02T14:40:03"
+    }
+  ]
+}
