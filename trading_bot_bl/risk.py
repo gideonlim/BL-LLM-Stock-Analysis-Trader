@@ -354,6 +354,21 @@ class RiskManager:
                 reason="Daily loss circuit breaker is active",
             )
 
+        # ── Sell / exit orders ────────────────────────────────────
+        # Exit orders should close the full position without being
+        # constrained by buy-side limits (exposure cap, per-stock
+        # cap, cash, sentiment multiplier, etc.).  The only check
+        # that applies to exits is the circuit breaker above.
+        # In live mode Alpaca's close_position() ignores notional
+        # anyway, but in dry-run mode the logged amount must
+        # reflect the real exit size for accurate P&L tracking.
+        if intent.side == "sell":
+            return RiskVerdict(
+                approved=True,
+                order=intent,
+                adjusted_notional=intent.notional,
+            )
+
         # ── SPY regime hard halt ──────────────────────────────────
         if (
             intent.side == "buy"

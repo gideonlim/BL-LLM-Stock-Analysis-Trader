@@ -568,12 +568,16 @@ def execute(
 
         # ── 10. Submit order ──────────────────────────────────────
         if config.dry_run:
+            bracket_info = (
+                f" (SL=${approved_order.stop_loss_price}, "
+                f"TP=${approved_order.take_profit_price})"
+                if approved_order.side == "buy"
+                else ""
+            )
             log.info(
                 f"  DRY RUN: would {approved_order.side.upper()} "
                 f"${approved_order.notional:,.2f} of "
-                f"{approved_order.ticker} "
-                f"(SL=${approved_order.stop_loss_price}, "
-                f"TP=${approved_order.take_profit_price})"
+                f"{approved_order.ticker}{bracket_info}"
             )
             results.append(
                 OrderResult(

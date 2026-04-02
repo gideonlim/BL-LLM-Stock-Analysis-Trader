@@ -409,6 +409,219 @@ class PEAD_Drift(Strategy):
         return signals
 
 
+# ── Multi-factor momentum + mean reversion ──────────────────────────
+
+
+class MultiFactorMomentumMR(Strategy):
+    """Composite momentum strategy with mean-reversion entry timing.
+
+    Combines up to five z-scored factors based on academic anomalies:
+      - 6-month momentum (skip last month) — Jegadeesh & Titman
+      - 1-month momentum — short-term confirmation
+      - RSI mean reversion (inverted) — buy dips in uptrends
+      - Inverse volatility — Barroso & Santa-Clara (2015)
+      - Volume surge — institutional participation
+
+    On short scoring windows (3mo/6mo) where 6-month momentum is
+    unavailable, the strategy adaptively redistributes its weight
+    across the remaining factors so it can still participate in
+    selection rather than returning all-zero.
+
+    Signals are transition-based (``+1`` on entry, ``-1`` on exit,
+    ``0`` otherwise) to avoid the backtester charging repeated
+    transaction costs on level signals while flat.
+
+    Filters: above 200-SMA, RSI < 70, positive momentum.
+    """
+
+    name = "Multi-Factor Momentum MR"
+    description = (
+        "Buy momentum stocks on pullbacks using z-scored "
+        "factors (momentum, inverted RSI, inverse vol, "
+        "volume surge) with trend and overbought filters"
+    )
+
+    # Factor weights (full 5-factor mode)
+    _FACTOR_DEFS = {
+        # key: (base_weight, min_bars_needed)
+        "mom_6m":    (0.35, 126 + 21),  # MOM_6M + SKIP
+        "mom_1m":    (0.25, 21),
+        "rsi_inv":   (0.15, 14),
+        "inv_vol":   (0.15, 20),
+        "vol_surge": (0.10, 20),
+    }
+
+    # Lookback periods (trading days)
+    MOM_6M_DAYS = 126      # ~6 months
+    MOM_SKIP_DAYS = 21     # skip most recent month
+    MOM_1M_DAYS = 21       # ~1 month
+    ZSCORE_WINDOW = 63     # rolling z-score lookback (~3 months)
+
+    # Filter thresholds
+    RSI_OVERBOUGHT = 70
+    SCORE_BUY_THRESHOLD = 0.5
+    SCORE_EXIT_THRESHOLD = -0.3
+
+    # Minimum bars: need at least 1-month momentum + z-score min
+    # periods to produce any meaningful signal at all.
+    _ABSOLUTE_MIN_BARS = 21 + 20  # MOM_1M + z-score min_periods
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        signals = pd.Series(0, index=df.index)
+
+        # Graceful degradation: check required columns
+        required = [
+            "Close", "SMA_200", "RSI_14", "Volatility_20",
+            "Vol_Ratio",
+        ]
+        if not all(col in df.columns for col in required):
+            return signals
+
+        c = df["Close"]
+        n = len(df)
+
+        # Need enough bars for at least the short-window factors
+        if n < self._ABSOLUTE_MIN_BARS:
+            return signals
+
+        # ── Compute raw factors ─────────────────────────────
+        # 6-month momentum (skip last month) — may be NaN on
+        # short windows, which is fine; we adapt weights below.
+        mom_6m = (
+            c.shift(self.MOM_SKIP_DAYS)
+            / c.shift(self.MOM_6M_DAYS + self.MOM_SKIP_DAYS)
+            - 1
+        )
+
+        mom_1m = c / c.shift(self.MOM_1M_DAYS) - 1
+        rsi_inv = 100 - df["RSI_14"]
+
+        vol = df["Volatility_20"].replace(0, np.nan)
+        inv_vol = 1.0 / vol
+
+        vol_surge = df["Vol_Ratio"]
+
+        # ── Z-score each factor over rolling window ─────────
+        def _rolling_zscore(series: pd.Series) -> pd.Series:
+            mu = series.rolling(
+                self.ZSCORE_WINDOW, min_periods=20,
+            ).mean()
+            sigma = series.rolling(
+                self.ZSCORE_WINDOW, min_periods=20,
+            ).std()
+            z = (series - mu) / sigma.replace(0, np.nan)
+            return z.clip(-3, 3).fillna(0)
+
+        raw_factors = {
+            "mom_6m":    mom_6m,
+            "mom_1m":    mom_1m,
+            "rsi_inv":   rsi_inv,
+            "inv_vol":   inv_vol,
+            "vol_surge": vol_surge,
+        }
+        z_factors = {k: _rolling_zscore(v) for k, v in raw_factors.items()}
+
+        # ── Adaptive weighting ──────────────────────────────
+        # Determine which factors have enough history to be
+        # meaningful.  If 6-month momentum is unavailable (short
+        # window), redistribute its weight proportionally across
+        # the remaining factors.
+        available = {
+            k for k, (_, min_n) in self._FACTOR_DEFS.items()
+            if n >= min_n + 20  # +20 for z-score min_periods
+        }
+
+        if not available:
+            return signals
+
+        raw_weights = {
+            k: w for k, (w, _) in self._FACTOR_DEFS.items()
+            if k in available
+        }
+        total_w = sum(raw_weights.values())
+        weights = {k: w / total_w for k, w in raw_weights.items()}
+
+        # ── Weighted composite score ────────────────────────
+        score = pd.Series(0.0, index=df.index)
+        for k, w in weights.items():
+            score += w * z_factors[k]
+
+        # ── Warm-up mask ────────────────────────────────────
+        # SMA_200 is NaN until bar 200 (min_periods=200 in
+        # indicators.py).  Before SMA_200 is valid, the trend
+        # filter can't be evaluated, so we must NOT emit any
+        # signal — otherwise ~above_200sma produces spurious
+        # -1 exits across the whole warm-up region, and the
+        # backtester charges exit cost on each bar while flat.
+        sma_valid = df["SMA_200"].notna()
+        tradeable = sma_valid
+
+        # ── Filters ─────────────────────────────────────────
+        above_200sma = c > df["SMA_200"]
+        not_overbought = df["RSI_14"] < self.RSI_OVERBOUGHT
+
+        # Use 6-month momentum filter when available, fall back
+        # to 1-month momentum on short windows.
+        if "mom_6m" in available:
+            positive_momentum = mom_6m > 0
+        else:
+            positive_momentum = mom_1m > 0
+
+        # All filters must pass for a BUY, and warm-up must be done
+        buy_eligible = (
+            tradeable & above_200sma & not_overbought & positive_momentum
+        )
+
+        # ── Desired-position state machine ─────────────────
+        # Track the desired position at every bar:
+        #   +1 = want to be long
+        #   -1 = want to be flat
+        #
+        # Entry and exit conditions set explicit values; bars
+        # with no new decision are NaN and forward-filled from
+        # the last explicit decision.  This avoids two bugs:
+        #
+        #  a) Sparse-level false buys: a naive level vector of
+        #     [-1, 0, 0, ...] diffs to [+1, 0, ...], creating
+        #     phantom entries when "exit stopped firing" rather
+        #     than a genuine buy condition.
+        #
+        #  b) Repeated-exit cost leak: level-based -1 on every
+        #     bar below 200-SMA causes the backtester to charge
+        #     exit cost each bar while already flat.
+        #
+        # By forward-filling, consecutive identical states diff
+        # to 0, and only genuine state changes produce ±1.
+
+        desired = pd.Series(np.nan, index=df.index)
+
+        # Entry: we want to be long
+        desired[buy_eligible & (score > self.SCORE_BUY_THRESHOLD)] = 1
+
+        # Exit: score collapses or price drops below 200-SMA.
+        # Only in the tradeable region.
+        exit_cond = tradeable & (
+            (score < self.SCORE_EXIT_THRESHOLD)
+            | (~above_200sma)
+        )
+        desired[exit_cond] = -1
+
+        # Non-tradeable bars (SMA warm-up): force flat so no
+        # signal leaks out of the warm-up region, and so the
+        # first tradeable exit bar doesn't diff against NaN/0.
+        desired[~tradeable] = -1
+
+        # Forward-fill: bars with no new decision hold the last
+        # explicit state.  Initial NaN gap (if any) fills to -1.
+        desired = desired.ffill().fillna(-1)
+
+        # Convert desired position to transition signals:
+        # +1 on the bar we enter, -1 on the bar we exit, 0 hold.
+        signals = desired.diff().clip(-1, 1).fillna(0).astype(int)
+
+        return signals
+
+
 # ── Registry ──────────────────────────────────────────────────────────
 
 ALL_STRATEGIES: List[Strategy] = [
@@ -426,4 +639,5 @@ ALL_STRATEGIES: List[Strategy] = [
     DonchianBreakout(),
     FiftyTwoWeekHighMomentum(),
     PEAD_Drift(),
+    MultiFactorMomentumMR(),
 ]
