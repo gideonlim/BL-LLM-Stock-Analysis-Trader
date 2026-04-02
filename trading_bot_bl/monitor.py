@@ -344,6 +344,22 @@ def monitor_positions(
                 has_take_profit = True
                 tp_order_id = str(order.id)
 
+        # ── Fallback: recover SL/TP from journal if API ─────
+        # didn't return them (OCO held legs are invisible).
+        if _j_entry:
+            if sl_price == 0.0 and _j_entry.original_sl_price:
+                sl_price = _j_entry.original_sl_price
+                log.info(
+                    f"  {ticker}: SL price recovered from "
+                    f"journal → ${sl_price:.2f}"
+                )
+            if tp_price == 0.0 and _j_entry.original_tp_price:
+                tp_price = _j_entry.original_tp_price
+                log.info(
+                    f"  {ticker}: TP price recovered from "
+                    f"journal → ${tp_price:.2f}"
+                )
+
         # ── Check 1: Emergency loss ──────────────────────────
         if pnl_pct <= -limits.emergency_loss_pct:
             alert = PositionAlert(

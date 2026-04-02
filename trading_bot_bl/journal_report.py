@@ -99,33 +99,72 @@ def _compute_benchmark_stats(
     bot_equity: list[float],
     spy_prices: list[tuple[datetime, float]],
 ) -> Optional[BenchmarkStats]:
-    """Compute side-by-side bot vs SPY statistics."""
+    """Compute side-by-side bot vs SPY statistics.
+
+    Aligns bot equity to SPY by calendar date so both series
+    cover the same time window.  Bot snapshots on non-trading
+    days are carried forward to the next SPY trading day.
+    """
     if len(bot_dates) < 3 or len(spy_prices) < 3:
         return None
 
-    # Build daily bot returns from equity series
+    # Index bot equity by date (last snapshot per day wins)
+    bot_by_date: dict[str, float] = {}
+    for dt, eq in zip(bot_dates, bot_equity):
+        bot_by_date[dt.strftime("%Y-%m-%d")] = eq
+
+    # Index SPY prices by date
+    spy_by_date: dict[str, float] = {}
+    for dt, price in spy_prices:
+        spy_by_date[dt.strftime("%Y-%m-%d")] = price
+
+    # Find common dates (SPY trading days where we have bot data)
+    # For bot dates without a SPY match, carry bot equity forward
+    # to the next SPY trading day.
+    spy_dates_sorted = sorted(spy_by_date.keys())
+    bot_dates_sorted = sorted(bot_by_date.keys())
+
+    # Build bot equity on SPY trading days by carrying forward
+    # the most recent bot snapshot
+    aligned_bot: list[float] = []
+    aligned_spy: list[float] = []
+    last_bot_eq: Optional[float] = None
+
+    all_dates = sorted(set(bot_dates_sorted + spy_dates_sorted))
+    for d in all_dates:
+        # Update last known bot equity
+        if d in bot_by_date:
+            last_bot_eq = bot_by_date[d]
+        # On SPY trading days, record both
+        if d in spy_by_date and last_bot_eq is not None:
+            aligned_bot.append(last_bot_eq)
+            aligned_spy.append(spy_by_date[d])
+
+    if len(aligned_bot) < 3:
+        return None
+
+    # Compute daily returns from the aligned equity/price series
     bot_returns: list[float] = []
-    for i in range(1, len(bot_equity)):
-        if bot_equity[i - 1] != 0:
-            bot_returns.append(bot_equity[i] / bot_equity[i - 1] - 1)
+    spy_returns: list[float] = []
+    for i in range(1, len(aligned_bot)):
+        if aligned_bot[i - 1] != 0:
+            bot_returns.append(
+                aligned_bot[i] / aligned_bot[i - 1] - 1
+            )
         else:
             bot_returns.append(0.0)
-
-    # Build daily SPY returns from price series
-    spy_returns: list[float] = []
-    for i in range(1, len(spy_prices)):
-        prev_price = spy_prices[i - 1][1]
-        if prev_price != 0:
-            spy_returns.append(spy_prices[i][1] / prev_price - 1)
+        if aligned_spy[i - 1] != 0:
+            spy_returns.append(
+                aligned_spy[i] / aligned_spy[i - 1] - 1
+            )
         else:
             spy_returns.append(0.0)
 
-    # Align to same length (use shorter)
-    min_len = min(len(bot_returns), len(spy_returns))
-    if min_len < 2:
+    if len(bot_returns) < 2:
         return None
-    bot_r = np.array(bot_returns[-min_len:])
-    spy_r = np.array(spy_returns[-min_len:])
+
+    bot_r = np.array(bot_returns)
+    spy_r = np.array(spy_returns)
 
     trading_days = 252
 
@@ -405,8 +444,15 @@ def _chart_pnl_distribution(trades: list[JournalEntry]) -> Optional[io.BytesIO]:
 
     import matplotlib.pyplot as plt
 
-    pnl_vals = [t.realized_pnl for t in trades]
-    r_vals = [t.r_multiple for t in trades if t.r_multiple != 0]
+    sorted_trades = sorted(
+        trades, key=lambda t: t.closed_at or t.exit_date or "",
+    )
+    pnl_vals = [t.realized_pnl or 0.0 for t in sorted_trades]
+    r_vals = [
+        t.r_multiple for t in sorted_trades
+        if t.r_multiple is not None
+        and t.initial_risk_dollars
+    ]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.5))
 
@@ -483,16 +529,22 @@ def _chart_win_loss(metrics: JournalMetrics) -> Optional[io.BytesIO]:
 
 
 def _chart_cumulative_pnl(trades: list[JournalEntry]) -> Optional[io.BytesIO]:
-    """Cumulative P&L curve over trade sequence."""
+    """Cumulative P&L curve over trade sequence (chronological)."""
     if len(trades) < 2:
         return None
 
     import matplotlib.pyplot as plt
 
+    # Sort by close date for a meaningful chronological curve
+    sorted_trades = sorted(
+        trades,
+        key=lambda t: t.closed_at or t.exit_date or "",
+    )
+
     cum_pnl = []
     running = 0.0
-    for t in trades:
-        running += t.realized_pnl
+    for t in sorted_trades:
+        running += t.realized_pnl or 0.0
         cum_pnl.append(running)
 
     fig, ax = plt.subplots(figsize=(10, 3))
@@ -641,16 +693,23 @@ def generate_pdf_report(
     ]
     if snapshots:
         first, last = snapshots[0], snapshots[-1]
+        equity_change = last.equity - first.equity
+        eq_color = "#22c55e" if equity_change >= 0 else "#ef4444"
         summary_data.append([
             _lbl("Starting Equity"), _val(f"${first.equity:,.2f}"),
             _lbl("Current Equity"), _val(f"${last.equity:,.2f}"),
             _lbl("HWM"), _val(f"${last.high_water_mark:,.2f}"),
         ])
         summary_data.append([
+            _lbl("Net P&amp;L"),
+            Paragraph(
+                f'<font color="{eq_color}">'
+                f"${equity_change:+,.2f}</font>",
+                styles["CellValue"],
+            ),
+            _lbl("Drawdown"), _val(f"{last.drawdown_pct:.2f}%"),
             _lbl("Period"),
             _val(f"{first.timestamp[:10]} to {last.timestamp[:10]}"),
-            _lbl("Snapshots"), _val(str(len(snapshots))),
-            _lbl("Drawdown"), _val(f"{last.drawdown_pct:.2f}%"),
         ])
 
     if summary_data:
@@ -696,7 +755,7 @@ def generate_pdf_report(
     metrics_data = [
         [_lbl("Win Rate"), _val(f"{o.win_rate:.1%}"),
          _lbl("Profit Factor"), _val(f"{o.profit_factor:.2f}")],
-        [_lbl("Total P&amp;L"),
+        [_lbl("Closed P&amp;L"),
          Paragraph(_fmt_pnl(o.total_pnl), styles["CellValue"]),
          _lbl("Expectancy"), _val(f"${o.expectancy:+.2f}/trade")],
         [_lbl("Avg Win"), _val(f"${o.avg_win:+.2f}"),
@@ -957,7 +1016,9 @@ def generate_pdf_report(
                 _cell(f"{s.win_rate:.0%}"),
                 _cell(f"{s.profit_factor:.2f}"),
                 _cell(f"{s.avg_r:+.2f}"),
-                _cell(f"${s.total_pnl:+,.2f}"),
+                Paragraph(
+                    _fmt_pnl(s.total_pnl), styles["CellSmall"],
+                ),
             ])
         t = Table(rows, colWidths=breakdown_widths)
         t.setStyle(breakdown_style)
@@ -978,7 +1039,9 @@ def generate_pdf_report(
                 _cell(f"{r.win_rate:.0%}"),
                 _cell(f"{r.profit_factor:.2f}"),
                 _cell(f"{r.avg_r:+.2f}"),
-                _cell(f"${r.total_pnl:+,.2f}"),
+                Paragraph(
+                    _fmt_pnl(r.total_pnl), styles["CellSmall"],
+                ),
             ])
         t = Table(rows, colWidths=breakdown_widths)
         t.setStyle(breakdown_style)
@@ -996,8 +1059,11 @@ def generate_pdf_report(
         _hdr("P&amp;L"), _hdr("R"), _hdr("Days"), _hdr("Exit Reason"),
     ]
     rows = [log_hdr]
-    for t_entry in trades:
-        pnl_color = "#22c55e" if t_entry.realized_pnl >= 0 else "#ef4444"
+    for t_entry in sorted(
+        trades, key=lambda t: t.closed_at or t.exit_date or "",
+    ):
+        _pnl = t_entry.realized_pnl or 0.0
+        pnl_color = "#22c55e" if _pnl >= 0 else "#ef4444"
         rows.append([
             _cell(t_entry.ticker),
             _cell(t_entry.strategy[:16]),
@@ -1006,11 +1072,13 @@ def generate_pdf_report(
             _cell(f"${t_entry.exit_price:.2f}"
                   if t_entry.exit_price else "-"),
             Paragraph(
-                f'<font color="{pnl_color}">${t_entry.realized_pnl:+.2f}</font>',
+                f'<font color="{pnl_color}">${_pnl:+.2f}</font>',
                 styles["CellSmall"],
             ),
             _cell(f"{t_entry.r_multiple:+.2f}"
-                  if t_entry.r_multiple else "-"),
+                  if t_entry.r_multiple is not None
+                  and t_entry.initial_risk_dollars
+                  else "-"),
             _cell(str(t_entry.holding_days)
                   if t_entry.holding_days else "-"),
             _cell(t_entry.exit_reason or "-"),

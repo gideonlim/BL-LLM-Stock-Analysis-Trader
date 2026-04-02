@@ -247,7 +247,7 @@ def _compute_overall(closed: list[JournalEntry]) -> OverallMetrics:
     m = OverallMetrics()
     m.total_trades = len(closed)
 
-    pnls = [t.realized_pnl for t in closed]
+    pnls = [t.realized_pnl or 0.0 for t in closed]
     r_multiples = [t.r_multiple for t in closed]
 
     wins = [p for p in pnls if p > 0]
@@ -281,7 +281,7 @@ def _compute_overall(closed: list[JournalEntry]) -> OverallMetrics:
     )
 
     # Expectancy in R
-    valid_r = [r for r in r_multiples if r != 0 or True]
+    valid_r = [r for r in r_multiples if r is not None]
     if valid_r:
         m.expectancy_r = round(
             sum(valid_r) / len(valid_r), 4
@@ -302,7 +302,7 @@ def _compute_r_distribution(
     closed: list[JournalEntry],
 ) -> RDistribution:
     r = RDistribution()
-    r_vals = [t.r_multiple for t in closed]
+    r_vals = [t.r_multiple for t in closed if t.r_multiple is not None]
     if not r_vals:
         return r
 
@@ -346,8 +346,8 @@ def _compute_excursion(
     closed: list[JournalEntry],
 ) -> ExcursionMetrics:
     e = ExcursionMetrics()
-    winners = [t for t in closed if t.realized_pnl > 0]
-    losers = [t for t in closed if t.realized_pnl < 0]
+    winners = [t for t in closed if (t.realized_pnl or 0) > 0]
+    losers = [t for t in closed if (t.realized_pnl or 0) < 0]
 
     if winners:
         e.avg_mae_winners = round(
@@ -362,7 +362,7 @@ def _compute_excursion(
         e.avg_edge_ratio_winners = round(
             _safe_mean([
                 t.edge_ratio for t in winners
-                if t.edge_ratio > 0
+                if (t.edge_ratio or 0) > 0
             ]),
             2,
         )
@@ -377,7 +377,10 @@ def _compute_excursion(
             _safe_mean([t.etd_pct for t in losers]), 2
         )
 
-    all_er = [t.edge_ratio for t in closed if t.edge_ratio > 0]
+    all_er = [
+        t.edge_ratio for t in closed
+        if (t.edge_ratio or 0) > 0
+    ]
     if all_er:
         e.avg_edge_ratio = round(_safe_mean(all_er), 2)
 
@@ -431,12 +434,12 @@ def _compute_execution(
     )
 
     total_slip = sum(
-        abs(t.entry_slippage) + abs(t.exit_slippage)
+        abs(t.entry_slippage or 0) + abs(t.exit_slippage or 0)
         for t in closed
     )
     e.total_implementation_shortfall = round(total_slip, 2)
 
-    total_abs_pnl = sum(abs(t.realized_pnl) for t in closed)
+    total_abs_pnl = sum(abs(t.realized_pnl or 0) for t in closed)
     if total_abs_pnl > 0:
         e.slippage_pct_of_pnl = round(
             total_slip / total_abs_pnl * 100, 2
@@ -449,12 +452,12 @@ def _compute_holding(
     closed: list[JournalEntry],
 ) -> HoldingMetrics:
     h = HoldingMetrics()
-    winners = [t for t in closed if t.realized_pnl > 0]
-    losers = [t for t in closed if t.realized_pnl < 0]
+    winners = [t for t in closed if (t.realized_pnl or 0) > 0]
+    losers = [t for t in closed if (t.realized_pnl or 0) < 0]
 
-    all_days = [t.holding_days for t in closed if t.holding_days > 0]
-    win_days = [t.holding_days for t in winners if t.holding_days > 0]
-    loss_days = [t.holding_days for t in losers if t.holding_days > 0]
+    all_days = [t.holding_days for t in closed if (t.holding_days or 0) > 0]
+    win_days = [t.holding_days for t in winners if (t.holding_days or 0) > 0]
+    loss_days = [t.holding_days for t in losers if (t.holding_days or 0) > 0]
 
     if all_days:
         h.avg_hold_all = round(_safe_mean(all_days), 1)
@@ -465,8 +468,8 @@ def _compute_holding(
 
     # Correlation between hold time and return
     if len(closed) > 2:
-        days_list = [float(t.holding_days) for t in closed]
-        pnl_list = [t.realized_pnl_pct for t in closed]
+        days_list = [float(t.holding_days or 0) for t in closed]
+        pnl_list = [t.realized_pnl_pct or 0 for t in closed]
         h.hold_return_correlation = round(
             _pearson_corr(days_list, pnl_list), 4
         )
@@ -501,7 +504,7 @@ def _compute_streaks(
     )
 
     outcomes = [
-        "win" if t.realized_pnl > 0 else "loss"
+        "win" if (t.realized_pnl or 0) > 0 else "loss"
         for t in sorted_trades
     ]
 
@@ -543,7 +546,7 @@ def _compute_streaks(
     # Expected max losing streak
     n = len(closed)
     loss_rate = 1 - (
-        sum(1 for t in closed if t.realized_pnl > 0) / n
+        sum(1 for t in closed if (t.realized_pnl or 0) > 0) / n
     )
     if 0 < loss_rate < 1 and n > 0:
         s.expected_max_losing_streak = max(
@@ -736,19 +739,19 @@ def _compute_by_strategy(
     for name, trades in groups.items():
         b = StrategyBreakdown(strategy=name)
         b.trade_count = len(trades)
-        wins = [t for t in trades if t.realized_pnl > 0]
-        losses = [t for t in trades if t.realized_pnl < 0]
+        wins = [t for t in trades if (t.realized_pnl or 0) > 0]
+        losses = [t for t in trades if (t.realized_pnl or 0) < 0]
         b.win_rate = round(len(wins) / len(trades), 4)
         b.total_pnl = round(
-            sum(t.realized_pnl for t in trades), 2
+            sum(t.realized_pnl or 0 for t in trades), 2
         )
 
         r_vals = [t.r_multiple for t in trades]
         if r_vals:
             b.avg_r = round(_safe_mean(r_vals), 4)
 
-        gross_w = sum(t.realized_pnl for t in wins)
-        gross_l = abs(sum(t.realized_pnl for t in losses))
+        gross_w = sum(t.realized_pnl or 0 for t in wins)
+        gross_l = abs(sum(t.realized_pnl or 0 for t in losses))
         if gross_l > 0:
             b.profit_factor = round(gross_w / gross_l, 2)
         elif gross_w > 0:
@@ -759,18 +762,20 @@ def _compute_by_strategy(
         )
 
         edge_ratios = [
-            t.edge_ratio for t in trades if t.edge_ratio > 0
+            t.edge_ratio for t in trades
+            if (t.edge_ratio or 0) > 0
         ]
         if edge_ratios:
             b.avg_edge_ratio = round(_safe_mean(edge_ratios), 2)
 
         hold_days = [
-            t.holding_days for t in trades if t.holding_days > 0
+            t.holding_days for t in trades
+            if (t.holding_days or 0) > 0
         ]
         if hold_days:
             b.avg_holding_days = round(_safe_mean(hold_days), 1)
 
-        etds = [t.etd_pct for t in trades if t.etd_pct != 0]
+        etds = [t.etd_pct for t in trades if (t.etd_pct or 0) != 0]
         if etds:
             b.avg_etd_pct = round(_safe_mean(etds), 2)
 
@@ -791,17 +796,17 @@ def _compute_by_regime(
     for name, trades in groups.items():
         b = RegimeBreakdown(regime=name)
         b.trade_count = len(trades)
-        wins = [t for t in trades if t.realized_pnl > 0]
-        losses = [t for t in trades if t.realized_pnl < 0]
+        wins = [t for t in trades if (t.realized_pnl or 0) > 0]
+        losses = [t for t in trades if (t.realized_pnl or 0) < 0]
         b.win_rate = round(len(wins) / len(trades), 4)
         b.total_pnl = round(
-            sum(t.realized_pnl for t in trades), 2
+            sum(t.realized_pnl or 0 for t in trades), 2
         )
         r_vals = [t.r_multiple for t in trades]
         if r_vals:
             b.avg_r = round(_safe_mean(r_vals), 4)
-        gross_w = sum(t.realized_pnl for t in wins)
-        gross_l = abs(sum(t.realized_pnl for t in losses))
+        gross_w = sum(t.realized_pnl or 0 for t in wins)
+        gross_l = abs(sum(t.realized_pnl or 0 for t in losses))
         if gross_l > 0:
             b.profit_factor = round(gross_w / gross_l, 2)
         elif gross_w > 0:
@@ -939,9 +944,10 @@ def export_metrics_json(
 
 
 def _safe_mean(values: list) -> float:
-    if not values:
+    clean = [v for v in values if v is not None]
+    if not clean:
         return 0.0
-    return sum(values) / len(values)
+    return sum(clean) / len(clean)
 
 
 def _std(values: list[float]) -> float:
