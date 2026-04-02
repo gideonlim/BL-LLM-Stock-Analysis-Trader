@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-02T14:45:47",
+  "positions_checked": 5,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "C up 5.2% \u2014 moving SL to breakeven $109.06 (was $103.82)",
+      "action_taken": "SL moved to breakeven $109.06",
+      "current_price": 114.68,
+      "entry_price": 109.06,
+      "pnl_pct": 5.15,
+      "timestamp": "2026-04-02T14:45:45"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "VRSN has NO protective orders (SL/TP legs missing). P&L: +2.1%, entry=$252.63, now=$257.97",
+      "action_taken": "Reattached OCO: SL=$245.07, TP=$283.77",
+      "current_price": 257.97,
+      "entry_price": 252.63,
+      "pnl_pct": 2.11,
+      "timestamp": "2026-04-02T14:45:47"
+    }
+  ]
+}
