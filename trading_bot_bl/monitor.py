@@ -346,13 +346,35 @@ def monitor_positions(
 
         # ── Fallback: recover SL/TP from journal if API ─────
         # didn't return them (OCO held legs are invisible).
+        #
+        # For SL, check sl_modifications first — after a
+        # breakeven or trailing stop move, the most recent
+        # new_sl is the live SL price.  Falling back to
+        # original_sl_price after a modification causes the
+        # monitor to think the SL is still at the old value,
+        # triggering an infinite cancel-replace loop.
         if _j_entry:
-            if sl_price == 0.0 and _j_entry.original_sl_price:
-                sl_price = _j_entry.original_sl_price
-                log.info(
-                    f"  {ticker}: SL price recovered from "
-                    f"journal → ${sl_price:.2f}"
-                )
+            if sl_price == 0.0:
+                # 1. Latest modification (most recent SL move)
+                if _j_entry.sl_modifications:
+                    latest_mod_sl = (
+                        _j_entry.sl_modifications[-1]
+                        .get("new_sl", 0.0)
+                    )
+                    if latest_mod_sl > 0:
+                        sl_price = latest_mod_sl
+                        log.info(
+                            f"  {ticker}: SL price recovered "
+                            f"from journal modification "
+                            f"→ ${sl_price:.2f}"
+                        )
+                # 2. Original SL (no modifications yet)
+                if sl_price == 0.0 and _j_entry.original_sl_price:
+                    sl_price = _j_entry.original_sl_price
+                    log.info(
+                        f"  {ticker}: SL price recovered from "
+                        f"journal (original) → ${sl_price:.2f}"
+                    )
             if tp_price == 0.0 and _j_entry.original_tp_price:
                 tp_price = _j_entry.original_tp_price
                 log.info(
@@ -607,8 +629,9 @@ def monitor_positions(
                         tp_price=tp_price,
                     )
                     if success:
-                        sl_price = be_sl  # update for later checks
-                        # Journal: record SL modification
+                        # Journal: record SL modification.
+                        # Must record BEFORE updating sl_price,
+                        # otherwise old_sl captures the new value.
                         if (
                             _JOURNAL_AVAILABLE
                             and _j_entry
@@ -625,6 +648,7 @@ def monitor_positions(
                                 )
                             except Exception:
                                 pass
+                        sl_price = be_sl  # update for later checks
                     alert.action_taken = (
                         f"SL moved to breakeven ${be_sl:.2f}"
                         if success
