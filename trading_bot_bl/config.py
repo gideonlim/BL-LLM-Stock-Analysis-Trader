@@ -130,6 +130,12 @@ class RiskLimits:
     # PBO of -1 (not computed) always passes.
     max_pbo: float = 0.50
 
+    # ── Churn / cooldown ──────────────────────────────────────
+    # Minimum days between trades on the same ticker.  Applies to
+    # both re-buying after a recent buy *and* re-buying after a
+    # recent sell (post-exit cooldown).
+    ticker_cooldown_days: int = 2
+
     # ── Earnings blackout ─────────────────────────────────────
     # Block new entries near earnings announcements to avoid
     # overnight gap risk that ATR-based stops can't protect against.

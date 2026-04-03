@@ -306,15 +306,14 @@ class RiskManager:
             )
 
         # Check if this ticker was traded very recently
-        # (avoid churning the same stock)
-        if self.history.was_recently_traded(ticker, days=2):
-            th = self.history.get_ticker_history(ticker)
-            return (
-                f"{ticker} was already bought on "
-                f"{th.last_buy_date[:10]} via "
-                f"'{th.last_buy_strategy}' — "
-                f"avoiding churn (2-day cooldown)"
-            )
+        # (avoid churning the same stock — covers both recent
+        # buys and recent sells / exits)
+        cd = self.limits.ticker_cooldown_days
+        churn_reason = self.history.recent_trade_reason(
+            ticker, days=cd
+        )
+        if churn_reason:
+            return churn_reason
 
         # Check if strategy has negative P&L on current positions
         rec = self.history.get_strategy_record(strategy)

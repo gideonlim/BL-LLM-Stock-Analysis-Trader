@@ -143,6 +143,7 @@ class TickerHistory:
     last_buy_date: str = ""
     last_buy_strategy: str = ""
     last_buy_notional: float = 0.0
+    last_sell_date: str = ""
     total_buys: int = 0
     total_exits: int = 0
     strategies_used: set = field(default_factory=set)
@@ -167,18 +168,57 @@ class TradeHistory:
     def was_recently_traded(
         self, ticker: str, days: int = 3
     ) -> bool:
-        """Check if a ticker was bought in the last N days."""
+        """Check if a ticker was bought or sold in the last N days."""
         if ticker not in self.by_ticker:
             return False
         th = self.by_ticker[ticker]
-        if not th.last_buy_date:
-            return False
-        try:
-            last = datetime.fromisoformat(th.last_buy_date)
-            cutoff = datetime.now() - timedelta(days=days)
-            return last >= cutoff
-        except (ValueError, TypeError):
-            return False
+        cutoff = datetime.now() - timedelta(days=days)
+        for dt_str in (th.last_buy_date, th.last_sell_date):
+            if not dt_str:
+                continue
+            try:
+                if datetime.fromisoformat(dt_str) >= cutoff:
+                    return True
+            except (ValueError, TypeError):
+                continue
+        return False
+
+    def recent_trade_reason(
+        self, ticker: str, days: int = 3
+    ) -> Optional[str]:
+        """Return a human-readable reason if the ticker was recently
+        traded, or ``None`` if not.  Checks both buy and sell dates
+        so the risk manager can log the appropriate cooldown cause.
+        """
+        if ticker not in self.by_ticker:
+            return None
+        th = self.by_ticker[ticker]
+        cutoff = datetime.now() - timedelta(days=days)
+
+        # Check sell first — selling yesterday then re-buying is
+        # the more common churn pattern we want to catch.
+        if th.last_sell_date:
+            try:
+                if datetime.fromisoformat(th.last_sell_date) >= cutoff:
+                    return (
+                        f"{ticker} was sold on "
+                        f"{th.last_sell_date[:10]} — "
+                        f"{days}-day post-exit cooldown"
+                    )
+            except (ValueError, TypeError):
+                pass
+        if th.last_buy_date:
+            try:
+                if datetime.fromisoformat(th.last_buy_date) >= cutoff:
+                    return (
+                        f"{ticker} was already bought on "
+                        f"{th.last_buy_date[:10]} via "
+                        f"'{th.last_buy_strategy}' — "
+                        f"avoiding churn ({days}-day cooldown)"
+                    )
+            except (ValueError, TypeError):
+                pass
+        return None
 
     def get_strategy_record(
         self, strategy: str
@@ -301,6 +341,8 @@ def load_trade_history(
                     th.strategies_used.add(strategy)
             elif side in ("sell", "close"):
                 th.total_exits += 1
+                if status == "submitted":
+                    th.last_sell_date = executed_at
 
             # ── Update strategy history ────────────────────
             if strategy:
@@ -345,52 +387,71 @@ def reconcile_with_journal(
 ) -> None:
     """Clear churn state for orders that were never filled.
 
-    Scans the journal directory for entries closed with
-    ``exit_reason == "order_cancelled"`` (i.e. limit orders that
-    expired or were cancelled before filling).  For each such
-    entry, if the ticker's ``last_buy_date`` matches the cancelled
-    order's submission date, the churn fields are reset so the
-    ticker isn't blocked by a 2-day cooldown that never applied.
+    Scans the journal directory and:
 
-    This is intentionally lightweight — it only touches churn
-    fields (``last_buy_date``), not strategy success counters
-    (which measure signal-quality pass-through, not fill rate).
+    1. **Cancelled buy orders** — if a ticker's ``last_buy_date``
+       matches a journal entry closed with
+       ``exit_reason == "order_cancelled"``, the buy-side churn
+       fields are reset so the ticker isn't blocked by a cooldown
+       that never applied.
+
+    2. **Unfilled sell orders** — if a ticker has a
+       ``last_sell_date`` but the journal shows the position is
+       still open (``status != "closed"``), the sell submission
+       didn't actually complete, so ``last_sell_date`` is cleared
+       to avoid a false post-exit cooldown.
     """
     if not journal_dir.exists():
         return
 
     cancelled_tickers: dict[str, str] = {}  # ticker → opened_at
+    # Track tickers with open positions (sell didn't complete)
+    open_tickers: set[str] = set()
+
     for path in journal_dir.glob("*.json"):
         try:
             with open(path, encoding="utf-8") as f:
                 d = json.load(f)
+            ticker = d.get("ticker", "")
+            status = d.get("status", "")
+
             if (
                 d.get("exit_reason") == "order_cancelled"
-                and d.get("status") == "closed"
+                and status == "closed"
             ):
-                ticker = d.get("ticker", "")
                 opened = d.get("opened_at", "")
                 if ticker and opened:
-                    # Keep the latest cancelled date per ticker
                     prev = cancelled_tickers.get(ticker, "")
                     if opened > prev:
                         cancelled_tickers[ticker] = opened
+
+            # Position still open → any recorded sell didn't fill
+            if ticker and status == "open":
+                open_tickers.add(ticker)
+
         except (json.JSONDecodeError, OSError):
             continue
 
     cleared = 0
+
+    # 1. Clear buy-side churn for cancelled entry orders
     for ticker, cancelled_at in cancelled_tickers.items():
         th = history.by_ticker.get(ticker)
         if th and th.last_buy_date:
             # Only clear if the last buy IS the cancelled order
             # (i.e. no subsequent successful buy superseded it).
-            # Compare date portions — opened_at and last_buy_date
-            # are both ISO timestamps from the same bot run.
             if th.last_buy_date[:10] <= cancelled_at[:10]:
                 th.last_buy_date = ""
                 th.last_buy_strategy = ""
                 th.last_buy_notional = 0.0
                 cleared += 1
+
+    # 2. Clear sell-side churn for unfilled exit orders
+    for ticker in open_tickers:
+        th = history.by_ticker.get(ticker)
+        if th and th.last_sell_date:
+            th.last_sell_date = ""
+            cleared += 1
 
     if cleared:
         log.info(
