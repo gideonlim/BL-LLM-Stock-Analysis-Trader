@@ -1452,6 +1452,131 @@ class TestCalculateTrailingStop(unittest.TestCase):
         )
         self.assertIsNone(result)
 
+    # ── Chandelier (highest-high anchored) tests ─────────────
+
+    def test_chandelier_anchors_to_highest_high(self) -> None:
+        """ATR trail should anchor to highest_high, not current_price.
+
+        Entry $100, peak $130, pullback to $120. ATR=5.
+        Old logic: 120 - 10 = $110.
+        Chandelier: 130 - 10 = $120.
+        """
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=120.0,
+            current_sl=90.0,
+            atr=5.0,
+            highest_high=130.0,
+        )
+        self.assertEqual(result, 120.0)
+
+    def test_chandelier_holds_during_pullback(self) -> None:
+        """Stop should hold firm during a pullback, clamped to market.
+
+        Entry $100, peak $120, pullback to $115. ATR=2.
+        Chandelier raw: 120 - 4 = $116, but that's above market ($115).
+        Clamped to $115 (tight protective stop just at market).
+        Without Chandelier: 115 - 4 = $111 — much worse protection.
+        """
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=115.0,
+            current_sl=110.0,
+            atr=2.0,
+            highest_high=120.0,
+        )
+        self.assertEqual(result, 115.0)
+
+    def test_chandelier_falls_back_to_current_when_hh_zero(
+        self,
+    ) -> None:
+        """highest_high=0 → fall back to current_price (pre-Chandelier)."""
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=120.0,
+            current_sl=90.0,
+            atr=5.0,
+            highest_high=0.0,
+        )
+        # Same as old behaviour: 120 - 10 = 110
+        self.assertEqual(result, 110.0)
+
+    def test_chandelier_pct_fallback_uses_peak_gain(self) -> None:
+        """%-based fallback should use peak gain, not current gain.
+
+        Entry $100, peak $130, pullback to $115. No ATR.
+        Peak gain = $30 → trail at 100 + 15 = $115.
+        Without Chandelier: gain=$15 → trail at 100+7.5 = $107.5.
+        """
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=115.0,
+            current_sl=90.0,
+            atr=0.0,
+            highest_high=130.0,
+        )
+        self.assertEqual(result, 115.0)
+
+    def test_chandelier_floored_at_entry(self) -> None:
+        """Chandelier stop floored at entry even with large ATR."""
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=105.0,
+            current_sl=90.0,
+            atr=8.0,
+            highest_high=110.0,
+        )
+        # 110 - 16 = 94, but floored at 100
+        self.assertEqual(result, 100.0)
+
+    def test_chandelier_no_improvement_returns_none(self) -> None:
+        """If Chandelier SL <= current SL, return None."""
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=115.0,
+            current_sl=118.0,
+            atr=5.0,
+            highest_high=120.0,
+        )
+        # 120 - 10 = 110, clamped to 115, still < 118 → None
+        self.assertIsNone(result)
+
+    def test_chandelier_clamped_to_market(self) -> None:
+        """Stop above market must be clamped to current_price.
+
+        Regression: without the clamp, submitting a sell-stop above
+        market would either be rejected by the broker or trigger an
+        immediate fill.
+
+        Entry $100, peak $130, pullback to $118. ATR=3.
+        Chandelier raw: 130 - 6 = $124 — above market ($118).
+        Must clamp to $118.
+        """
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=118.0,
+            current_sl=110.0,
+            atr=3.0,
+            highest_high=130.0,
+        )
+        self.assertEqual(result, 118.0)
+
+    def test_chandelier_pct_fallback_clamped(self) -> None:
+        """%-based fallback above market must also be clamped.
+
+        Entry $100, peak $140, pullback to $112. No ATR.
+        Peak gain = $40, trail raw = 100 + 20 = $120 — above market.
+        Must clamp to $112.
+        """
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=112.0,
+            current_sl=105.0,
+            atr=0.0,
+            highest_high=140.0,
+        )
+        self.assertEqual(result, 112.0)
+
 
 class TestCalculateBreakevenStop(unittest.TestCase):
     """Unit tests for _calculate_breakeven_stop."""

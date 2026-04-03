@@ -4,7 +4,7 @@
 
 ### Implementation Progress
 
-> **13 Fully Implemented** | **4 Partially Implemented** | **17 Not Implemented** (as of March 2026)
+> **15 Fully Implemented** | **2 Partially Implemented** | **17 Not Implemented** (as of April 2026)
 
 | Status | Meaning |
 |--------|---------|
@@ -76,9 +76,9 @@ Our bot currently uses marginal Sharpe ranking (Markowitz-based). There are thre
 
 Our bot uses Half-Kelly. There are more sophisticated approaches.
 
-### 2.1 Volatility Targeting 🔶
+### 2.1 Volatility Targeting ✅
 
-> **Partially implemented:** Market sentiment module applies VIX-based position sizing multiplier (fear → larger, greed → smaller). However, true per-stock volatility-targeted sizing (inverse of realized vol) is not implemented — sizing still uses Half-Kelly capped by confidence.
+> **Implemented in:** `quant_analysis_bot/signals.py` (compute_vol_target_size, blend_position_sizes), `quant_analysis_bot/models.py` (vol_target_size_pct field), `quant_analysis_bot/config.py` (vol_target_annual, vol_target_max_positions, vol_sizing_blend). Per-stock inverse-volatility sizing is blended with Half-Kelly using a configurable blend factor (default 0.5). Each stock's position size is computed as σ_target / (N × σ_i) where σ_i is the stock's annualised 20-day realised volatility. This is then blended with Half-Kelly: final = (1-α) × kelly + α × vol_target, capped at the confidence-based ceiling. When vol_20 is unavailable (0 or NaN), gracefully falls back to pure Half-Kelly. VIX-based market-level multiplier (risk.py) operates downstream as an additional layer. 29 unit tests cover the pure functions, blending, edge cases, and signal integration.
 
 **What it is:** Instead of sizing by expected return (Kelly), size each position to contribute a target amount of daily volatility. This automatically reduces exposure in high-vol markets and increases it in low-vol markets.
 
@@ -201,9 +201,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Medium. The math is straightforward, but estimating CVaR reliably requires sufficient return history.
 
-### 4.2 Dynamic Stop-Loss via ATR Chandelier Exits 🔶
+### 4.2 Dynamic Stop-Loss via ATR Chandelier Exits ✅
 
-> **Partially implemented:** ATR-based trailing stops exist in `monitor.py` (2× ATR below current price with breakeven floor). However, this is not the full Chandelier Exit — stops are anchored to current price rather than the highest high over N periods.
+> **Implemented in:** `trading_bot_bl/monitor.py` (`_calculate_trailing_stop()`). Trailing stop now uses Chandelier Exit logic: anchored to the highest price since entry (from journal `max_favorable_excursion`) rather than the current price. Formula: `new_sl = highest_high - 2 × ATR`, floored at breakeven. Percentage fallback uses peak gain instead of current gain. Falls back gracefully to current-price anchoring when journal data is unavailable. 6 Chandelier-specific unit tests + existing integration tests all pass.
 
 **What it is:** An evolution of ATR trailing stops that anchors the stop to the highest high (for longs) rather than the current price. The Chandelier Exit = Highest High over N periods - ATR × multiplier.
 
@@ -570,10 +570,10 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 |---|---|---|---|---|
 | **Ledoit-Wolf shrinkage** | black_litterman.py | Very Low | High | ✅ Implemented |
 | **Probabilistic Sharpe Ratio** | journal_analytics.py | Low | High | ✅ Implemented |
-| **Volatility-targeted sizing** | executor.py / signals.py | Low | High | 🔶 Partial (VIX-level only) |
+| **Volatility-targeted sizing** | executor.py / signals.py | Low | High | ✅ Implemented |
 | **Deflated Sharpe Ratio** | backtest.py | Low | Medium | ✅ Implemented |
 | **Execution timing** | GitHub Actions | Very Low | Low-Medium | ✅ Implemented (10:15 AM ET) |
-| **ATR Chandelier exits** | monitor.py | Low | Medium | 🔶 Partial (ATR trailing, not highest-high anchored) |
+| **ATR Chandelier exits** | monitor.py | Low | Medium | ✅ Implemented |
 | **Exponentially weighted covariance** | black_litterman.py | Very Low | Medium | ✅ Implemented |
 | **VIX / market-wide sentiment** | market_sentiment.py | Very Low | Medium | ✅ Implemented (+ SPY regime filter) |
 | **Earnings event filter** | signals.py / risk.py | Low | Medium-High | ✅ Implemented |

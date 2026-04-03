@@ -711,9 +711,20 @@ def monitor_positions(
             # If profitable, consider tightening the SL to
             # lock in gains (trailing stop behavior)
             if pnl_pct > limits.stale_bracket_pct:
+                # Chandelier anchor: highest price since entry,
+                # tracked by the journal's MFE field.  Falls
+                # back to current_price if no journal entry.
+                _hh = 0.0
+                if _j_entry:
+                    _hh = getattr(
+                        _j_entry,
+                        "max_favorable_excursion",
+                        0.0,
+                    )
                 new_sl = _calculate_trailing_stop(
                     entry_price, current_price, sl_price,
                     atr=atr,
+                    highest_high=_hh,
                 )
                 if new_sl and new_sl > sl_price:
                     alert = PositionAlert(
@@ -721,6 +732,12 @@ def monitor_positions(
                         alert_type="stale_bracket",
                         severity="info",
                         message=(
+                            f"{ticker} up {pnl_pct:.1f}% — "
+                            f"tightening SL from "
+                            f"${sl_price:.2f} to ${new_sl:.2f} "
+                            f"(Chandelier: HH=${_hh:.2f}, "
+                            f"ATR={atr:.2f})"
+                            if atr > 0 and _hh > 0 else
                             f"{ticker} up {pnl_pct:.1f}% — "
                             f"tightening SL from "
                             f"${sl_price:.2f} to ${new_sl:.2f} "
@@ -1225,19 +1242,26 @@ def _calculate_trailing_stop(
     current_price: float,
     current_sl: float,
     atr: float = 0.0,
+    highest_high: float = 0.0,
 ) -> float | None:
     """
-    Calculate a new trailing stop loss price using a two-tier
-    approach:
+    Calculate a new trailing stop using Chandelier Exit logic.
 
-    1. **ATR-based trail** (preferred): Trail by 2× ATR below
-       current price. This adapts to the stock's actual
-       volatility — wide-ranging stocks get wider trailing
-       stops, tight stocks get tighter ones.
+    The stop is anchored to the **highest price since entry**
+    (Chandelier style) rather than the current price.  This
+    prevents pullbacks within an uptrend from dragging the stop
+    down — the stop only ratchets upward as the position makes
+    new highs.
 
-    2. **Percentage-based fallback**: If ATR is unavailable,
-       trail at entry + 50% of unrealized gain (locks in half
-       the profit).
+    Two tiers:
+
+    1. **ATR Chandelier** (preferred): ``highest_high - 2 × ATR``.
+       Adapts to the stock's actual volatility — wide-ranging
+       stocks get wider stops, tight stocks get tighter ones.
+
+    2. **Percentage fallback**: If ATR is unavailable, trail at
+       ``entry + 50% of peak gain`` (locks in half the best
+       unrealised profit).
 
     Both tiers enforce a floor at breakeven (entry_price) to
     prevent a winning trade from becoming a loser.
@@ -1249,7 +1273,10 @@ def _calculate_trailing_stop(
         entry_price: Original entry price.
         current_price: Latest market price.
         current_sl: Current stop loss price.
-        atr: 14-day Average True Range. If 0, uses %-based trail.
+        atr: 14-day Average True Range.  If 0, uses %-based trail.
+        highest_high: Highest price observed since entry (from
+            journal MFE).  Falls back to *current_price* when 0
+            or unavailable.
 
     Returns:
         New SL price (rounded), or None if no improvement.
@@ -1258,14 +1285,28 @@ def _calculate_trailing_stop(
     if gain <= 0:
         return None
 
+    # Use highest high since entry (Chandelier anchor).
+    # Fall back to current_price if unavailable — this matches
+    # the pre-Chandelier behaviour.
+    anchor = highest_high if highest_high > 0 else current_price
+
     if atr > 0:
-        # ATR-based: trail 2× ATR below current price
-        new_sl = current_price - 2.0 * atr
+        # Chandelier: trail 2× ATR below the highest high
+        new_sl = anchor - 2.0 * atr
         # Floor at breakeven
         new_sl = max(new_sl, entry_price)
     else:
-        # Percentage fallback: entry + 50% of gain
-        new_sl = entry_price + gain * 0.5
+        # Percentage fallback: entry + 50% of *peak* gain
+        peak_gain = anchor - entry_price
+        new_sl = entry_price + peak_gain * 0.5
+
+    # Clamp: stop must stay below current market price.
+    # During a deep pullback the Chandelier formula can produce
+    # a stop above market (e.g. HH=120, ATR=2, price=115 → 116).
+    # Submitting that to the broker would either be rejected or
+    # trigger an immediate fill.  Clamping to just below market
+    # keeps the trade alive with a very tight protective stop.
+    new_sl = min(new_sl, current_price)
 
     new_sl = round(new_sl, 2)
 

@@ -170,7 +170,8 @@ The monitor checks each held position for:
 - **Orphaned positions** — missing SL/TP legs, reattach bracket or close if losing
 - **Partial brackets** — one leg missing, warning
 - **Price gaps** — price gapped beyond SL or TP, close position
-- **Stale brackets** — significant price move without triggering legs, tighten stop loss via trailing stop
+- **Stale brackets** — significant price move without triggering legs, tighten stop loss via Chandelier trailing stop (anchored to highest high since entry)
+- **Earnings stop-tightening** — profitable positions approaching earnings get stops tightened to lock in 50% of gains
 
 All monitor actions (emergency close, gap close, time exit, breakeven/trailing stop adjustments) are automatically recorded in the trade journal when available.
 
@@ -369,6 +370,6 @@ python -m unittest discover -s trading_bot_bl -p 'test_*.py' -v
 
 **Journal tests** verify: serialization round-trips, three-state lifecycle, excursion tracking (MFE/MAE), SL modification recording, closed-trade detection, position migration, equity curve snapshots/drawdown, full analytics suite (overall metrics, profit factor, R-distribution, streaks, holding analysis, strategy/regime breakdowns), and math helpers (PSR, MinTRL, Pearson correlation, skewness).
 
-**Monitor tests** verify: emergency loss, orphaned/partial brackets, price gaps, trailing/breakeven stops, time exits, dry-run safety, OCO classification, and edge cases.
+**Monitor tests** verify: emergency loss, orphaned/partial brackets, price gaps, Chandelier trailing stops (highest-high anchored), breakeven stops, time exits, earnings stop-tightening, dry-run safety, OCO classification, and edge cases.
 
 **SPY regime tests** verify: regime classification (BULL/CAUTION/BEAR/SEVERE_BEAR), 200-SMA detection with mocked data, confirmation buffer (whipsaw prevention), risk manager integration (max positions, min composite score overrides), SEVERE_BEAR hard halt, and graceful degradation on data failure.
