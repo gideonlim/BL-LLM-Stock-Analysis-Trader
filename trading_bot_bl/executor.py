@@ -35,6 +35,7 @@ from trading_bot_bl.oil_spike import (
     OilSpikeState,
     OilSpikeTier,
     detect_oil_spike,
+    get_boost_for_ticker,
 )
 from trading_bot_bl.portfolio_optimizer import optimize_intents
 from trading_bot_bl.risk import RiskManager
@@ -579,6 +580,59 @@ def execute(
                 f"boost={oil_state.boost:+.1f} for "
                 f"{', '.join(all_tickers)}"
             )
+
+    # ── 8c. Oil spike ranking promotion ─────────────────────────────
+    #    If an oil spike is active, promote eligible BUY intents
+    #    upward in the ranking.  BL/marginal-Sharpe doesn't know about
+    #    short-term event signals, so this is a post-optimization
+    #    overlay that ensures spike tickers get executed before the
+    #    position cap is exhausted.
+    if oil_state.active and oil_spike_tiers:
+        # Partition intents into sells (keep first) and buys
+        _sells = [i for i in intents if i.side != "buy"]
+        _buys = [i for i in intents if i.side == "buy"]
+        if _buys:
+            # Score each buy: boosted tickers get their tier boost
+            # added so they sort ahead of non-boosted peers.
+            _boosted: list[tuple[float, int, object]] = []
+            for idx, intent in enumerate(_buys):
+                boost = get_boost_for_ticker(
+                    oil_state,
+                    intent.ticker,
+                    oil_tickers,
+                    tiers=oil_spike_tiers,
+                )
+                # Negate for descending sort (higher boost = earlier)
+                # Use original index as tiebreaker to preserve BL rank
+                _boosted.append((-boost, idx, intent))
+            _boosted.sort()
+            reordered_buys = [b[2] for b in _boosted]
+
+            # Log any promotions
+            promoted = [
+                (b[2].ticker, -b[0])
+                for b in _boosted
+                if b[0] < 0  # negative means boost > 0
+            ]
+            if promoted:
+                for tkr, bst in promoted:
+                    old_rank = next(
+                        i + 1
+                        for i, x in enumerate(_buys)
+                        if x.ticker == tkr
+                    )
+                    new_rank = next(
+                        i + 1
+                        for i, x in enumerate(reordered_buys)
+                        if x.ticker == tkr
+                    )
+                    if new_rank < old_rank:
+                        log.info(
+                            f"  Oil spike: {tkr} promoted "
+                            f"rank {old_rank} → {new_rank} "
+                            f"(boost={bst:+.1f})"
+                        )
+                intents = _sells + reordered_buys
 
     # ── 9. Risk check each intent ─────────────────────────────────
     risk_mgr = RiskManager(

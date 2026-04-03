@@ -11,6 +11,10 @@ __pycache__/
 dist/
 build/
 
+# Pytest
+.pytest_cache/
+pytest-cache-files-*/
+
 # Data caches
 cache/
 
