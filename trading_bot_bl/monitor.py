@@ -1300,16 +1300,27 @@ def _calculate_trailing_stop(
         peak_gain = anchor - entry_price
         new_sl = entry_price + peak_gain * 0.5
 
-    # Clamp: stop must stay below current market price.
+    # Clamp: stop must stay strictly below current market price.
     # During a deep pullback the Chandelier formula can produce
     # a stop above market (e.g. HH=120, ATR=2, price=115 → 116).
     # Submitting that to the broker would either be rejected or
-    # trigger an immediate fill.  Clamping to just below market
-    # keeps the trade alive with a very tight protective stop.
-    new_sl = min(new_sl, current_price)
+    # trigger an immediate fill.  A stop *at* market is equally
+    # dangerous — it can fill on the next tick.
+    #
+    # We enforce a minimum buffer of $0.01 (standard US equity
+    # tick size).  If even the buffered stop isn't viable (i.e.
+    # current_price - 0.01 <= entry_price), we return None to
+    # leave the existing stop untouched.
+    tick = 0.01
+    max_allowed = round(current_price - tick, 2)
+    if new_sl >= current_price:
+        # Stop at or above market — clamp to just below
+        new_sl = max_allowed
 
     new_sl = round(new_sl, 2)
 
+    # If clamped stop would be at/below entry (not an improvement)
+    # or at/below current SL, treat as no-op.
     if new_sl <= current_sl:
         return None  # don't widen the stop
 
