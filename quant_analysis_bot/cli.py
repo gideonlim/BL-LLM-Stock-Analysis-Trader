@@ -528,6 +528,15 @@ def main() -> None:
         help="Number of top stocks with --all-stocks (default: 1000)",
     )
     parser.add_argument(
+        "--refresh-universe",
+        action="store_true",
+        help=(
+            "Force re-fetch the stock universe from Wikipedia / "
+            "yfinance, ignoring the cache. Useful after known "
+            "index rebalances."
+        ),
+    )
+    parser.add_argument(
         "--validate",
         action="store_true",
         help=(
@@ -583,6 +592,7 @@ def main() -> None:
         config["tickers"] = fetch_top_us_stocks(
             n=args.top_n,
             cache_dir=config.get("data_cache_dir", "cache"),
+            force_refresh=args.refresh_universe,
         )
         if not config["tickers"]:
             log.error(

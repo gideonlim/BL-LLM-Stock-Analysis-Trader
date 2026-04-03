@@ -11,8 +11,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import tempfile
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
 
@@ -30,6 +31,9 @@ from quant_analysis_bot.progress import ProgressBar
 log = logging.getLogger(__name__)
 
 _UNIVERSE_CACHE_DIR = "cache"
+# Cache TTL: 14 days, but always expires on Monday so a fresh fetch
+# happens at the start of each trading week.
+_CACHE_MAX_AGE_DAYS = 14
 _BUNDLED_TICKERS_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "..",
@@ -221,8 +225,45 @@ def _get_market_caps(
     return market_caps
 
 
+def _cache_is_fresh(cache_path: str) -> bool:
+    """Return True if the cache file exists and is still valid.
+
+    The cache expires when **either** condition is met:
+      1. The file is older than ``_CACHE_MAX_AGE_DAYS`` (14 days).
+      2. A Monday boundary has been crossed since the file was
+         written — i.e. at least one Monday 00:00 local time has
+         passed.  This ensures a fresh fetch at the start of each
+         trading week.
+    """
+    if not os.path.exists(cache_path):
+        return False
+    mtime = datetime.fromtimestamp(os.path.getmtime(cache_path))
+    now = datetime.now()
+    age = now - mtime
+    if age > timedelta(days=_CACHE_MAX_AGE_DAYS):
+        return False
+    # Check whether a Monday 00:00 has passed since mtime.
+    # Walk forward from mtime to the next Monday; if that Monday
+    # is <= now, the cache spans a week boundary → stale.
+    days_until_monday = (7 - mtime.weekday()) % 7  # 0 if mtime is Mon
+    if days_until_monday == 0:
+        # mtime is a Monday — next boundary is the *following* Monday
+        next_monday = (mtime + timedelta(days=7)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+    else:
+        next_monday = (mtime + timedelta(days=days_until_monday)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+    if now >= next_monday:
+        return False
+    return True
+
+
 def fetch_top_us_stocks(
-    n: int = 1000, cache_dir: str = _UNIVERSE_CACHE_DIR
+    n: int = 1000,
+    cache_dir: str = _UNIVERSE_CACHE_DIR,
+    force_refresh: bool = False,
 ) -> List[str]:
     """Fetch the top N US stocks by market cap.
 
@@ -248,36 +289,54 @@ def fetch_top_us_stocks(
     never touched.  This cuts API calls from ~1500 to ~400.
 
     Fallback chain:
-      1. Check daily cache
+      1. Check cache (valid for up to 14 days, resets each Monday)
       2. Try Wikipedia (S&P 500 + 400 + 600, as needed)
       3. Fall back to bundled us_tickers.json
       4. Fetch market caps only for the boundary tier
+
+    Args:
+        n: Number of top stocks to return.
+        cache_dir: Directory to store cache files.
+        force_refresh: If True, ignore the cache and re-fetch
+            from Wikipedia / yfinance.
     """
     os.makedirs(cache_dir, exist_ok=True)
-    date_str = datetime.now().strftime("%Y%m%d")
-    cache_file = os.path.join(
-        cache_dir, f"universe_top{n}_{date_str}.json"
-    )
+    cache_file = os.path.join(cache_dir, f"universe_top{n}.json")
 
-    # 1. Daily cache
-    if os.path.exists(cache_file):
-        with open(cache_file, "r") as f:
-            cached = json.load(f)
-        log.info(
-            f"  Loaded {len(cached)} tickers from "
-            f"universe cache ({cache_file})"
-        )
-        extra = load_extra_tickers()
-        if extra:
-            already = set(cached)
-            added = [t for t in extra if t not in already]
-            if added:
-                cached.extend(added)
-                log.info(
-                    f"  Appended {len(added)} extra tickers "
-                    f"not in cache: {', '.join(added)}"
+    # 1. Check cache (14-day TTL, resets on Monday)
+    if not force_refresh and _cache_is_fresh(cache_file):
+        try:
+            with open(cache_file, "r") as f:
+                cached = json.load(f)
+        except (json.JSONDecodeError, OSError) as exc:
+            log.warning(
+                f"  Cache file corrupt or unreadable ({exc}), "
+                f"rebuilding..."
+            )
+        else:
+            age_days = (
+                datetime.now()
+                - datetime.fromtimestamp(
+                    os.path.getmtime(cache_file)
                 )
-        return cached[:n] if not extra else cached
+            ).days
+            log.info(
+                f"  Loaded {len(cached)} tickers from universe "
+                f"cache ({cache_file}, {age_days}d old)"
+            )
+            extra = load_extra_tickers()
+            if extra:
+                already = set(cached)
+                added = [t for t in extra if t not in already]
+                if added:
+                    cached.extend(added)
+                    log.info(
+                        f"  Appended {len(added)} extra tickers "
+                        f"not in cache: {', '.join(added)}"
+                    )
+            return cached[:n] if not extra else cached
+    if force_refresh:
+        log.info("  Force-refresh requested — bypassing cache.")
 
     log.info(f"  Building top {n} US stock universe...")
 
@@ -395,10 +454,24 @@ def fetch_top_us_stocks(
                 f"{', '.join(added)}"
             )
 
-    # Cache for today
-    with open(cache_file, "w") as f:
-        json.dump(top_n, f)
-    log.info(f"  Cached {len(top_n)} tickers to {cache_file}")
+    # Cache (valid until next Monday or 14 days, whichever is sooner).
+    # Atomic write: write to a temp file then rename, so a crash
+    # mid-write can't leave a corrupt cache that blocks future runs.
+    cache_dir_path = os.path.dirname(cache_file)
+    try:
+        fd, tmp_path = tempfile.mkstemp(
+            dir=cache_dir_path, suffix=".tmp"
+        )
+        with os.fdopen(fd, "w") as f:
+            json.dump(top_n, f)
+        os.replace(tmp_path, cache_file)
+    except OSError as exc:
+        log.warning(f"  Failed to write cache: {exc}")
+        # Clean up temp file if rename failed
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+    else:
+        log.info(f"  Cached {len(top_n)} tickers to {cache_file}")
 
     if top_n and market_caps:
         top5_str = ", ".join(
