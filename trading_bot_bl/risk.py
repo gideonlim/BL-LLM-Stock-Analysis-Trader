@@ -316,8 +316,13 @@ class RiskManager:
             return churn_reason
 
         # Check if strategy has negative P&L on current positions
+        # Require at least 3 total trades before judging performance
         rec = self.history.get_strategy_record(strategy)
-        if rec and rec.loss_count > rec.win_count >= 3:
+        if (
+            rec
+            and rec.win_count + rec.loss_count >= 3
+            and rec.loss_count > rec.win_count
+        ):
             return (
                 f"Strategy '{strategy}' currently losing "
                 f"(wins={rec.win_count}, losses={rec.loss_count}, "

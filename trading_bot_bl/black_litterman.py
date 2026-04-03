@@ -625,7 +625,8 @@ def optimize_weights(
             raw_weights, tickers, sector_map, max_sector_pct,
         )
 
-    # Normalize to sum to target exposure (max 80%)
+    # Normalize weights to sum to 1.0 (relative allocation)
+    # Actual exposure cap is enforced by risk.py MAX_EXPOSURE_PCT
     total = raw_weights.sum()
     if total > 0:
         raw_weights = raw_weights / total
@@ -820,8 +821,13 @@ def run_black_litterman(
             f"  BL: estimated risk aversion δ={risk_aversion:.2f}"
         )
 
+    # Fetch yfinance info once — shared by market caps + sectors
+    _info_cache = _fetch_ticker_info_batch(available_tickers)
+
     if market_caps is None:
-        market_caps = _fetch_market_caps(available_tickers)
+        market_caps = _fetch_market_caps(
+            available_tickers, info_cache=_info_cache,
+        )
 
     pi = compute_equilibrium_returns(
         market_caps, cov_matrix, available_tickers, risk_aversion
@@ -899,7 +905,9 @@ def run_black_litterman(
     # Fetch sector data for diversification constraints
     sector_map = None
     if max_sector_pct < 1.0:
-        sector_map = _fetch_sectors(available_tickers)
+        sector_map = _fetch_sectors(
+            available_tickers, info_cache=_info_cache,
+        )
 
     weights = optimize_weights(
         posterior, cov_matrix, available_tickers,
@@ -984,26 +992,82 @@ def _estimate_market_risk_aversion(
         return 2.5
 
 
-def _fetch_market_caps(
+def _fetch_ticker_info_batch(
     tickers: list[str],
-) -> dict[str, float]:
-    """Fetch market caps from yfinance for equilibrium weights."""
-    caps: dict[str, float] = {}
+) -> dict[str, dict]:
+    """Fetch yfinance .info for a batch of tickers.
+
+    Uses a shared cache so market caps and sectors don't each
+    make 34+ sequential HTTP calls.  Logs individual failures
+    instead of silently swallowing them.
+
+    Returns:
+        {ticker: info_dict} for tickers that succeeded.
+    """
+    info_map: dict[str, dict] = {}
     try:
         import yfinance as yf
-        for ticker in tickers:
-            try:
-                info = yf.Ticker(ticker).info
-                cap = info.get(
-                    "marketCap",
-                    info.get("totalAssets", 0),
-                )
-                if cap and cap > 0:
-                    caps[ticker] = float(cap)
-            except Exception:
-                pass
     except ImportError:
-        pass
+        log.warning(
+            "  BL: yfinance not installed — "
+            "no market cap or sector data"
+        )
+        return {}
+
+    failed: list[str] = []
+    first_error: str = ""
+    for ticker in tickers:
+        try:
+            info = yf.Ticker(ticker).info
+            # yfinance returns an empty dict or a dict with only
+            # 'trailingPegRatio' when the request silently fails
+            if info and len(info) > 1:
+                info_map[ticker] = info
+            else:
+                failed.append(ticker)
+                if not first_error:
+                    first_error = (
+                        f"{ticker}: .info returned empty/stub "
+                        f"({list(info.keys())[:3]})"
+                    )
+        except Exception as exc:
+            failed.append(ticker)
+            if not first_error:
+                first_error = f"{ticker}: {type(exc).__name__}: {exc}"
+
+    if failed:
+        log.warning(
+            f"  BL: yfinance .info failed for "
+            f"{len(failed)}/{len(tickers)} tickers "
+            f"(first: {first_error})"
+        )
+
+    return info_map
+
+
+def _fetch_market_caps(
+    tickers: list[str],
+    info_cache: dict[str, dict] | None = None,
+) -> dict[str, float]:
+    """Fetch market caps from yfinance for equilibrium weights.
+
+    Args:
+        tickers: Tickers to look up.
+        info_cache: Pre-fetched info dicts from
+            ``_fetch_ticker_info_batch()``. If None, fetches fresh.
+    """
+    if info_cache is None:
+        info_cache = _fetch_ticker_info_batch(tickers)
+
+    caps: dict[str, float] = {}
+    for ticker in tickers:
+        info = info_cache.get(ticker, {})
+        cap = info.get(
+            "marketCap",
+            info.get("totalAssets", 0),
+        )
+        if cap and cap > 0:
+            caps[ticker] = float(cap)
 
     if not caps:
         log.info(
@@ -1018,32 +1082,26 @@ def _fetch_market_caps(
 
 def _fetch_sectors(
     tickers: list[str],
+    info_cache: dict[str, dict] | None = None,
 ) -> dict[str, str]:
-    """
-    Fetch GICS sector classification for each ticker via yfinance.
+    """Fetch GICS sector classification for each ticker.
 
-    Returns a dict of ticker → sector string (e.g. "Technology",
-    "Healthcare"). Tickers that fail to fetch get "Unknown".
+    Args:
+        tickers: Tickers to look up.
+        info_cache: Pre-fetched info dicts from
+            ``_fetch_ticker_info_batch()``. If None, fetches fresh.
 
-    The data is fetched from yfinance's Ticker.info which caches
-    internally, so repeated calls in the same session are fast.
+    Returns:
+        {ticker: sector_string}. Tickers without data get "Unknown".
     """
+    if info_cache is None:
+        info_cache = _fetch_ticker_info_batch(tickers)
+
     sectors: dict[str, str] = {}
-    try:
-        import yfinance as yf
-        for ticker in tickers:
-            try:
-                info = yf.Ticker(ticker).info
-                sector = info.get("sector", "Unknown")
-                if sector:
-                    sectors[ticker] = sector
-                else:
-                    sectors[ticker] = "Unknown"
-            except Exception:
-                sectors[ticker] = "Unknown"
-    except ImportError:
-        log.warning("yfinance not installed — no sector data")
-        return {}
+    for ticker in tickers:
+        info = info_cache.get(ticker, {})
+        sector = info.get("sector") or "Unknown"
+        sectors[ticker] = sector
 
     # Log sector distribution
     sector_counts: dict[str, int] = {}

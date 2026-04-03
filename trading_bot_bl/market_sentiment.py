@@ -228,8 +228,12 @@ def fetch_spy_regime(
             progress=False,
             auto_adjust=True,
         )
-        if data.empty or len(data) < 210:
-            log.warning("SPY data insufficient for 200-SMA — using BULL")
+        if data.empty or len(data) < 252:
+            log.warning(
+                "SPY data insufficient for 52-week lookback "
+                f"({len(data) if not data.empty else 0} bars, "
+                "need 252) — using BULL"
+            )
             return SpyRegime()
 
         closes = data["Close"].dropna().values.flatten()
@@ -268,7 +272,7 @@ def fetch_spy_regime(
                     (sma_now / sma_20ago - 1.0) * 12.0 * 100.0
                 )
 
-        # Drawdown from 52-week high (~252 trading days)
+        # Drawdown from 52-week high (252 trading days)
         high_52w = float(np.max(closes[-252:]))
         drawdown_pct = (
             (high_52w - spy_price) / high_52w * 100

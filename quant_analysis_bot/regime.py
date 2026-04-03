@@ -248,8 +248,10 @@ def enrich_with_regime(
 
     # Reindex regime to ticker dates using forward-fill
     # (weekends/holidays get the last trading day's regime)
-    regime_aligned = regime_df.set_index(regime_dates).reindex(
-        df_dates, method="ffill"
+    regime_aligned = (
+        regime_df.set_index(regime_dates)
+        .reindex(df_dates)
+        .ffill()
     )
     regime_aligned.index = df.index  # restore original index
 

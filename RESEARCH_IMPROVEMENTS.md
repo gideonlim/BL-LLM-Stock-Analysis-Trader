@@ -4,7 +4,7 @@
 
 ### Implementation Progress
 
-> **15 Fully Implemented** | **2 Partially Implemented** | **17 Not Implemented** (as of April 2026)
+> **16 Fully Implemented** | **2 Partially Implemented** | **16 Not Implemented** (as of April 2026)
 
 | Status | Meaning |
 |--------|---------|
@@ -365,7 +365,9 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 Our bot currently uses only price/volume-derived technical indicators. Incorporating market sentiment — from news headlines, social media, options flow, and institutional filings — provides orthogonal information that technical analysis alone cannot capture. Research consistently shows that sentiment signals are most powerful when combined with (not replacing) quantitative signals.
 
-### 8.1 News Headline Sentiment via FinBERT ⬜
+### 8.1 News Headline Sentiment via FinBERT ✅
+
+> **Implemented in:** `trading_bot_bl/news_sentiment.py`. Lazy-loading `FinBERTScorer` class using `ProsusAI/finbert` via HuggingFace `transformers`. Per-headline scoring with softmax probabilities → net sentiment `P(pos) - P(neg)`. Per-ticker aggregation with optional exponential recency decay. Composite score adjustment (configurable weight, default ±5 points). Wired into executor pipeline (step 8c) between BL optimization and risk gating. Feature-flagged via `FINBERT_ENABLED` (default: false). Graceful degradation when `transformers`/`torch` not installed. 17 unit tests in `test_news_sentiment.py`.
 
 **What it is:** FinBERT is a BERT-based language model fine-tuned on financial text (ProsusAI/finBERT). It classifies financial headlines into positive, negative, or neutral with a confidence score. Unlike generic sentiment tools (VADER, TextBlob), FinBERT understands financial language — it correctly interprets "the company beat expectations" as positive and "the stock was downgraded" as negative.
 
@@ -590,7 +592,7 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | **Fractional differentiation** | new preprocessing | Low-Medium | Medium | ⬜ Not implemented |
 | **Slippage model** | broker.py / journal.py | Low | Medium | ✅ Implemented (limit orders + tracking) |
 | **Correlation breakdown monitoring** | monitor.py / risk.py | Low | Medium | ⬜ Not implemented |
-| **FinBERT news sentiment** | new sentiment module | Low-Medium | High | ⬜ Not implemented |
+| **FinBERT news sentiment** | news_sentiment.py | Low-Medium | High | ✅ Implemented |
 | **LLM headline scoring** | llm_views.py | Low | Medium-High | ✅ Implemented (LLM views + news context) |
 | **Social media mention volume** | new module | Medium | Medium | ⬜ Not implemented |
 

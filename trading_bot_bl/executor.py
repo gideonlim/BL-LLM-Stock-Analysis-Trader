@@ -441,6 +441,65 @@ def execute(
                 f"{pnl_str}"
             )
 
+    # ── 7b. FinBERT news sentiment ──────────────────────────────────
+    #    Score recent headlines for BUY candidates and adjust their
+    #    composite scores BEFORE building order intents, so the
+    #    optimizer ranks sentiment-adjusted signals correctly.
+    #    Feature-flagged via FINBERT_ENABLED (default: false).
+    if config.finbert_enabled:
+        try:
+            from trading_bot_bl.news_sentiment import (
+                aggregate_ticker_sentiment,
+                adjust_composite_scores,
+                is_available as finbert_available,
+            )
+            from trading_bot_bl.news_fetcher import (
+                fetch_news_batch,
+            )
+
+            if finbert_available():
+                buy_tickers_for_sent = [
+                    s.ticker
+                    for s in actionable
+                    if s.signal_raw == 1
+                ]
+                if buy_tickers_for_sent:
+                    news_map = fetch_news_batch(
+                        buy_tickers_for_sent,
+                        max_headlines=config.finbert_max_headlines,
+                    )
+                    ticker_sent = aggregate_ticker_sentiment(
+                        news_map
+                    )
+                    if ticker_sent:
+                        buy_signals = [
+                            s
+                            for s in actionable
+                            if s.signal_raw == 1
+                        ]
+                        adjustments = adjust_composite_scores(
+                            buy_signals,
+                            ticker_sent,
+                            weight=config.finbert_score_weight,
+                        )
+                        for tkr, delta in adjustments:
+                            log.info(
+                                f"  FinBERT: {tkr} "
+                                f"composite {delta:+.1f}"
+                            )
+                        log.info(
+                            f"  FinBERT: scored "
+                            f"{len(ticker_sent)} tickers, "
+                            f"adjusted {len(adjustments)}"
+                        )
+            else:
+                log.info(
+                    "  FinBERT enabled but dependencies missing "
+                    "(install transformers + torch)"
+                )
+        except Exception as exc:
+            log.warning(f"  FinBERT scoring failed: {exc}")
+
     # ── 8. Build order intents ────────────────────────────────────
     intents = build_order_intents(
         signals, portfolio, config,
@@ -595,7 +654,7 @@ def execute(
             # Update portfolio snapshot even in dry-run so that
             # subsequent risk checks (max positions, exposure cap)
             # account for orders already "placed" in this run.
-            if intent.side == "buy":
+            if approved_order.side == "buy":
                 portfolio.cash -= approved_order.notional
                 portfolio.market_value += approved_order.notional
                 portfolio.positions[approved_order.ticker] = {
@@ -605,6 +664,16 @@ def execute(
                     "unrealized_pnl": 0,
                     "side": "long",
                 }
+            elif approved_order.side == "sell":
+                sold_pos = portfolio.positions.pop(
+                    approved_order.ticker, None
+                )
+                if sold_pos:
+                    freed = float(
+                        sold_pos.get("market_value", 0)
+                    )
+                    portfolio.cash += freed
+                    portfolio.market_value -= freed
             continue
 
         # EXIT signals: close position directly (no bracket)

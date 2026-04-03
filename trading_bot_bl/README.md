@@ -286,6 +286,20 @@ Journal data is skipped entirely during `--dry-run` so simulated runs never poll
 | `BL_TAU` | 0.05 | Prior uncertainty scalar (0.01-0.1) |
 | `BL_LOOKBACK_DAYS` | 60 | Days of returns for covariance estimation |
 
+### Ticker Cooldown
+
+| Variable | Default | Description |
+|---|---|---|
+| `TICKER_COOLDOWN_DAYS` | 2 | Days to wait before re-trading a ticker (applies after buys and sells) |
+
+### FinBERT News Sentiment (optional)
+
+| Variable | Default | Description |
+|---|---|---|
+| `FINBERT_ENABLED` | false | Enable FinBERT headline scoring (requires `transformers` + `torch`) |
+| `FINBERT_SCORE_WEIGHT` | 5.0 | Max composite-score adjustment (± points) |
+| `FINBERT_MAX_HEADLINES` | 5 | Headlines per ticker to score |
+
 ### LLM Views (optional)
 
 | Variable | Default | Description |

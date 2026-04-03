@@ -220,6 +220,20 @@ class TradingConfig:
     # Position-size multiplier during extreme greed (defensive)
     sentiment_greed_size_mult: float = 0.90
 
+    # ── FinBERT news sentiment ─────────────────────────────────
+    # Score headlines with FinBERT and adjust composite scores.
+    # Requires: pip install transformers torch
+    # Disabled by default — enable once dependencies are installed.
+    finbert_enabled: bool = False
+
+    # Max composite-score adjustment from FinBERT sentiment.
+    # A fully-positive headline set (+1.0) adds this many points;
+    # fully-negative (-1.0) subtracts them.
+    finbert_score_weight: float = 5.0
+
+    # Max headlines to score per ticker (controls API + inference cost)
+    finbert_max_headlines: int = 5
+
     # ── SPY trend regime (bear market filter) ─────────────────
     # Enable SPY 200-SMA bear market detection.  When enabled,
     # the risk manager restricts exposure during sustained
@@ -357,6 +371,9 @@ class TradingConfig:
             max_adv_participation_pct=float(
                 os.getenv("MAX_ADV_PARTICIPATION_PCT", "1.0")
             ),
+            ticker_cooldown_days=int(
+                os.getenv("TICKER_COOLDOWN_DAYS", "2")
+            ),
         )
         return cls(
             alpaca=alpaca,
@@ -405,6 +422,15 @@ class TradingConfig:
             ),
             sentiment_greed_size_mult=float(
                 os.getenv("SENTIMENT_GREED_SIZE_MULT", "0.90")
+            ),
+            finbert_enabled=os.getenv(
+                "FINBERT_ENABLED", "false"
+            ).lower() in ("true", "1", "yes"),
+            finbert_score_weight=float(
+                os.getenv("FINBERT_SCORE_WEIGHT", "5.0")
+            ),
+            finbert_max_headlines=int(
+                os.getenv("FINBERT_MAX_HEADLINES", "5")
             ),
             spy_regime_enabled=os.getenv(
                 "SPY_REGIME_ENABLED", "true"
@@ -566,6 +592,20 @@ class TradingConfig:
             ):
                 if k in overrides:
                     setattr(config, k, float(overrides[k]))
+
+            # FinBERT overrides
+            if "finbert_enabled" in overrides:
+                config.finbert_enabled = bool(
+                    overrides["finbert_enabled"]
+                )
+            if "finbert_score_weight" in overrides:
+                config.finbert_score_weight = float(
+                    overrides["finbert_score_weight"]
+                )
+            if "finbert_max_headlines" in overrides:
+                config.finbert_max_headlines = int(
+                    overrides["finbert_max_headlines"]
+                )
 
             # SPY regime overrides
             if "spy_regime_enabled" in overrides:

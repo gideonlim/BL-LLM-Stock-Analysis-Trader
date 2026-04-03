@@ -396,9 +396,10 @@ def test_llm_view_blending():
     aapl_view = Q[0]
     pure_quant = 0.0005
     pure_llm = 0.20 / 252
-    assert pure_quant < aapl_view < pure_llm or (
-        aapl_view != pure_quant
-    ), "AAPL view should be blended"
+    assert pure_quant < aapl_view < pure_llm, (
+        f"AAPL view {aapl_view} should be between "
+        f"quant ({pure_quant}) and LLM ({pure_llm})"
+    )
 
     # MSFT should be the new LLM view
     assert P[2][2] == 1.0, "MSFT should be view #3"

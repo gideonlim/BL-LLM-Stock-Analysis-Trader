@@ -471,10 +471,18 @@ def enrich_history_with_pnl(
     placed it (from ticker history), we attribute the unrealized
     P&L to that strategy.
 
+    Safe to call only once per history object.  The ``_pnl_enriched``
+    flag prevents accidental double-counting if called again.
+
     Args:
         history: The trade history to enrich.
         positions: portfolio.positions dict from the broker.
     """
+    if getattr(history, "_pnl_enriched", False):
+        log.debug("enrich_history_with_pnl already called — skipping")
+        return
+    history._pnl_enriched = True  # type: ignore[attr-defined]
+
     for ticker, pos in positions.items():
         pnl = pos.get("unrealized_pnl", 0.0)
         th = history.by_ticker.get(ticker)

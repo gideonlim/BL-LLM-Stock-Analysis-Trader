@@ -404,6 +404,7 @@ def monitor_positions(
                 unrealized_pnl_pct=round(pnl_pct, 2),
             )
 
+            result = None
             if dry_run:
                 alert.action_taken = (
                     "DRY RUN: would emergency-close position"
@@ -546,6 +547,7 @@ def monitor_positions(
                 stop_loss_price=sl_price,
                 unrealized_pnl_pct=round(pnl_pct, 2),
             )
+            result = None
             if dry_run:
                 alert.action_taken = (
                     "DRY RUN: would close gapped position"
@@ -822,6 +824,7 @@ def monitor_positions(
                 unrealized_pnl_pct=round(pnl_pct, 2),
             )
 
+            result = None
             if dry_run:
                 alert.action_taken = (
                     "DRY RUN: would close stale position"
