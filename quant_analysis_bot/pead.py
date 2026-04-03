@@ -334,6 +334,65 @@ def prefetch_earnings_parallel(
         )
 
 
+def build_earnings_context(
+    df: pd.DataFrame,
+    ticker: str,
+) -> Optional["EarningsContext"]:
+    """Build an EarningsContext for signal generation.
+
+    Combines two data sources:
+      1. Forward-looking: yfinance ``.calendar`` for next earnings
+         date (same as ``trading_bot_bl/earnings.py`` but kept within
+         the quant pipeline to avoid cross-package imports).
+      2. Backward-looking: ``PEAD_Surprise_Pct`` column from
+         ``enrich_with_pead()`` for the most recent earnings surprise.
+
+    Returns None if neither source provides data.
+    """
+    from quant_analysis_bot.signals import EarningsContext
+
+    days_to = -1
+    earn_date_str = ""
+    last_surprise = float("nan")
+
+    # ── Forward-looking: next earnings date ───────────────────
+    try:
+        import yfinance as yf
+        from datetime import date
+
+        t = yf.Ticker(ticker)
+        cal = t.calendar
+        if cal and isinstance(cal, dict):
+            dates_list = cal.get("Earnings Date")
+            if isinstance(dates_list, list) and dates_list:
+                earliest = min(dates_list)
+                if hasattr(earliest, "date"):
+                    earliest = earliest.date()
+                if isinstance(earliest, date):
+                    days_to = (earliest - date.today()).days
+                    earn_date_str = earliest.isoformat()
+    except Exception as e:
+        log.debug(
+            f"Earnings date lookup failed for {ticker}: {e}"
+        )
+
+    # ── Backward-looking: most recent surprise from PEAD ─────
+    if "PEAD_Surprise_Pct" in df.columns:
+        surprises = df["PEAD_Surprise_Pct"].dropna()
+        if not surprises.empty:
+            last_surprise = float(surprises.iloc[-1])
+
+    # Only return context if we have at least one useful field
+    if days_to < 0 and np.isnan(last_surprise):
+        return None
+
+    return EarningsContext(
+        days_to_earnings=days_to,
+        earnings_date=earn_date_str,
+        last_surprise_pct=last_surprise,
+    )
+
+
 def clear_cache() -> None:
     """Clear the module-level PEAD cache."""
     _pead_cache.clear()

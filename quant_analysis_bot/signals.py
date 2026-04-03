@@ -2,13 +2,106 @@
 
 from __future__ import annotations
 
+import logging
+import math
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Optional
 
 import pandas as pd
 
 from quant_analysis_bot.config import RISK_PROFILES
 from quant_analysis_bot.models import BacktestResult, DailySignal
 from quant_analysis_bot.strategies import Strategy
+
+log = logging.getLogger(__name__)
+
+
+# ── Earnings context ─────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class EarningsContext:
+    """Earnings proximity and surprise data for signal generation.
+
+    Populated by the CLI pipeline from yfinance data.
+    When unavailable, a neutral default (no adjustment) is used.
+    """
+
+    days_to_earnings: int = -1  # -1 = unknown
+    earnings_date: str = ""     # ISO date or ""
+    last_surprise_pct: float = float("nan")  # NaN = unknown
+
+    @property
+    def is_available(self) -> bool:
+        return self.days_to_earnings >= 0
+
+
+_NEUTRAL_EARNINGS = EarningsContext()
+
+
+def compute_earnings_confidence_adj(
+    ctx: EarningsContext,
+    *,
+    blackout_pre_days: int = 3,
+    surprise_boost_threshold: float = 5.0,
+    surprise_penalty_threshold: float = -5.0,
+    max_surprise_days: int = 60,
+) -> int:
+    """Compute a confidence score adjustment from earnings context.
+
+    Rules:
+      1. **Pre-earnings penalty**: If earnings are within
+         ``blackout_pre_days``, apply -2 to discourage new entries.
+         This is a soft version of the hard blackout in risk.py —
+         the signal still generates but with reduced confidence,
+         making it less likely to survive the min_confidence gate.
+
+      2. **Post-earnings surprise boost**: If the most recent
+         earnings surprise was strongly positive (> +5%), apply +1
+         to reward PEAD momentum.  Strongly negative (< -5%)
+         applies -1.  The boost only applies within 60 trading
+         days of the earnings (the academic PEAD window).
+
+      3. **Earnings-day penalty**: On earnings day itself (day 0),
+         apply -3 (maximum deterrent).
+
+    Returns an integer adjustment to add to the raw confidence_score.
+    """
+    if not ctx.is_available:
+        return 0
+
+    adj = 0
+
+    # Rule 3: earnings TODAY — strongest penalty
+    if ctx.days_to_earnings == 0:
+        return -3
+
+    # Rule 1: approaching earnings — discourage entry
+    if 0 < ctx.days_to_earnings <= blackout_pre_days:
+        adj -= 2
+
+    # Rule 2: post-earnings surprise modifier
+    # days_to_earnings < 0 means earnings already happened;
+    # but our EarningsContext uses -1 for "unknown".
+    # When populated from PEAD data, we use last_surprise_pct
+    # regardless of days_to_earnings (the PEAD enrichment
+    # already constrains to 60 days).
+    if not math.isnan(ctx.last_surprise_pct):
+        if ctx.last_surprise_pct >= surprise_boost_threshold:
+            adj += 1
+            log.debug(
+                f"Earnings surprise boost: "
+                f"{ctx.last_surprise_pct:+.1f}% → +1"
+            )
+        elif ctx.last_surprise_pct <= surprise_penalty_threshold:
+            adj -= 1
+            log.debug(
+                f"Earnings surprise penalty: "
+                f"{ctx.last_surprise_pct:+.1f}% → -1"
+            )
+
+    return adj
 
 
 def generate_daily_signal(
@@ -17,8 +110,20 @@ def generate_daily_signal(
     strategy: Strategy,
     result: BacktestResult,
     config: dict,
+    earnings_ctx: Optional[EarningsContext] = None,
 ) -> DailySignal:
-    """Generate today's actionable signal for a stock."""
+    """Generate today's actionable signal for a stock.
+
+    Parameters
+    ----------
+    earnings_ctx : EarningsContext, optional
+        Earnings proximity/surprise data.  When provided, the
+        confidence score is adjusted (up or down) based on
+        earnings proximity and past surprise direction.
+    """
+    if earnings_ctx is None:
+        earnings_ctx = _NEUTRAL_EARNINGS
+
     risk_config = RISK_PROFILES[config["risk_profile"]]
 
     # Generate signal on full data
@@ -56,6 +161,10 @@ def generate_daily_signal(
         and result.composite_score > 50
     ):
         confidence_score += 1
+
+    # ── Earnings confidence adjustment ────────────────────────────────
+    earnings_adj = compute_earnings_confidence_adj(earnings_ctx)
+    confidence_score = max(0, confidence_score + earnings_adj)
 
     if confidence_score >= 4:
         confidence = "HIGH"
@@ -103,6 +212,27 @@ def generate_daily_signal(
     adx_val = latest.get("ADX_14", 0)
     if adx_val > 30:
         notes_parts.append(f"Strong trend (ADX={adx_val:.0f})")
+
+    # ── Earnings notes ────────────────────────────────────────────────
+    if earnings_ctx.is_available:
+        if earnings_ctx.days_to_earnings == 0:
+            notes_parts.append(
+                f"EARNINGS TODAY ({earnings_ctx.earnings_date})"
+            )
+        elif 0 < earnings_ctx.days_to_earnings <= 5:
+            notes_parts.append(
+                f"Earnings in {earnings_ctx.days_to_earnings}d "
+                f"({earnings_ctx.earnings_date})"
+            )
+        if not math.isnan(earnings_ctx.last_surprise_pct):
+            notes_parts.append(
+                f"Last surprise: "
+                f"{earnings_ctx.last_surprise_pct:+.1f}%"
+            )
+    if earnings_adj != 0:
+        notes_parts.append(
+            f"Earnings conf adj: {earnings_adj:+d}"
+        )
 
     backtest_period = (
         f"{result.backtest_start} to {result.backtest_end} "
@@ -248,4 +378,12 @@ def generate_daily_signal(
             if notes_parts
             else "No special conditions"
         ),
+        days_to_earnings=earnings_ctx.days_to_earnings,
+        earnings_date=earnings_ctx.earnings_date,
+        last_surprise_pct=(
+            round(earnings_ctx.last_surprise_pct, 2)
+            if not math.isnan(earnings_ctx.last_surprise_pct)
+            else None
+        ),
+        earnings_confidence_adj=earnings_adj,
     )

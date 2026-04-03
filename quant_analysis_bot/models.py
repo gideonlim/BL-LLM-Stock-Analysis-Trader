@@ -104,3 +104,14 @@ class DailySignal:
     trend: str               # BULLISH / BEARISH / NEUTRAL
     volatility: str          # LOW / MEDIUM / HIGH  (human label)
     notes: str
+
+    # ── Earnings context (optional) ──────────────────────────────────
+    # Populated by the earnings event filter when data is available.
+    # days_to_earnings: calendar days until next earnings (-1 = unknown)
+    # earnings_date: ISO date string ("2026-05-01") or ""
+    # last_surprise_pct: most recent earnings surprise % (None = unknown)
+    # earnings_confidence_adj: points added/subtracted from confidence
+    days_to_earnings: int = -1
+    earnings_date: str = ""
+    last_surprise_pct: float | None = None
+    earnings_confidence_adj: int = 0

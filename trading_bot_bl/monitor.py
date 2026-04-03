@@ -167,21 +167,22 @@ def monitor_positions(
         atr = _fetch_atr(ticker)
 
         # ── Earnings proximity warning ───────────────────────
+        _earnings_info = None  # persisted for stop-tightening below
         if limits.earnings_blackout_enabled:
             try:
-                ei = check_earnings_blackout(
+                _earnings_info = check_earnings_blackout(
                     ticker,
                     pre_days=limits.earnings_blackout_pre_days,
                     post_days=limits.earnings_blackout_post_days,
                 )
                 if (
-                    ei.days_until_earnings is not None
-                    and 0 < ei.days_until_earnings
+                    _earnings_info.days_until_earnings is not None
+                    and 0 < _earnings_info.days_until_earnings
                     <= limits.earnings_blackout_pre_days + 2
                 ):
                     severity = (
                         "warning"
-                        if ei.days_until_earnings
+                        if _earnings_info.days_until_earnings
                         <= limits.earnings_blackout_pre_days
                         else "info"
                     )
@@ -190,9 +191,10 @@ def monitor_positions(
                         alert_type="earnings_approaching",
                         severity=severity,
                         message=(
-                            f"Earnings in {ei.days_until_earnings}d "
-                            f"({ei.next_earnings_date}) — "
-                            f"consider closing to avoid gap risk"
+                            f"Earnings in "
+                            f"{_earnings_info.days_until_earnings}d "
+                            f"({_earnings_info.next_earnings_date})"
+                            f" — consider closing to avoid gap risk"
                         ),
                         current_price=current_price,
                         entry_price=entry_price,
@@ -833,6 +835,100 @@ def monitor_positions(
                 ))
 
             report.alerts.append(alert)
+
+        # ── Check 8: Earnings pre-close for profitable positions ─
+        # When earnings are within the blackout window and the
+        # position is profitable, tighten the SL to lock in gains.
+        # This converts the paper gain into a protected floor
+        # before the high-volatility earnings event.
+        #
+        # Logic:
+        #   - Only for positions currently in profit (pnl_pct > 0)
+        #   - Only when earnings ≤ blackout_pre_days away
+        #   - New SL = max(current_sl, entry_price + 50% of gain)
+        #     i.e. lock in at least half the unrealised profit
+        #   - Never widens the stop (new_sl must > sl_price)
+        if (
+            _earnings_info is not None
+            and _earnings_info.days_until_earnings is not None
+            and 0 < _earnings_info.days_until_earnings
+            <= limits.earnings_blackout_pre_days
+            and has_stop_loss
+            and pnl_pct > 1.0  # at least 1% profit to bother
+            and sl_price > 0
+        ):
+            # Lock in 50% of the unrealised gain
+            earn_sl = round(
+                entry_price
+                + 0.5 * (current_price - entry_price),
+                2,
+            )
+            # Never widen a stop
+            earn_sl = max(earn_sl, sl_price)
+
+            if earn_sl > sl_price:
+                alert = PositionAlert(
+                    ticker=ticker,
+                    alert_type="earnings_stop_tighten",
+                    severity="warning",
+                    message=(
+                        f"{ticker} earnings in "
+                        f"{_earnings_info.days_until_earnings}d "
+                        f"({_earnings_info.next_earnings_date})"
+                        f" — tightening SL from "
+                        f"${sl_price:.2f} to ${earn_sl:.2f} "
+                        f"to lock in gains ({pnl_pct:+.1f}%)"
+                    ),
+                    current_price=current_price,
+                    entry_price=entry_price,
+                    stop_loss_price=sl_price,
+                    unrealized_pnl_pct=round(pnl_pct, 2),
+                )
+
+                if dry_run:
+                    alert.action_taken = (
+                        f"DRY RUN: would tighten SL to "
+                        f"${earn_sl:.2f}"
+                    )
+                else:
+                    success = _replace_stop_loss(
+                        broker, ticker, sl_order_id,
+                        earn_sl, qty,
+                        oco_parent_id=(
+                            tp_order_id
+                            if not sl_order_id else ""
+                        ),
+                        tp_price=tp_price,
+                    )
+                    if success and (
+                        _JOURNAL_AVAILABLE
+                        and _j_entry
+                        and journal_dir
+                    ):
+                        try:
+                            _journal.record_sl_modification(
+                                _j_entry,
+                                old_sl=sl_price,
+                                new_sl=earn_sl,
+                                reason="earnings_protection",
+                                current_price=current_price,
+                                journal_dir=journal_dir,
+                            )
+                        except Exception:
+                            pass
+                    if success:
+                        sl_price = earn_sl
+                    alert.action_taken = (
+                        f"SL tightened to ${earn_sl:.2f}"
+                        if success
+                        else "Failed to tighten SL"
+                    )
+
+                log.warning(
+                    f"  EARNINGS SL: {alert.message} "
+                    f"-> {alert.action_taken}"
+                )
+                report.alerts.append(alert)
 
     # ── Post-action settlement: verify order fills ─────────────
     # Wait 10s for orders to settle, then check fill status.

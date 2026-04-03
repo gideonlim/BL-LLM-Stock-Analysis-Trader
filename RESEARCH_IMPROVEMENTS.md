@@ -469,7 +469,7 @@ Our bot currently uses only price/volume-derived technical indicators. Incorpora
 
 ### 8.6 Earnings Sentiment & Post-Earnings Announcement Drift (PEAD) 🔶
 
-> **Partially implemented:** Earnings blackout filter in `trading_bot_bl/earnings.py`. Blocks new entries within configurable pre/post day window of earnings (default 3d pre, 1d post). Uses yfinance `.calendar` for free earnings date lookup with module-level caching. Integrated into RiskManager signal quality gate. Position monitor warns about held positions approaching earnings. Full PEAD alpha strategy (SUE-based signal source) not yet implemented.
+> **Partially implemented:** Full earnings event filter across both signal generation and execution pipelines. **Risk-side (trading_bot_bl):** Earnings blackout in `earnings.py` blocks new entries within 3d pre / 1d post window. Integrated into RiskManager. Monitor warns about held positions approaching earnings AND tightens stops for profitable positions within the blackout window (locks in 50% of unrealised gain). **Signal-side (quant_analysis_bot):** `EarningsContext` in `signals.py` adjusts confidence score based on proximity (-3 on earnings day, -2 within blackout, +1/-1 for strong positive/negative post-earnings surprise). Earnings date and surprise data flow from `pead.py` through `cli.py` to signal generation. New `DailySignal` fields: `days_to_earnings`, `earnings_date`, `last_surprise_pct`, `earnings_confidence_adj`. 26 unit tests in `test_earnings_filter.py`. Full PEAD alpha strategy (SUE-based signal source) not yet implemented.
 
 **What it is:** The well-documented anomaly where stocks continue drifting in the direction of an earnings surprise for 60-90 days after the announcement. A positive earnings surprise (beat estimates) leads to continued positive drift; a negative surprise leads to continued decline. The effect is strongest when combined with investor attention metrics.
 
@@ -576,7 +576,7 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | **ATR Chandelier exits** | monitor.py | Low | Medium | 🔶 Partial (ATR trailing, not highest-high anchored) |
 | **Exponentially weighted covariance** | black_litterman.py | Very Low | Medium | ✅ Implemented |
 | **VIX / market-wide sentiment** | market_sentiment.py | Very Low | Medium | ✅ Implemented (+ SPY regime filter) |
-| **Earnings event filter** | signals.py / risk.py | Low | Medium-High | ⬜ Not implemented |
+| **Earnings event filter** | signals.py / risk.py | Low | Medium-High | ✅ Implemented |
 
 ### Phase 2: Meaningful Upgrades (Medium effort, high impact)
 
@@ -669,4 +669,4 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 
 ---
 
-*Last updated: March 14, 2026*
+*Last updated: April 3, 2026*

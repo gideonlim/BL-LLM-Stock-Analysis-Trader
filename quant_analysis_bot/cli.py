@@ -59,7 +59,10 @@ def _analyze_ticker(
     from quant_analysis_bot.backtest import select_best_strategy
     from quant_analysis_bot.cscv import run_cscv_for_ticker
     from quant_analysis_bot.data import enrich_dataframe, fetch_data
-    from quant_analysis_bot.pead import enrich_with_pead
+    from quant_analysis_bot.pead import (
+        build_earnings_context,
+        enrich_with_pead,
+    )
     from quant_analysis_bot.regime import enrich_with_regime
     from quant_analysis_bot.signals import generate_daily_signal
 
@@ -83,6 +86,17 @@ def _analyze_ticker(
         if not skip_pead:
             df = enrich_with_pead(df, ticker)
 
+        # 2b. Earnings context (forward-looking date + last surprise)
+        #     Uses the PEAD-enriched df (for backward surprise) and
+        #     yfinance calendar (for next earnings date).
+        #     Skipped when --skip-pead is set (yfinance unavailable).
+        earnings_ctx = None
+        if not skip_pead:
+            try:
+                earnings_ctx = build_earnings_context(df, ticker)
+            except Exception:
+                earnings_ctx = None
+
         # 3. Strategy selection (14 strategies × 3 timeframes)
         (
             best_strat,
@@ -92,9 +106,10 @@ def _analyze_ticker(
             trade_logs,
         ) = select_best_strategy(df, ticker, config)
 
-        # 4. Signal generation
+        # 4. Signal generation (with earnings awareness)
         signal = generate_daily_signal(
-            df, ticker, best_strat, best_result, config
+            df, ticker, best_strat, best_result, config,
+            earnings_ctx=earnings_ctx,
         )
 
         # 5. CSCV overfitting check (for BUY signals or --validate)
@@ -108,6 +123,7 @@ def _analyze_ticker(
                     signal = generate_daily_signal(
                         df, ticker, best_strat,
                         best_result, config,
+                        earnings_ctx=earnings_ctx,
                     )
                 else:
                     cscv_res = None
