@@ -108,6 +108,88 @@ def compute_earnings_confidence_adj(
     return adj
 
 
+# ── Volatility-targeted sizing ─────────────────────────────────────
+
+
+def compute_vol_target_size(
+    vol_20: float,
+    *,
+    target_annual_vol: float = 0.15,
+    max_positions: int = 8,
+) -> float:
+    """Per-stock position size (% of portfolio) using vol targeting.
+
+    Sizes each position so its contribution to portfolio volatility
+    equals roughly ``target_annual_vol / max_positions``.
+
+    Parameters
+    ----------
+    vol_20 : float
+        Stock's annualised 20-day realised volatility (e.g. 0.30 = 30%).
+    target_annual_vol : float
+        Target annualised portfolio volatility (default 0.15 = 15%).
+    max_positions : int
+        Number of positions to budget for (denominator *N*).
+
+    Returns
+    -------
+    float
+        Suggested weight as a percentage of equity (e.g. 6.25),
+        or -1.0 if *vol_20* is non-positive / NaN.
+    """
+    # Coerce to numeric — config values may arrive as strings
+    try:
+        target_annual_vol = float(target_annual_vol)
+        max_positions = int(max_positions)
+    except (TypeError, ValueError):
+        return -1.0
+    if max_positions < 1:
+        max_positions = 1
+    if (
+        vol_20 is None
+        or not isinstance(vol_20, (int, float))
+        or math.isnan(vol_20)
+        or vol_20 <= 0
+    ):
+        return -1.0
+
+    weight = target_annual_vol / (max_positions * vol_20)
+    return round(weight * 100, 2)
+
+
+def blend_position_sizes(
+    kelly_pct: float,
+    vol_target_pct: float,
+    blend: float = 0.5,
+) -> float:
+    """Blend Half-Kelly and vol-target sizes.
+
+    Parameters
+    ----------
+    kelly_pct : float
+        Half-Kelly size as % of equity.
+    vol_target_pct : float
+        Vol-target size as % of equity, or -1.0 if unavailable.
+    blend : float
+        Weight on vol-target (0 = pure Kelly, 1 = pure vol-target).
+
+    Returns
+    -------
+    float
+        Blended size as % of equity.  If vol-target is unavailable
+        (-1.0), returns pure Kelly unchanged.
+    """
+    # Coerce — config values may arrive as strings
+    try:
+        blend = float(blend)
+    except (TypeError, ValueError):
+        blend = 0.5
+    blend = max(0.0, min(1.0, blend))
+    if vol_target_pct < 0:
+        return kelly_pct
+    return round((1 - blend) * kelly_pct + blend * vol_target_pct, 2)
+
+
 def generate_daily_signal(
     df: pd.DataFrame,
     ticker: str,
@@ -318,7 +400,7 @@ def generate_daily_signal(
     else:
         take_profit_price = 0.0
 
-    # ── Position sizing: half-Kelly, capped by confidence ─────────────
+    # ── Position sizing: half-Kelly blended with vol-target ────────────
     win_rate_f = result.win_rate
     pf = max(result.profit_factor, 0.01)
     loss_rate = 1 - win_rate_f
@@ -327,11 +409,39 @@ def generate_daily_signal(
     max_size = {"HIGH": 10.0, "MEDIUM": 10.0, "LOW": 7.0}.get(
         confidence, 7.0
     )
-    suggested_position_size_pct = round(
-        min(half_kelly * 100, max_size), 2
+    kelly_pct = round(min(half_kelly * 100, max_size), 2)
+
+    # Vol-target component: inverse-volatility sizing
+    vol_target_pct = compute_vol_target_size(
+        vol_20,
+        target_annual_vol=config.get("vol_target_annual", 0.15),
+        max_positions=config.get("vol_target_max_positions", 8),
     )
+    # Cap vol-target to same confidence-based ceiling
+    if vol_target_pct > 0:
+        vol_target_pct = round(min(vol_target_pct, max_size), 2)
+
+    # Blend the two sizing methods
+    vol_blend = config.get("vol_sizing_blend", 0.5)
+    suggested_position_size_pct = blend_position_sizes(
+        kelly_pct, vol_target_pct, blend=vol_blend,
+    )
+    # Final cap (blending can land between two capped values,
+    # but never above max_size by construction)
+    suggested_position_size_pct = min(
+        suggested_position_size_pct, max_size
+    )
+
     if signal == "HOLD":
         suggested_position_size_pct = 0.0
+
+    # ── Sizing notes ──────────────────────────────────────────────────
+    if vol_target_pct >= 0 and signal != "HOLD":
+        notes_parts.append(
+            f"Size: Kelly {kelly_pct:.1f}% / "
+            f"VolTgt {vol_target_pct:.1f}% / "
+            f"Blend {suggested_position_size_pct:.1f}%"
+        )
 
     # ── Signal expiry ─────────────────────────────────────────────────
     hold_days = max(int(result.avg_holding_days), 1)
@@ -381,6 +491,9 @@ def generate_daily_signal(
             "; ".join(notes_parts)
             if notes_parts
             else "No special conditions"
+        ),
+        vol_target_size_pct=(
+            vol_target_pct if vol_target_pct >= 0 else -1.0
         ),
         days_to_earnings=earnings_ctx.days_to_earnings,
         earnings_date=earnings_ctx.earnings_date,

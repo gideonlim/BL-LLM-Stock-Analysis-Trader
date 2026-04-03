@@ -40,6 +40,17 @@ DEFAULT_CONFIG: dict = {
     # Regime-dependent mean-reversion gate:
     # VIX threshold above which the regime is classified as "fear"
     "vix_fear_threshold": 25.0,
+    # ── Volatility-targeted position sizing ────────────────────────
+    # Target annualised portfolio volatility.  Each stock's weight is
+    # sized so that its contribution to portfolio vol ≈ σ_target / N.
+    # Formula: vol_target_pct = σ_target / (N × σ_i) × 100
+    "vol_target_annual": 0.15,          # 15% annualised target
+    # Number of positions to size for (denominator N).  Should match
+    # the max_positions limit on the trading bot side.
+    "vol_target_max_positions": 8,
+    # Blend factor: 0.0 = pure Half-Kelly, 1.0 = pure vol-target.
+    # 0.5 weights them equally.
+    "vol_sizing_blend": 0.5,
 }
 
 RISK_PROFILES: dict = {

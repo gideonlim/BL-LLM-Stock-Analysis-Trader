@@ -64,9 +64,10 @@ trade_logs/
 The signal CSV/JSON includes everything a trading bot needs to execute:
 
 - **Signal**: `signal_raw` (1/0/-1), `confidence_score` (0–6), `composite_score`
-- **Execution**: `stop_loss_price`, `take_profit_price`, `suggested_position_size_pct`, `signal_expires`
+- **Execution**: `stop_loss_price`, `take_profit_price`, `suggested_position_size_pct` (Kelly/vol-target blend), `vol_target_size_pct`, `signal_expires`
 - **Backtest quality**: `sharpe`, `sortino`, `win_rate`, `profit_factor`, `total_trades`, `avg_holding_days`
 - **Market context**: `rsi`, `vol_20`, `sma_50`, `sma_200`, `trend`, `volatility`
+- **Earnings context**: `days_to_earnings`, `earnings_date`, `last_surprise_pct`, `earnings_confidence_adj`
 
 ## Package Structure
 
@@ -78,7 +79,8 @@ quant_analysis_bot/
 ├── data.py         # Yahoo Finance data fetching with parquet caching
 ├── strategies.py   # 11 trading strategies + Strategy base class
 ├── backtest.py     # Backtesting engine + multi-timeframe strategy selector
-├── signals.py      # Daily signal generation with stop/profit/sizing
+├── signals.py      # Daily signal generation with stop/profit/sizing/vol-target
+├── pead.py         # PEAD enrichment + earnings context builder
 ├── universe.py     # Top US stocks by market cap (Wikipedia + bundled fallback)
 ├── output.py       # CSV/JSON writers for signals, trade logs, reports
 ├── progress.py     # Terminal progress bar (tqdm fallback)
@@ -127,9 +129,14 @@ Create a JSON file with any of these keys to override defaults:
     "3mo": 0.50,
     "6mo": 0.30,
     "12mo": 0.20
-  }
+  },
+  "vol_target_annual": 0.15,
+  "vol_target_max_positions": 8,
+  "vol_sizing_blend": 0.5
 }
 ```
+
+The `vol_sizing_blend` parameter controls how position sizes are computed: 0.0 uses pure Half-Kelly (backtest-derived), 1.0 uses pure volatility-targeting (inverse of 20-day realized vol), and 0.5 (default) blends them equally. This automatically reduces position sizes for volatile stocks and increases them for low-vol stocks.
 
 ## Data Caching
 

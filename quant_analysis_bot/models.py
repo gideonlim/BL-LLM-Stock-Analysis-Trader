@@ -80,7 +80,7 @@ class DailySignal:
     stop_loss_price: float   # absolute stop price
     take_profit_pct: float   # e.g. 10.0 = target 10% above entry
     take_profit_price: float  # absolute take-profit price
-    suggested_position_size_pct: float  # % of portfolio (half-Kelly)
+    suggested_position_size_pct: float  # % of portfolio (Kelly/vol-target blend)
     signal_expires: str      # YYYY-MM-DD  (re-evaluate after this)
 
     # ── Backtest quality ──────────────────────────────────────────────
@@ -104,6 +104,12 @@ class DailySignal:
     trend: str               # BULLISH / BEARISH / NEUTRAL
     volatility: str          # LOW / MEDIUM / HIGH  (human label)
     notes: str
+
+    # ── Volatility-targeted sizing (optional) ──────────────────────────
+    # When vol-targeting is active, shows the pure vol-target size
+    # before blending with Half-Kelly.  -1 = not computed (vol_20
+    # was 0 or unavailable, so pure Half-Kelly was used).
+    vol_target_size_pct: float = -1.0
 
     # ── Earnings context (optional) ──────────────────────────────────
     # Populated by the earnings event filter when data is available.

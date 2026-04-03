@@ -102,9 +102,9 @@ The classic Markowitz approach requires expected return estimates, which are not
 
 High-confidence signals shift the posterior more; low-confidence signals defer to the market prior.
 
-### BL Weights vs. Kelly Sizing
+### BL Weights vs. Signal Sizing
 
-BL weights are used for **ranking** (which stocks to buy first). Position sizing uses `max(BL weight * equity, Kelly notional)`. This prevents BL from shrinking well-sized Kelly positions while still allowing BL to scale up when it sees a better allocation.
+BL weights are used for **ranking** (which stocks to buy first). Position sizing in the signal uses a blend of Half-Kelly (backtest-derived) and volatility-targeting (inverse of 20-day realized vol), controlled by the `vol_sizing_blend` config parameter. The trading bot takes `max(BL weight * equity, signal notional)`. This prevents BL from shrinking well-sized positions while still allowing BL to scale up when it sees a better allocation.
 
 ## Execution Pipeline (10 Steps)
 
@@ -310,7 +310,8 @@ trading_bot_bl/
 ├── executor.py              # 10-step execution pipeline
 ├── risk.py                  # Risk manager (exposure, quality, sizing, history, SPY regime)
 ├── history.py               # Trade history aggregation + infra vs strategy classification
-├── monitor.py               # Position health monitoring (orphans, emergencies, trailing stops)
+├── monitor.py               # Position health monitoring (orphans, emergencies, trailing stops, earnings stop-tightening)
+├── earnings.py              # Earnings blackout detection (yfinance calendar)
 ├── market_sentiment.py      # VIX/P/C contrarian sizing + SPY trend regime detection
 ├── black_litterman.py       # BL model: equilibrium, views, posterior, Ledoit-Wolf shrinkage
 ├── llm_views.py             # LLM-enhanced view generation (ICLR 2025 repeated sampling)
@@ -324,6 +325,7 @@ trading_bot_bl/
 ├── __main__.py              # Enables `python -m trading_bot_bl`
 ├── test_journal.py          # Tests for journal + analytics (33 tests)
 ├── test_black_litterman.py  # Tests for BL math (8 tests)
+├── test_earnings.py         # Tests for earnings blackout (15 tests)
 ├── test_monitor.py          # Tests for position monitoring (51 tests)
 └── test_spy_regime.py       # Tests for SPY regime filter (21 tests)
 ```
