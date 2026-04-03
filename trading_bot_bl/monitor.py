@@ -1300,6 +1300,12 @@ def _calculate_trailing_stop(
         peak_gain = anchor - entry_price
         new_sl = entry_price + peak_gain * 0.5
 
+    # Round first so the clamp sees the final submitted value.
+    # Without this, a raw value like 114.997 passes the "< market"
+    # check but rounds to 115.00 == market, reintroducing the
+    # immediate-trigger risk.
+    new_sl = round(new_sl, 2)
+
     # Clamp: stop must stay strictly below current market price.
     # During a deep pullback the Chandelier formula can produce
     # a stop above market (e.g. HH=120, ATR=2, price=115 → 116).
@@ -1314,10 +1320,7 @@ def _calculate_trailing_stop(
     tick = 0.01
     max_allowed = round(current_price - tick, 2)
     if new_sl >= current_price:
-        # Stop at or above market — clamp to just below
         new_sl = max_allowed
-
-    new_sl = round(new_sl, 2)
 
     # If clamped stop would be at/below entry (not an improvement)
     # or at/below current SL, treat as no-op.
