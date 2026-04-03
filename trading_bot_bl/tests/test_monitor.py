@@ -1585,6 +1585,59 @@ class TestCalculateTrailingStop(unittest.TestCase):
         self.assertEqual(result, 111.99)
         self.assertLess(result, 112.0)  # strictly below market
 
+    def test_chandelier_round_up_to_market_clamped(self) -> None:
+        """Raw stop slightly below market that rounds up to == market.
+
+        Regression: if the clamp runs before rounding, a value like
+        114.997 passes the "< market" check but round(_, 2) → 115.00,
+        which equals current_price and triggers immediately.
+
+        Entry $100, peak $125, price $115. ATR=5.003.
+        Raw: 125 - 2×5.003 = 114.994.  Floored at entry? No (>100).
+        round(114.994, 2) → 114.99, which is < 115 — safe.
+
+        But with ATR=4.997:
+        Raw: 125 - 2×4.997 = 115.006.  >= market → clamp to 114.99.
+        """
+        # Case 1: raw is 114.994, rounds to 114.99 — naturally safe
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=115.0,
+            current_sl=110.0,
+            atr=5.003,
+            highest_high=125.0,
+        )
+        self.assertEqual(result, 114.99)
+        self.assertLess(result, 115.0)
+
+        # Case 2: raw is 115.006, rounds to 115.01 >= market → clamp
+        result2 = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=115.0,
+            current_sl=110.0,
+            atr=4.997,
+            highest_high=125.0,
+        )
+        self.assertEqual(result2, 114.99)
+        self.assertLess(result2, 115.0)
+
+    def test_chandelier_sub_penny_rounds_to_market(self) -> None:
+        """Raw stop < market by less than half a penny rounds up to market.
+
+        Entry $100, peak $122, price $112. ATR=4.998.
+        Raw: 122 - 2×4.998 = 112.004 → round → 112.00 == market.
+        Must clamp to 111.99.
+        """
+        result = _calculate_trailing_stop(
+            entry_price=100.0,
+            current_price=112.0,
+            current_sl=108.0,
+            atr=4.998,
+            highest_high=122.0,
+        )
+        self.assertEqual(result, 111.99)
+        self.assertLess(result, 112.0)
+
 
 class TestCalculateBreakevenStop(unittest.TestCase):
     """Unit tests for _calculate_breakeven_stop."""
