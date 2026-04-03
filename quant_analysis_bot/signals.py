@@ -31,6 +31,10 @@ class EarningsContext:
     days_to_earnings: int = -1  # -1 = unknown
     earnings_date: str = ""     # ISO date or ""
     last_surprise_pct: float = float("nan")  # NaN = unknown
+    # Trading days since the last earnings event (from PEAD_Days_Since).
+    # Used to enforce the 60-day PEAD recency window.
+    # 0 = unknown/unavailable (always passes the recency check).
+    surprise_days_since: int = 0
 
     @property
     def is_available(self) -> bool:
@@ -68,26 +72,26 @@ def compute_earnings_confidence_adj(
 
     Returns an integer adjustment to add to the raw confidence_score.
     """
-    if not ctx.is_available:
-        return 0
-
     adj = 0
 
-    # Rule 3: earnings TODAY — strongest penalty
-    if ctx.days_to_earnings == 0:
-        return -3
+    # ── Proximity rules (require a known forward date) ────────
+    if ctx.is_available:
+        # Rule 3: earnings TODAY — strongest penalty
+        if ctx.days_to_earnings == 0:
+            return -3
 
-    # Rule 1: approaching earnings — discourage entry
-    if 0 < ctx.days_to_earnings <= blackout_pre_days:
-        adj -= 2
+        # Rule 1: approaching earnings — discourage entry
+        if 0 < ctx.days_to_earnings <= blackout_pre_days:
+            adj -= 2
 
-    # Rule 2: post-earnings surprise modifier
-    # days_to_earnings < 0 means earnings already happened;
-    # but our EarningsContext uses -1 for "unknown".
-    # When populated from PEAD data, we use last_surprise_pct
-    # regardless of days_to_earnings (the PEAD enrichment
-    # already constrains to 60 days).
-    if not math.isnan(ctx.last_surprise_pct):
+    # ── Surprise rule (works even without forward date) ───────
+    # build_earnings_context can return a valid last_surprise_pct
+    # with days_to_earnings=-1 when the yfinance calendar lookup
+    # fails but PEAD historical data is available.
+    if (
+        not math.isnan(ctx.last_surprise_pct)
+        and ctx.surprise_days_since <= max_surprise_days
+    ):
         if ctx.last_surprise_pct >= surprise_boost_threshold:
             adj += 1
             log.debug(
@@ -224,11 +228,11 @@ def generate_daily_signal(
                 f"Earnings in {earnings_ctx.days_to_earnings}d "
                 f"({earnings_ctx.earnings_date})"
             )
-        if not math.isnan(earnings_ctx.last_surprise_pct):
-            notes_parts.append(
-                f"Last surprise: "
-                f"{earnings_ctx.last_surprise_pct:+.1f}%"
-            )
+    if not math.isnan(earnings_ctx.last_surprise_pct):
+        notes_parts.append(
+            f"Last surprise: "
+            f"{earnings_ctx.last_surprise_pct:+.1f}%"
+        )
     if earnings_adj != 0:
         notes_parts.append(
             f"Earnings conf adj: {earnings_adj:+d}"

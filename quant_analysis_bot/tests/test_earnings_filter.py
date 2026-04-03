@@ -224,6 +224,59 @@ class TestComputeEarningsConfidenceAdj(unittest.TestCase):
         )
         self.assertEqual(compute_earnings_confidence_adj(ctx), 0)
 
+    def test_surprise_only_no_forward_date(self):
+        """Surprise with unknown forward date should still adjust.
+
+        Regression: early return on is_available blocked surprise-only
+        contexts where yfinance calendar was unavailable but PEAD
+        historical surprise was present.
+        """
+        ctx = EarningsContext(
+            days_to_earnings=-1,  # unknown forward date
+            last_surprise_pct=10.0,
+            surprise_days_since=20,
+        )
+        self.assertEqual(compute_earnings_confidence_adj(ctx), 1)
+
+    def test_surprise_only_negative_no_forward_date(self):
+        """Negative surprise with unknown forward date should penalize."""
+        ctx = EarningsContext(
+            days_to_earnings=-1,
+            last_surprise_pct=-8.0,
+            surprise_days_since=15,
+        )
+        self.assertEqual(compute_earnings_confidence_adj(ctx), -1)
+
+    def test_stale_surprise_beyond_60_days_ignored(self):
+        """Surprise older than 60 trading days should not adjust.
+
+        Regression: max_surprise_days was declared but not enforced.
+        """
+        ctx = EarningsContext(
+            days_to_earnings=90,
+            last_surprise_pct=15.0,
+            surprise_days_since=65,  # beyond 60-day PEAD window
+        )
+        self.assertEqual(compute_earnings_confidence_adj(ctx), 0)
+
+    def test_surprise_at_60_day_boundary_included(self):
+        """Surprise at exactly 60 trading days should still apply."""
+        ctx = EarningsContext(
+            days_to_earnings=90,
+            last_surprise_pct=10.0,
+            surprise_days_since=60,
+        )
+        self.assertEqual(compute_earnings_confidence_adj(ctx), 1)
+
+    def test_surprise_days_since_zero_always_passes(self):
+        """surprise_days_since=0 (unknown) should pass recency check."""
+        ctx = EarningsContext(
+            days_to_earnings=-1,
+            last_surprise_pct=10.0,
+            surprise_days_since=0,
+        )
+        self.assertEqual(compute_earnings_confidence_adj(ctx), 1)
+
 
 # ── Signal Generation Integration Tests ──────────────────────────────
 
@@ -383,6 +436,29 @@ class TestSignalGenerationWithEarnings(unittest.TestCase):
             earnings_ctx=ctx,
         )
         self.assertGreaterEqual(sig.confidence_score, 0)
+
+    def test_surprise_only_note_rendered(self):
+        """Surprise detail should appear in notes even without forward date.
+
+        Regression: surprise note was gated behind is_available, so
+        surprise-only contexts (days_to_earnings=-1) showed the adj
+        number but not the underlying surprise percentage.
+        """
+        ctx = EarningsContext(
+            days_to_earnings=-1,  # no forward date
+            last_surprise_pct=10.0,
+            surprise_days_since=20,
+        )
+        sig = generate_daily_signal(
+            self.df, "TEST", self.strategy,
+            self.result, self.config,
+            earnings_ctx=ctx,
+        )
+        self.assertIn("Last surprise: +10.0%", sig.notes)
+        self.assertIn("Earnings conf adj: +1", sig.notes)
+        # Should NOT mention "Earnings in" since no forward date
+        self.assertNotIn("Earnings in", sig.notes)
+        self.assertNotIn("EARNINGS TODAY", sig.notes)
 
 
 # ── build_earnings_context Tests ─────────────────────────────────────

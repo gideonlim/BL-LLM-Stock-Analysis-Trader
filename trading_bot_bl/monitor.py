@@ -142,6 +142,7 @@ def monitor_positions(
         unrealized_pnl = pos.get("unrealized_pnl", 0.0)
         qty = pos.get("qty", 0.0)
         entry_date = pos.get("entry_date")  # ISO date str or None
+        _position_closed = False  # set by any close action
 
         if not current_price or entry_price <= 0:
             log.debug(
@@ -412,6 +413,7 @@ def monitor_positions(
                 )
             else:
                 result = broker.close_position(ticker)
+                _position_closed = True
                 alert.action_taken = (
                     f"Emergency close: {result.status}"
                 )
@@ -472,6 +474,7 @@ def monitor_positions(
                     )
                 else:
                     result = broker.close_position(ticker)
+                    _position_closed = True
                     alert.action_taken = (
                         f"Closed orphaned loser: {result.status}"
                     )
@@ -549,6 +552,7 @@ def monitor_positions(
                 )
             else:
                 result = broker.close_position(ticker)
+                _position_closed = True
                 alert.action_taken = (
                     f"Closed gapped position: {result.status}"
                 )
@@ -810,6 +814,7 @@ def monitor_positions(
                 )
             else:
                 result = broker.close_position(ticker)
+                _position_closed = True
                 alert.action_taken = (
                     f"Time-exit close: {result.status}"
                 )
@@ -848,7 +853,11 @@ def monitor_positions(
         #   - New SL = max(current_sl, entry_price + 50% of gain)
         #     i.e. lock in at least half the unrealised profit
         #   - Never widens the stop (new_sl must > sl_price)
+        #   - Skipped if the position was already closed by an
+        #     earlier check (emergency, orphan, gap, time-exit).
         if (
+            not _position_closed
+            and
             _earnings_info is not None
             and _earnings_info.days_until_earnings is not None
             and 0 < _earnings_info.days_until_earnings

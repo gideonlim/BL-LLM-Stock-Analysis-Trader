@@ -377,10 +377,16 @@ def build_earnings_context(
         )
 
     # ── Backward-looking: most recent surprise from PEAD ─────
+    surprise_days = 0
     if "PEAD_Surprise_Pct" in df.columns:
         surprises = df["PEAD_Surprise_Pct"].dropna()
         if not surprises.empty:
             last_surprise = float(surprises.iloc[-1])
+            # Extract trading days since the last earnings event
+            if "PEAD_Days_Since" in df.columns:
+                days_since = df["PEAD_Days_Since"].dropna()
+                if not days_since.empty:
+                    surprise_days = int(days_since.iloc[-1])
 
     # Only return context if we have at least one useful field
     if days_to < 0 and np.isnan(last_surprise):
@@ -390,6 +396,7 @@ def build_earnings_context(
         days_to_earnings=days_to,
         earnings_date=earn_date_str,
         last_surprise_pct=last_surprise,
+        surprise_days_since=surprise_days,
     )
 
 
