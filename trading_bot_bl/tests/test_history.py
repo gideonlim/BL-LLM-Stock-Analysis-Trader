@@ -147,5 +147,101 @@ class TestRecentTradeReason(unittest.TestCase):
         self.assertIsNone(h.recent_trade_reason("VRSN", days=2))
 
 
+class TestLoadTradeHistoryDryRunFlag(unittest.TestCase):
+    """load_trade_history() should only count dry-run orders toward
+    cooldown dates when include_dry_runs=True."""
+
+    def _write_log(self, tmpdir, orders, executed_at=None):
+        import json, os
+        from pathlib import Path
+
+        if executed_at is None:
+            executed_at = _iso(datetime.now())
+        data = {"executed_at": executed_at, "orders": orders}
+        # Use timestamp in filename to avoid collisions
+        fname = f"execution_{executed_at.replace(':', '')}.json"
+        p = Path(tmpdir) / fname
+        p.write_text(json.dumps(data))
+
+    def test_dry_run_sell_ignored_by_default(self) -> None:
+        """Without include_dry_runs, dry-run sells don't set
+        last_sell_date — so they can't block live buys."""
+        import tempfile
+        from pathlib import Path
+        from trading_bot_bl.history import load_trade_history
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._write_log(tmpdir, [{
+                "ticker": "VRSN", "status": "dry_run",
+                "side": "sell", "notional": 5000,
+                "error": "", "strategy": "test",
+            }])
+            h = load_trade_history(Path(tmpdir), lookback_days=30)
+            th = h.by_ticker.get("VRSN")
+            self.assertIsNotNone(th)
+            self.assertEqual(th.last_sell_date, "")
+            self.assertIsNone(
+                h.recent_trade_reason("VRSN", days=2)
+            )
+
+    def test_dry_run_sell_counted_when_opted_in(self) -> None:
+        """With include_dry_runs=True, dry-run sells DO set
+        last_sell_date — accurate for dry-run simulation."""
+        import tempfile
+        from pathlib import Path
+        from trading_bot_bl.history import load_trade_history
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._write_log(tmpdir, [{
+                "ticker": "VRSN", "status": "dry_run",
+                "side": "sell", "notional": 5000,
+                "error": "", "strategy": "test",
+            }])
+            h = load_trade_history(
+                Path(tmpdir), lookback_days=30,
+                include_dry_runs=True,
+            )
+            th = h.by_ticker.get("VRSN")
+            self.assertIsNotNone(th)
+            self.assertNotEqual(th.last_sell_date, "")
+            reason = h.recent_trade_reason("VRSN", days=2)
+            self.assertIn("sold", reason)
+
+    def test_submitted_always_counted(self) -> None:
+        """Submitted orders always count, regardless of flag."""
+        import tempfile
+        from pathlib import Path
+        from trading_bot_bl.history import load_trade_history
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._write_log(tmpdir, [{
+                "ticker": "VRSN", "status": "submitted",
+                "side": "buy", "notional": 5000,
+                "error": "", "strategy": "test",
+            }])
+            # Without flag
+            h = load_trade_history(Path(tmpdir), lookback_days=30)
+            self.assertNotEqual(
+                h.by_ticker["VRSN"].last_buy_date, ""
+            )
+
+    def test_dry_run_buy_ignored_by_default(self) -> None:
+        """Dry-run buys don't set last_buy_date by default."""
+        import tempfile
+        from pathlib import Path
+        from trading_bot_bl.history import load_trade_history
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._write_log(tmpdir, [{
+                "ticker": "VRSN", "status": "dry_run",
+                "side": "buy", "notional": 5000,
+                "error": "", "strategy": "test",
+            }])
+            h = load_trade_history(Path(tmpdir), lookback_days=30)
+            th = h.by_ticker.get("VRSN")
+            self.assertIsNotNone(th)
+            self.assertEqual(th.last_buy_date, "")
+
+
 if __name__ == "__main__":
     unittest.main()

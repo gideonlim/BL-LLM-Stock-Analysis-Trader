@@ -256,6 +256,7 @@ class TradeHistory:
 def load_trade_history(
     log_dir: Path,
     lookback_days: int = 30,
+    include_dry_runs: bool = False,
 ) -> TradeHistory:
     """
     Load and aggregate execution logs from the log directory.
@@ -266,6 +267,11 @@ def load_trade_history(
     Args:
         log_dir: Directory containing execution_*.json files.
         lookback_days: Only load logs from the last N days.
+        include_dry_runs: When True, dry-run orders count toward
+            cooldown dates (last_buy_date / last_sell_date).
+            Set to True when the current run is also a dry run
+            so cooldowns are simulated accurately.  Defaults to
+            False so dry-run logs never block real live orders.
 
     Returns:
         Aggregated TradeHistory.
@@ -331,9 +337,18 @@ def load_trade_history(
                 )
             th = history.by_ticker[ticker]
 
+            # Statuses that count toward cooldown dates.
+            # dry_run orders only count when the caller opts in
+            # (i.e. the current run is also a dry run) so that
+            # simulated orders never block real live trades.
+            _counts_for_cooldown = (
+                status == "submitted"
+                or (status == "dry_run" and include_dry_runs)
+            )
+
             if side == "buy":
                 th.total_buys += 1
-                if status == "submitted":
+                if _counts_for_cooldown:
                     th.last_buy_date = executed_at
                     th.last_buy_strategy = strategy
                     th.last_buy_notional = notional
@@ -341,7 +356,7 @@ def load_trade_history(
                     th.strategies_used.add(strategy)
             elif side in ("sell", "close"):
                 th.total_exits += 1
-                if status == "submitted":
+                if _counts_for_cooldown:
                     th.last_sell_date = executed_at
 
             # ── Update strategy history ────────────────────
