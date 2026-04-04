@@ -33,6 +33,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Restore prefetch cache
+        uses: actions/cache/restore@v4
+        with:
+          path: cache/
+          key: prefetch-data-
+          restore-keys: |
+            prefetch-data-
+
       - name: Generate signals
         env:
           EXTRA_TICKERS: ${{ vars.EXTRA_TICKERS || '' }}

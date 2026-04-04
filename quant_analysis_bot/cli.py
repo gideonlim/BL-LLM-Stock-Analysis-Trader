@@ -237,6 +237,7 @@ def run(config: dict) -> None:
     regime_df = fetch_regime_data(
         lookback_days=config["lookback_days"],
         vix_fear_threshold=config.get("vix_fear_threshold", 25.0),
+        cache_dir=config.get("data_cache_dir"),
     )
 
     # ── Batch download price data (all tickers at once) ───────────
@@ -564,6 +565,15 @@ def main() -> None:
             "1 = sequential (no multiprocessing)."
         ),
     )
+    parser.add_argument(
+        "--prefetch",
+        action="store_true",
+        help=(
+            "Prefetch mode: download all ticker data and regime "
+            "data, write to cache with manifest, then exit. "
+            "Designed for the 6 PM ET prefetch workflow."
+        ),
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -585,7 +595,7 @@ def main() -> None:
     else:
         config["workers"] = max(1, args.workers)
 
-    if args.all_stocks:
+    if args.all_stocks or args.prefetch:
         log.info(
             f"Fetching top {args.top_n} US stocks by market cap..."
         )
@@ -606,6 +616,12 @@ def main() -> None:
             logging.getLogger("quant_analysis_bot").setLevel(
                 logging.WARNING
             )
+
+    if args.prefetch:
+        from quant_analysis_bot.prefetch import run_prefetch
+
+        run_prefetch(config, config["tickers"])
+        sys.exit(0)
 
     run(config)
 
