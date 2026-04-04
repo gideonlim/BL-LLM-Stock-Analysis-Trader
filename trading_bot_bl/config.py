@@ -151,6 +151,14 @@ class RiskLimits:
     min_adv_dollar_volume: float = 5_000_000.0  # min avg daily $
     max_adv_participation_pct: float = 1.0  # max position as % of ADV$
 
+    # ── CPPI drawdown control ──────────────────────────────
+    # Continuous exposure scaling that replaces the binary circuit
+    # breaker.  As drawdown deepens, position sizes shrink smoothly.
+    cppi_enabled: bool = False
+    cppi_max_drawdown_pct: float = 10.0  # floor = peak * (1 - this%)
+    cppi_multiplier: int = 5             # risk multiplier (3-5 typical)
+    cppi_min_exposure_pct: float = 10.0  # minimum exposure % at floor
+
 
 @dataclass
 class TradingConfig:
@@ -373,6 +381,18 @@ class TradingConfig:
             ),
             ticker_cooldown_days=int(
                 os.getenv("TICKER_COOLDOWN_DAYS", "2")
+            ),
+            cppi_enabled=os.getenv(
+                "CPPI_ENABLED", "false"
+            ).lower() in ("true", "1", "yes"),
+            cppi_max_drawdown_pct=float(
+                os.getenv("CPPI_MAX_DRAWDOWN_PCT", "10.0")
+            ),
+            cppi_multiplier=int(
+                os.getenv("CPPI_MULTIPLIER", "5")
+            ),
+            cppi_min_exposure_pct=float(
+                os.getenv("CPPI_MIN_EXPOSURE_PCT", "10.0")
             ),
         )
         return cls(

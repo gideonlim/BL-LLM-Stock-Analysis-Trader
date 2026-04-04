@@ -92,7 +92,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low. We already have `vol_20` in the signal data. This could be a blended approach: `final_size = alpha * kelly_size + (1 - alpha) * vol_target_size`.
 
-### 2.2 Constant Proportion Portfolio Insurance (CPPI) ⬜
+### 2.2 Constant Proportion Portfolio Insurance (CPPI) ✅
 
 **What it is:** A dynamic position sizing method that protects a portfolio floor value. Position size is: Exposure = multiplier * (portfolio_value - floor). As the portfolio drops toward the floor, exposure shrinks to zero. As it rises, exposure increases.
 
@@ -213,7 +213,7 @@ Our bot uses Half-Kelly. There are more sophisticated approaches.
 
 **Implementation difficulty:** Low. We already have ATR calculations.
 
-### 4.3 Maximum Drawdown Control (CPPI-Based) ⬜
+### 4.3 Maximum Drawdown Control (CPPI-Based) ✅
 
 **What it is:** Instead of a binary circuit breaker (stop all trading at -3%), use a continuous scaling function. As drawdown increases, position sizes decrease proportionally. The floor ratchets up with portfolio gains (TIPP variant).
 
@@ -587,7 +587,7 @@ Prioritized by impact-to-effort ratio. Grouped into three phases.
 | **HRP allocation** | portfolio_optimizer.py | Medium | High | ⬜ Not implemented |
 | **HMM regime detection** | new module | Medium | High | ⬜ Not implemented (SPY SMA-based regime exists) |
 | **GARCH volatility forecasting** | signals.py / risk.py | Medium | High | ⬜ Not implemented |
-| **CPPI drawdown control** | risk.py | Medium | High | ⬜ Not implemented |
+| **CPPI drawdown control** | cppi.py, risk.py, executor.py | Medium | High | ✅ Implemented (TIPP + SPY regime reset) |
 | **Walk-forward backtesting** | backtest.py | Medium | High | ✅ Implemented (70/30 split) |
 | **Fractional differentiation** | new preprocessing | Low-Medium | Medium | ⬜ Not implemented |
 | **Slippage model** | broker.py / journal.py | Low | Medium | ✅ Implemented (limit orders + tracking) |

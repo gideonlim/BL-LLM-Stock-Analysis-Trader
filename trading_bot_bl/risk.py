@@ -8,6 +8,7 @@ from datetime import date
 from typing import Optional
 
 from trading_bot_bl.config import RiskLimits
+from trading_bot_bl.cppi import CppiState
 from trading_bot_bl.earnings import check_earnings_blackout
 from trading_bot_bl.history import TradeHistory
 from trading_bot_bl.liquidity import check_liquidity
@@ -54,6 +55,10 @@ class RiskManager:
     )
     oil_spike_tickers: tuple[str, ...] = ()
     oil_spike_tiers: list[OilSpikeTier] = field(default_factory=list)
+
+    # CPPI drawdown control — set by executor when cppi_enabled.
+    # Scales notional down as portfolio approaches the floor.
+    cppi_state: CppiState = field(default_factory=CppiState)
 
     # Regime-adjusted limits (set by apply_spy_regime_overrides).
     # These shadow the base limits during CAUTION/BEAR/SEVERE_BEAR.
@@ -345,6 +350,23 @@ class RiskManager:
         ticker = intent.ticker
         equity = portfolio.equity
 
+        # ── Sell / exit orders ────────────────────────────────────
+        # Exit orders are risk-reducing and must always go through,
+        # even during circuit breaker, zero-equity, or CPPI floor
+        # events.  Blocking exits worsens drawdown.  In live mode
+        # Alpaca's close_position() ignores notional anyway, but in
+        # dry-run mode the logged amount must reflect the real exit
+        # size for accurate P&L tracking.
+        if intent.side == "sell":
+            return RiskVerdict(
+                approved=True,
+                order=intent,
+                adjusted_notional=intent.notional,
+            )
+
+        # ── Buy-side equity sanity check ─────────────────────────
+        # Only buys need equity > 0 (exposure/sizing math divides
+        # by equity).  Sells have already returned above.
         if equity <= 0:
             return RiskVerdict(
                 approved=False,
@@ -352,25 +374,16 @@ class RiskManager:
             )
 
         # ── Circuit breaker ───────────────────────────────────────
-        if self.check_circuit_breaker(portfolio):
+        # When CPPI is enabled it handles drawdown scaling
+        # continuously, so the binary circuit breaker is redundant
+        # and would block buys before CPPI can resize them.
+        if (
+            not self.limits.cppi_enabled
+            and self.check_circuit_breaker(portfolio)
+        ):
             return RiskVerdict(
                 approved=False,
                 reason="Daily loss circuit breaker is active",
-            )
-
-        # ── Sell / exit orders ────────────────────────────────────
-        # Exit orders should close the full position without being
-        # constrained by buy-side limits (exposure cap, per-stock
-        # cap, cash, sentiment multiplier, etc.).  The only check
-        # that applies to exits is the circuit breaker above.
-        # In live mode Alpaca's close_position() ignores notional
-        # anyway, but in dry-run mode the logged amount must
-        # reflect the real exit size for accurate P&L tracking.
-        if intent.side == "sell":
-            return RiskVerdict(
-                approved=True,
-                order=intent,
-                adjusted_notional=intent.notional,
             )
 
         # ── SPY regime hard halt ──────────────────────────────────
@@ -537,6 +550,25 @@ class RiskManager:
                     f"{self.sentiment_size_multiplier:.2f} → "
                     f"${pre_sentiment:,.0f} -> ${adjusted:,.0f}"
                 )
+
+        # ── CPPI exposure scaling ──────────────────────────────
+        # Scale notional by the CPPI exposure multiplier.
+        # This smoothly reduces position sizes as drawdown deepens.
+        if (
+            intent.side == "buy"
+            and self.limits.cppi_enabled
+            and self.cppi_state.exposure_multiplier < 1.0
+        ):
+            pre_cppi = adjusted
+            adjusted = round(
+                adjusted * self.cppi_state.exposure_multiplier, 2
+            )
+            log.info(
+                f"  {ticker}: CPPI scaling "
+                f"{self.cppi_state.exposure_multiplier:.0%} → "
+                f"${pre_cppi:,.0f} -> ${adjusted:,.0f} "
+                f"(cushion={self.cppi_state.cushion_pct:.1f}%)"
+            )
 
         # Don't bother with tiny orders (< $1)
         if adjusted < 1.0:

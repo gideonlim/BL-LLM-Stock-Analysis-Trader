@@ -10,6 +10,12 @@ from typing import List
 
 from trading_bot_bl.broker import AlpacaBroker
 from trading_bot_bl.config import TradingConfig
+from trading_bot_bl.cppi import (
+    CppiState,
+    load_cppi_state,
+    save_cppi_state,
+    update_cppi,
+)
 from trading_bot_bl.history import (
     TradeHistory,
     enrich_history_with_pnl,
@@ -634,6 +640,56 @@ def execute(
                         )
                 intents = _sells + reordered_buys
 
+    # ── 8d. CPPI drawdown control ───────────────────────────────────
+    #    Load or initialize CPPI state, update with current equity,
+    #    and pass to the risk manager for notional scaling.
+    cppi_state = CppiState()  # neutral (multiplier=1.0) when disabled
+    if config.risk.cppi_enabled:
+        cppi_path = history_dir / "cppi_state.json"
+        saved = load_cppi_state(cppi_path)
+        if saved is not None:
+            # Overlay current config so env/config changes take
+            # effect immediately (peak/floor/cushion are preserved).
+            cppi_state = saved
+            cppi_state.max_drawdown_pct = config.risk.cppi_max_drawdown_pct
+            cppi_state.multiplier = config.risk.cppi_multiplier
+            cppi_state.min_exposure_pct = config.risk.cppi_min_exposure_pct
+        else:
+            cppi_state = CppiState.from_portfolio(
+                equity=portfolio.equity,
+                max_drawdown_pct=config.risk.cppi_max_drawdown_pct,
+                multiplier=config.risk.cppi_multiplier,
+                min_exposure_pct=config.risk.cppi_min_exposure_pct,
+            )
+
+        # Determine if we have *actual* SPY regime data.
+        # spy_price > 0 proves the fetch succeeded; the default
+        # SpyRegime() has spy_price=0.  Without real data (regime
+        # disabled, sentiment disabled, or fetch failure) we pass
+        # UNKNOWN so the CPPI floor does NOT auto-reset — the
+        # portfolio must recover above the floor organically.
+        _has_regime_data = (
+            config.spy_regime_enabled
+            and sentiment.spy_regime.spy_price > 0
+        )
+        cppi_state = update_cppi(
+            cppi_state,
+            current_equity=portfolio.equity,
+            spy_trend_regime=(
+                sentiment.spy_regime.trend_regime
+                if _has_regime_data
+                else "UNKNOWN"
+            ),
+        )
+        save_cppi_state(cppi_state, cppi_path)
+
+        log.info(
+            f"  CPPI: floor=${cppi_state.floor:,.0f}, "
+            f"peak=${cppi_state.peak_equity:,.0f}, "
+            f"cushion={cppi_state.cushion_pct:.1f}%, "
+            f"exposure={cppi_state.exposure_multiplier:.0%}"
+        )
+
     # ── 9. Risk check each intent ─────────────────────────────────
     risk_mgr = RiskManager(
         limits=config.risk,
@@ -643,6 +699,7 @@ def execute(
         oil_spike_state=oil_state,
         oil_spike_tickers=oil_tickers,
         oil_spike_tiers=oil_spike_tiers,
+        cppi_state=cppi_state,
     )
     # Apply regime-adjusted limits (CAUTION/BEAR/SEVERE_BEAR)
     if config.spy_regime_enabled:

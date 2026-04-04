@@ -257,13 +257,15 @@ Journal data is skipped entirely during `--dry-run` so simulated runs never poll
 | Variable | Default | Description |
 |---|---|---|
 | `MAX_EXPOSURE_PCT` | 80.0 | Max total portfolio exposure (%) |
-| `MAX_POSITION_PCT` | 12.0 | Max single-stock position (%) |
+| `MAX_POSITION_PCT` | 10.0 | Max single-stock position (%) |
 | `MAX_POSITIONS` | 8 | Max concurrent positions |
 | `MIN_POSITION_PCT` | 2.0 | Skip orders below this % of equity |
 | `DAILY_LOSS_LIMIT_PCT` | 3.0 | Circuit breaker threshold (%) |
-| `MIN_COMPOSITE_SCORE` | 20.0 | Min backtest score to trade |
+| `MIN_COMPOSITE_SCORE` | 15.0 | Min backtest score to trade |
 | `MIN_CONFIDENCE_SCORE` | 2 | Min confidence score (0-6) |
-| `MAX_ENTRY_SLIPPAGE_PCT` | 1.5 | Limit order slippage cap (0 = market order) |
+| `MIN_BACKTEST_TRADES` | 3 | Min out-of-sample trades for signal reliability |
+| `MAX_PBO` | 0.50 | Max probability of backtest overfitting (0-1, 1.0 = disable) |
+| `MAX_ENTRY_SLIPPAGE_PCT` | 1.0 | Limit order slippage cap (0 = market order) |
 | `HISTORY_LOOKBACK_DAYS` | 30 | Days of execution history to consider |
 
 ### SPY Trend Regime
@@ -272,7 +274,7 @@ Journal data is skipped entirely during `--dry-run` so simulated runs never poll
 |---|---|---|
 | `SPY_REGIME_ENABLED` | true | Enable SPY bear market filter |
 | `SPY_BEAR_CONFIRMATION_DAYS` | 3 | Days below 200-SMA to confirm BEAR |
-| `SPY_BEAR_MAX_POSITIONS` | 4 | Max positions during BEAR |
+| `SPY_BEAR_MAX_POSITIONS` | 5 | Max positions during BEAR |
 | `SPY_BEAR_MIN_COMPOSITE_SCORE` | 30.0 | Min composite score during BEAR |
 | `SPY_CAUTION_MAX_POSITIONS` | 6 | Max positions during CAUTION |
 | `SPY_CAUTION_MIN_COMPOSITE_SCORE` | 22.0 | Min composite score during CAUTION |
@@ -299,6 +301,17 @@ Journal data is skipped entirely during `--dry-run` so simulated runs never poll
 | `FINBERT_ENABLED` | false | Enable FinBERT headline scoring (requires `transformers` + `torch`) |
 | `FINBERT_SCORE_WEIGHT` | 5.0 | Max composite-score adjustment (± points) |
 | `FINBERT_MAX_HEADLINES` | 5 | Headlines per ticker to score |
+
+### CPPI Drawdown Control
+
+| Variable | Default | Description |
+|---|---|---|
+| `CPPI_ENABLED` | false | Enable CPPI exposure scaling (replaces binary circuit breaker) |
+| `CPPI_MAX_DRAWDOWN_PCT` | 10.0 | Floor = peak equity × (1 − this%). Exposure scales to minimum at floor |
+| `CPPI_MULTIPLIER` | 5 | Risk multiplier — higher values keep exposure at 100% longer during drawdown |
+| `CPPI_MIN_EXPOSURE_PCT` | 10.0 | Minimum exposure even at the floor (prevents permanent cash lock) |
+
+When enabled, CPPI smoothly scales down buy order notional as the portfolio draws down toward the floor, instead of halting all trading at a fixed threshold. The floor ratchets up with new equity highs (TIPP variant). If the portfolio hits the floor during a bear market and SPY later recovers to BULL or CAUTION, the floor resets to the current equity level so trading can resume.
 
 ### LLM Views (optional)
 
@@ -336,6 +349,7 @@ trading_bot_bl/
 ├── equity_curve.py          # Equity snapshot recording (JSONL append-only)
 ├── journal_analytics.py     # Performance analytics (Sharpe, PSR, R-dist, regime breakdown)
 ├── journal_report.py        # PDF report generator with charts + CSV export
+├── cppi.py                  # CPPI drawdown control (TIPP + SPY regime floor reset)
 ├── cli.py                   # CLI entry point with BL/LLM flags
 ├── __main__.py              # Enables `python -m trading_bot_bl`
 ├── test_journal.py          # Tests for journal + analytics (33 tests)
