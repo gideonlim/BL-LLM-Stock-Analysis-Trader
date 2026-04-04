@@ -75,6 +75,8 @@ def batch_fetch_data(
     tickers: list[str],
     lookback_days: int,
     cache_dir: str,
+    *,
+    _skip_prefetch: bool = False,
 ) -> dict[str, pd.DataFrame]:
     """Batch-download OHLCV data for multiple tickers in one call.
 
@@ -103,6 +105,59 @@ def batch_fetch_data(
 
     if not need_download:
         log.info(f"All {len(tickers)} tickers loaded from cache")
+        return results
+
+    # Check prefetch cache from previous trading day
+    if not _skip_prefetch:
+        from quant_analysis_bot.prefetch import (
+            _et_now,
+            validate_prefetch_cache,
+        )
+
+        prefetch_result = validate_prefetch_cache(
+            cache_dir, _et_now().date()
+        )
+        if prefetch_result is not None:
+            prev_date_str, valid_tickers = prefetch_result
+            valid_set = set(valid_tickers)
+            still_need: list[str] = []
+            for ticker in need_download:
+                if ticker not in valid_set:
+                    still_need.append(ticker)
+                    continue
+                prefetch_file = os.path.join(
+                    cache_dir,
+                    f"{ticker}_{prev_date_str}.parquet",
+                )
+                if not os.path.exists(prefetch_file):
+                    still_need.append(ticker)
+                    continue
+                try:
+                    results[ticker] = pd.read_parquet(
+                        prefetch_file
+                    )
+                except Exception as exc:
+                    log.debug(
+                        f"Prefetch read failed for {ticker}: "
+                        f"{exc}"
+                    )
+                    still_need.append(ticker)
+
+            loaded_from_prefetch = (
+                len(need_download) - len(still_need)
+            )
+            if loaded_from_prefetch:
+                log.info(
+                    f"Loaded {loaded_from_prefetch} tickers "
+                    f"from prefetch cache"
+                )
+            need_download = still_need
+
+    if not need_download:
+        log.info(
+            f"All {len(tickers)} tickers loaded from "
+            f"cache + prefetch"
+        )
         return results
 
     log.info(

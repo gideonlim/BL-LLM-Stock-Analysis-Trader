@@ -1,0 +1,51 @@
+name: Prefetch Market Data
+
+# Runs after market close to pre-download all ticker data.
+# This dramatically reduces yfinance API calls during signal
+# generation at 7 AM ET, avoiding rate limits during the
+# time-critical window before trade execution at 10:15 AM ET.
+on:
+  schedule:
+    - cron: "0 18 * * 1-5"    # 6:00 PM ET, weekdays
+      timezone: America/New_York
+  workflow_dispatch:           # allow manual trigger
+
+permissions:
+  contents: read               # only reads repo, cache is separate
+
+jobs:
+  prefetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45        # 900 tickers batch download
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore previous cache
+        uses: actions/cache/restore@v4
+        with:
+          path: cache/
+          key: prefetch-data-
+          restore-keys: |
+            prefetch-data-
+
+      - name: Run prefetch
+        env:
+          EXTRA_TICKERS: ${{ vars.EXTRA_TICKERS || '' }}
+        run: python -m quant_analysis_bot --prefetch --all-stocks --top-n 900
+
+      - name: Save data cache
+        uses: actions/cache/save@v4
+        with:
+          path: cache/
+          key: prefetch-data-${{ github.run_id }}

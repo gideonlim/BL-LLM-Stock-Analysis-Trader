@@ -28,6 +28,7 @@ Design notes
 from __future__ import annotations
 
 import logging
+import os
 from typing import Optional
 
 import numpy as np
@@ -44,6 +45,7 @@ def fetch_regime_data(
     *,
     vix_fear_threshold: float = 25.0,
     use_cache: bool = True,
+    cache_dir: str | None = None,
 ) -> pd.DataFrame:
     """Fetch historical VIX + SPY data and compute daily regime state.
 
@@ -74,6 +76,28 @@ def fetch_regime_data(
 
     if use_cache and _regime_cache is not None:
         return _regime_cache
+
+    # Check disk cache from prefetch (before hitting yfinance)
+    if cache_dir is not None:
+        from quant_analysis_bot.prefetch import (
+            _et_now,
+            validate_prefetch_cache,
+        )
+
+        prefetch_result = validate_prefetch_cache(
+            cache_dir, _et_now().date()
+        )
+        if prefetch_result is not None:
+            prev_date_str, _ = prefetch_result
+            cached = load_cached_regime_data(
+                cache_dir, prev_date_str,
+                lookback_days, vix_fear_threshold,
+            )
+            if cached is not None:
+                log.info("  Loaded regime data from prefetch cache")
+                if use_cache:
+                    _regime_cache = cached
+                return cached
 
     regime_df = _build_regime_df(
         lookback_days=lookback_days,
@@ -270,3 +294,65 @@ def clear_cache() -> None:
     """Clear the module-level regime cache."""
     global _regime_cache
     _regime_cache = None
+
+
+# ── Disk caching for prefetch ──────────────────────────────────────
+
+def _regime_cache_filename(
+    date_str: str, lookback_days: int, vix_fear_threshold: float,
+) -> str:
+    """Build a parameter-aware filename for regime cache."""
+    return f"regime_{date_str}_lb{lookback_days}_vix{vix_fear_threshold}.parquet"
+
+
+def prefetch_regime_data(
+    cache_dir: str,
+    lookback_days: int = 500,
+    vix_fear_threshold: float = 25.0,
+) -> pd.DataFrame:
+    """Fetch regime data and persist to disk for next-day use.
+
+    Called by the prefetch workflow at 6 PM ET.  The filename includes
+    ``lookback_days`` and ``vix_fear_threshold`` so that parameter
+    changes cause a cache miss rather than silent reuse.
+    """
+    from quant_analysis_bot.prefetch import _et_now
+
+    regime_df = _build_regime_df(
+        lookback_days=lookback_days,
+        vix_fear_threshold=vix_fear_threshold,
+    )
+
+    if regime_df.empty:
+        log.warning("Regime data empty — not writing cache")
+        return regime_df
+
+    os.makedirs(cache_dir, exist_ok=True)
+    date_str = _et_now().date().strftime("%Y%m%d")
+    fname = _regime_cache_filename(
+        date_str, lookback_days, vix_fear_threshold,
+    )
+    path = os.path.join(cache_dir, fname)
+    regime_df.to_parquet(path)
+    log.info(f"  Regime data cached to {path}")
+    return regime_df
+
+
+def load_cached_regime_data(
+    cache_dir: str,
+    date_str: str,
+    lookback_days: int,
+    vix_fear_threshold: float,
+) -> pd.DataFrame | None:
+    """Load regime data from disk if it exists and matches params."""
+    fname = _regime_cache_filename(
+        date_str, lookback_days, vix_fear_threshold,
+    )
+    path = os.path.join(cache_dir, fname)
+    if not os.path.exists(path):
+        return None
+    try:
+        return pd.read_parquet(path)
+    except Exception as exc:
+        log.warning(f"Failed to read regime cache {path}: {exc}")
+        return None
