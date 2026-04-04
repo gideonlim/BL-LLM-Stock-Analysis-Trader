@@ -612,7 +612,7 @@ def main() -> None:
         log.info(
             f"Will analyze {len(config['tickers'])} stocks"
         )
-        if len(config["tickers"]) > 20:
+        if len(config["tickers"]) > 20 and not args.prefetch:
             logging.getLogger("quant_analysis_bot").setLevel(
                 logging.WARNING
             )
