@@ -24,6 +24,9 @@ reports/
 trade_logs/
 execution_logs/
 
+# Claude Code
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db
