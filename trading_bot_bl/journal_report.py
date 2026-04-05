@@ -1491,7 +1491,7 @@ def generate_pdf_report(
     # MFE vs MAE scatter + excursion summary table
     mfe_mae_buf = _chart_mfe_mae_scatter(trades)
     if mfe_mae_buf:
-        exc = metrics.excursions
+        exc = metrics.excursion
         exc_data = [
             [_lbl("Avg MFE (win)"), _val(f"{exc.avg_mfe_winners:.2f}%"),
              _lbl("Avg MFE (loss)"), _val(f"{exc.avg_mfe_losers:.2f}%")],
