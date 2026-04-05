@@ -77,13 +77,27 @@ def fetch_regime_data(
     if use_cache and _regime_cache is not None:
         return _regime_cache
 
-    # Check disk cache from prefetch (before hitting yfinance)
+    # Check disk cache (before hitting yfinance)
     if cache_dir is not None:
         from quant_analysis_bot.prefetch import (
             _et_now,
             validate_prefetch_cache,
         )
 
+        today_et_str = _et_now().date().strftime("%Y%m%d")
+
+        # 1. Try today's regime cache directly (works even without prefetch)
+        cached = load_cached_regime_data(
+            cache_dir, today_et_str,
+            lookback_days, vix_fear_threshold,
+        )
+        if cached is not None:
+            log.info("  Loaded regime data from today's disk cache")
+            if use_cache:
+                _regime_cache = cached
+            return cached
+
+        # 2. Fall back to previous trading day's prefetch cache
         prefetch_result = validate_prefetch_cache(
             cache_dir, _et_now().date()
         )
@@ -103,6 +117,22 @@ def fetch_regime_data(
         lookback_days=lookback_days,
         vix_fear_threshold=vix_fear_threshold,
     )
+
+    # Persist to disk so subsequent runs can skip the yfinance call
+    if cache_dir is not None and not regime_df.empty:
+        from quant_analysis_bot.prefetch import _et_now
+
+        _today_str = _et_now().date().strftime("%Y%m%d")
+        fname = _regime_cache_filename(
+            _today_str, lookback_days, vix_fear_threshold,
+        )
+        path = os.path.join(cache_dir, fname)
+        try:
+            os.makedirs(cache_dir, exist_ok=True)
+            regime_df.to_parquet(path)
+            log.info(f"  Saved regime data to disk cache: {fname}")
+        except Exception as exc:
+            log.debug(f"  Failed to save regime cache: {exc}")
 
     if use_cache:
         _regime_cache = regime_df
