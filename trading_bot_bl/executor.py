@@ -289,7 +289,7 @@ def execute(
     history = load_trade_history(
         history_dir,
         lookback_days=config.history_lookback_days,
-        include_dry_runs=config.dry_run,
+        include_dry_runs=False,
     )
 
     # Cross-reference with journal to clear churn cooldowns for
