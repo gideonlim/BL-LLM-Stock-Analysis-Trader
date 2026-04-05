@@ -117,6 +117,7 @@ def load_latest_signals(signals_dir: Path) -> list[Signal]:
                     ),
                     vol_20=s.get("vol_20", 0.0),
                     pbo=s.get("pbo", -1.0),
+                    meta_label_prob=s.get("meta_label_prob", -1.0),
                 )
             )
         except (KeyError, TypeError) as e:

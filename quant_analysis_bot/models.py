@@ -21,6 +21,10 @@ class TradeRecord:
     holding_days: int
     return_pct: float
     outcome: str            # "WIN" or "LOSS"
+    # Triple barrier fields (populated when TB is enabled)
+    exit_barrier: str = ""  # "upper", "lower", "vertical", "" (legacy)
+    mfe_pct: float = 0.0
+    mae_pct: float = 0.0
 
 
 @dataclass
@@ -55,6 +59,15 @@ class BacktestResult:
     avg_holding_days: float = 0.0
     # CSCV overfitting probability (0-1, lower = better)
     pbo: float = -1.0           # -1 means not computed
+    # Triple barrier metrics (populated when TB is enabled)
+    tb_win_rate: float = 0.0        # % of trades hitting TP
+    tb_sl_rate: float = 0.0         # % hitting SL
+    tb_timeout_rate: float = 0.0    # % hitting vertical barrier
+    tb_avg_winner_pct: float = 0.0
+    tb_avg_loser_pct: float = 0.0
+    tb_profit_factor: float = 0.0
+    tb_total_trades: int = 0
+    tb_edge_ratio: float = 0.0      # avg MFE / avg MAE
 
 
 @dataclass
@@ -110,6 +123,12 @@ class DailySignal:
     # before blending with Half-Kelly.  -1 = not computed (vol_20
     # was 0 or unavailable, so pure Half-Kelly was used).
     vol_target_size_pct: float = -1.0
+
+    # ── Meta-label (optional) ─────────────────────────────────────────
+    # P(success) from meta-model (-1 = not computed).
+    meta_label_prob: float = -1.0
+    # Sizing multiplier derived from meta_prob (1.0 = no adjustment).
+    meta_label_size_mult: float = 1.0
 
     # ── Earnings context (optional) ──────────────────────────────────
     # Populated by the earnings event filter when data is available.
