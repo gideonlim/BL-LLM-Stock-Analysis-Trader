@@ -564,8 +564,34 @@ def _compute_risk_adjusted(
     if len(snapshots) < 2:
         return m
 
-    # Daily returns from equity curve
-    equities = [s.equity for s in snapshots if s.equity > 0]
+    # Daily returns from equity curve — WEEKDAYS ONLY.
+    # Weekend/holiday snapshots carry stale equity values that
+    # introduce zero-return noise, deflating Sharpe/Sortino and
+    # causing disagreement with the benchmark comparison table
+    # (which aligns to SPY trading days, weekdays only).
+    from datetime import datetime as _dt
+
+    _weekday_snaps: list[EquitySnapshot] = []
+    for s in snapshots:
+        if s.equity <= 0 or not s.timestamp:
+            continue
+        try:
+            ts = _dt.fromisoformat(s.timestamp)
+        except (ValueError, TypeError):
+            # Fallback: keep the snapshot if we can't parse date
+            _weekday_snaps.append(s)
+            continue
+        if ts.weekday() < 5:  # Mon-Fri
+            _weekday_snaps.append(s)
+
+    # Deduplicate to one snapshot per calendar date (last one wins),
+    # matching the benchmark's per-day granularity.
+    _by_date: dict[str, EquitySnapshot] = {}
+    for s in _weekday_snaps:
+        _by_date[s.timestamp[:10]] = s
+    _deduped = [_by_date[d] for d in sorted(_by_date)]
+
+    equities = [s.equity for s in _deduped]
     if len(equities) < 2:
         return m
 

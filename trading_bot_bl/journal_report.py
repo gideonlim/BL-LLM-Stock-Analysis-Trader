@@ -98,6 +98,8 @@ def _compute_benchmark_stats(
     bot_dates: list[datetime],
     bot_equity: list[float],
     spy_prices: list[tuple[datetime, float]],
+    bot_sharpe_override: Optional[float] = None,
+    bot_sortino_override: Optional[float] = None,
 ) -> Optional[BenchmarkStats]:
     """Compute side-by-side bot vs SPY statistics.
 
@@ -179,17 +181,19 @@ def _compute_benchmark_stats(
         return float(np.prod(1 + returns) - 1)
 
     def _sharpe(returns: np.ndarray) -> float:
-        if returns.std() == 0:
+        std = returns.std(ddof=1) if len(returns) > 1 else 0.0
+        if std == 0:
             return 0.0
-        return float(returns.mean() / returns.std() * np.sqrt(trading_days))
+        return float(returns.mean() / std * np.sqrt(trading_days))
 
     def _sortino(returns: np.ndarray) -> float:
         downside = returns[returns < 0]
-        if len(downside) == 0 or downside.std() == 0:
+        if len(downside) < 2:
             return 0.0
-        return float(
-            returns.mean() / downside.std() * np.sqrt(trading_days)
-        )
+        ds = downside.std(ddof=1)
+        if ds == 0:
+            return 0.0
+        return float(returns.mean() / ds * np.sqrt(trading_days))
 
     def _max_dd(returns: np.ndarray) -> float:
         cum = np.cumprod(1 + returns)
@@ -198,7 +202,8 @@ def _compute_benchmark_stats(
         return float(dd.min()) if len(dd) > 0 else 0.0
 
     def _volatility(returns: np.ndarray) -> float:
-        return float(returns.std() * np.sqrt(trading_days))
+        std = returns.std(ddof=1) if len(returns) > 1 else 0.0
+        return float(std * np.sqrt(trading_days))
 
     # Beta & alpha (CAPM)
     cov = np.cov(bot_r, spy_r)
@@ -222,8 +227,12 @@ def _compute_benchmark_stats(
     return BenchmarkStats(
         bot_cumulative_return=_cumulative_return(bot_r),
         bot_annualized_return=bot_ann,
-        bot_sharpe=_sharpe(bot_r),
-        bot_sortino=_sortino(bot_r),
+        bot_sharpe=(bot_sharpe_override
+                    if bot_sharpe_override is not None
+                    else _sharpe(bot_r)),
+        bot_sortino=(bot_sortino_override
+                     if bot_sortino_override is not None
+                     else _sortino(bot_r)),
         bot_max_drawdown=_max_dd(bot_r),
         bot_volatility=_volatility(bot_r),
         bench_cumulative_return=_cumulative_return(spy_r),
@@ -1153,8 +1162,14 @@ def generate_pdf_report(
         if spy_prices:
             bot_dates = [ts for ts, _ in parsed_snaps]
             bot_equity = [s.equity for _, s in parsed_snaps]
+            # Pass the already-computed bot Sharpe/Sortino from
+            # journal_analytics so the Benchmark Comparison table
+            # shows the same values as the Key Metrics table.
+            _ra = metrics.risk_adjusted if metrics else None
             bench_stats = _compute_benchmark_stats(
                 bot_dates, bot_equity, spy_prices,
+                bot_sharpe_override=_ra.sharpe_ratio if _ra else None,
+                bot_sortino_override=_ra.sortino_ratio if _ra else None,
             )
 
     # ── Styles ──────────────────────────────────────────────────
@@ -1231,7 +1246,9 @@ def generate_pdf_report(
     if snapshots:
         first, last = snapshots[0], snapshots[-1]
         equity_change = last.equity - first.equity
-        eq_color = "#22c55e" if equity_change >= 0 else "#ef4444"
+        eq_color = "#22c55e" if equity_change > 0 else (
+            "#ef4444" if equity_change < 0 else "#1e293b"
+        )
         summary_data.append([
             _lbl("Starting Equity"), _val(f"${first.equity:,.2f}"),
             _lbl("Current Equity"), _val(f"${last.equity:,.2f}"),
@@ -1282,36 +1299,57 @@ def generate_pdf_report(
     story.append(Paragraph("Key Metrics", styles["SectionHead"]))
 
     def _fmt_pnl(v):
-        color = "#22c55e" if v >= 0 else "#ef4444"
+        color = GREEN if v > 0 else (RED if v < 0 else NEUTRAL)
         return f'<font color="{color}">${v:+,.2f}</font>'
 
     def _fmt_pct(v):
-        color = "#22c55e" if v >= 0 else "#ef4444"
+        color = GREEN if v > 0 else (RED if v < 0 else NEUTRAL)
         return f'<font color="{color}">{v:+.1f}%</font>'
+
+    # ── Conditional-color value helpers ──────────────────────────
+    # _cv  = color a formatted string green/red by sign of `v`
+    # _cvt = threshold variant: green if above threshold, red below
+    GREEN, RED, NEUTRAL = "#22c55e", "#ef4444", "#1e293b"
+
+    def _cv(text: str, v: float, style_name: str = "CellValue") -> Paragraph:
+        """Wrap *text* in green (v>0), red (v<0), or neutral (v==0)."""
+        color = GREEN if v > 0 else (RED if v < 0 else NEUTRAL)
+        return Paragraph(f'<font color="{color}">{text}</font>',
+                         styles[style_name])
+
+    def _cvt(text: str, v: float, good_above: float,
+             style_name: str = "CellValue") -> Paragraph:
+        """Green if v >= good_above, red if below."""
+        color = GREEN if v >= good_above else RED
+        return Paragraph(f'<font color="{color}">{text}</font>',
+                         styles[style_name])
 
     metrics_data = [
         [_lbl("Win Rate"), _val(f"{o.win_rate:.1%}"),
-         _lbl("Profit Factor"), _val(f"{o.profit_factor:.2f}")],
+         _lbl("Profit Factor"),
+         _cvt(f"{o.profit_factor:.2f}", o.profit_factor, 1.0)],
         [_lbl("Closed P&amp;L"),
          Paragraph(_fmt_pnl(o.total_pnl), styles["CellValue"]),
-         _lbl("Expectancy"), _val(f"${o.expectancy:+.2f}/trade")],
+         _lbl("Expectancy"),
+         _cv(f"${o.expectancy:+.2f}/trade", o.expectancy)],
         [_lbl("Avg Win"), _val(f"${o.avg_win:+.2f}"),
          _lbl("Avg Loss"), _val(f"${o.avg_loss:+.2f}")],
         [_lbl("Largest Win"), _val(f"${o.largest_win:+.2f}"),
          _lbl("Largest Loss"), _val(f"${o.largest_loss:+.2f}")],
         [_lbl("Win/Loss Ratio"), _val(f"{o.win_loss_ratio:.2f}"),
-         _lbl("Expectancy (R)"), _val(f"{o.expectancy_r:+.2f}R")],
+         _lbl("Expectancy (R)"),
+         _cv(f"{o.expectancy_r:+.2f}R", o.expectancy_r)],
     ]
 
     ra = metrics.risk_adjusted
     if ra.sharpe_ratio != 0:
         metrics_data.append([
             _lbl("Sharpe"), _val(f"{ra.sharpe_ratio:.2f}"),
-            _lbl("Sortino"), _val(f"{ra.sortino_ratio:.2f}"),
+            _lbl("Calmar"), _val(f"{ra.calmar_ratio:.2f}"),
         ])
         metrics_data.append([
-            _lbl("Calmar"), _val(f"{ra.calmar_ratio:.2f}"),
             _lbl("PSR"), _val(f"{ra.probabilistic_sharpe:.1%}"),
+            _lbl("Sortino"), _val(f"{ra.sortino_ratio:.2f}"),
         ])
 
     t = Table(metrics_data, colWidths=[width * 0.20, width * 0.30,
@@ -1353,8 +1391,8 @@ def generate_pdf_report(
         )
 
         def _color_val(val: float, fmt: str = "{:+.2f}") -> Paragraph:
-            """Color a value green/red based on sign."""
-            color = "#22c55e" if val >= 0 else "#ef4444"
+            """Color a value green/red/neutral based on sign."""
+            color = GREEN if val > 0 else (RED if val < 0 else NEUTRAL)
             text = fmt.format(val)
             return Paragraph(
                 f'<font color="{color}">{text}</font>',
@@ -1497,9 +1535,11 @@ def generate_pdf_report(
              _lbl("Avg MFE (loss)"), _val(f"{exc.avg_mfe_losers:.2f}%")],
             [_lbl("Avg MAE (win)"), _val(f"{exc.avg_mae_winners:.2f}%"),
              _lbl("Avg MAE (loss)"), _val(f"{exc.avg_mae_losers:.2f}%")],
-            [_lbl("Edge Ratio"), _val(f"{exc.avg_edge_ratio:.2f}"),
+            [_lbl("Edge Ratio"),
+             _cvt(f"{exc.avg_edge_ratio:.2f}", exc.avg_edge_ratio, 1.0),
              _lbl("Edge Ratio (win)"),
-             _val(f"{exc.avg_edge_ratio_winners:.2f}")],
+             _cvt(f"{exc.avg_edge_ratio_winners:.2f}",
+                  exc.avg_edge_ratio_winners, 1.0)],
             [_lbl("Avg ETD (win)"), _val(f"{exc.avg_etd_winners:.2f}%"),
              _lbl("Avg ETD (loss)"), _val(f"{exc.avg_etd_losers:.2f}%")],
         ]
@@ -1541,10 +1581,13 @@ def generate_pdf_report(
     # ── R-Distribution table ────────────────────────────────────
     rd = metrics.r_distribution
     r_data = [
-        [_lbl("Mean R"), _val(f"{rd.mean_r:+.2f}"),
-         _lbl("Median R"), _val(f"{rd.median_r:+.2f}")],
+        [_lbl("Mean R"),
+         _cv(f"{rd.mean_r:+.2f}", rd.mean_r),
+         _lbl("Median R"),
+         _cv(f"{rd.median_r:+.2f}", rd.median_r)],
         [_lbl("Std R"), _val(f"{rd.std_r:.2f}"),
-         _lbl("Skewness"), _val(f"{rd.skewness_r:+.3f}")],
+         _lbl("Skewness"),
+         _cv(f"{rd.skewness_r:+.3f}", rd.skewness_r)],
         [_lbl("&gt;2R"), _val(f"{rd.pct_above_2r:.0%}"),
          _lbl("&lt;-1R"), _val(f"{rd.pct_below_neg1r:.0%}")],
     ]
@@ -1564,11 +1607,14 @@ def generate_pdf_report(
     # ── Streak analysis ─────────────────────────────────────────
     st = metrics.streaks
     streak_type = "win" if st.current_streak_type == "win" else "loss"
+    _streak_v = st.current_streak if streak_type == "win" else -st.current_streak
     streak_data = [
-        [_lbl("Max Win Streak"), _val(str(st.max_consecutive_wins)),
-         _lbl("Max Loss Streak"), _val(str(st.max_consecutive_losses))],
+        [_lbl("Max Win Streak"),
+         _cv(str(st.max_consecutive_wins), 1),
+         _lbl("Max Loss Streak"),
+         _cv(str(st.max_consecutive_losses), -1)],
         [_lbl("Current Streak"),
-         _val(f"{st.current_streak} {streak_type}(s)"),
+         _cv(f"{st.current_streak} {streak_type}(s)", _streak_v),
          _lbl("Exp. Max Loss Streak"),
          _val(str(st.expected_max_losing_streak))],
     ]
@@ -1618,9 +1664,11 @@ def generate_pdf_report(
             rows.append([
                 _cell(s.strategy),
                 _cell(str(s.trade_count)),
-                _cell(f"{s.win_rate:.0%}"),
-                _cell(f"{s.profit_factor:.2f}"),
-                _cell(f"{s.avg_r:+.2f}"),
+                _cvt(f"{s.win_rate:.0%}", s.win_rate, 0.50,
+                     "CellSmall"),
+                _cvt(f"{s.profit_factor:.2f}", s.profit_factor, 1.0,
+                     "CellSmall"),
+                _cv(f"{s.avg_r:+.2f}", s.avg_r, "CellSmall"),
                 Paragraph(
                     _fmt_pnl(s.total_pnl), styles["CellSmall"],
                 ),
@@ -1641,9 +1689,11 @@ def generate_pdf_report(
             rows.append([
                 _cell(r.regime),
                 _cell(str(r.trade_count)),
-                _cell(f"{r.win_rate:.0%}"),
-                _cell(f"{r.profit_factor:.2f}"),
-                _cell(f"{r.avg_r:+.2f}"),
+                _cvt(f"{r.win_rate:.0%}", r.win_rate, 0.50,
+                     "CellSmall"),
+                _cvt(f"{r.profit_factor:.2f}", r.profit_factor, 1.0,
+                     "CellSmall"),
+                _cv(f"{r.avg_r:+.2f}", r.avg_r, "CellSmall"),
                 Paragraph(
                     _fmt_pnl(r.total_pnl), styles["CellSmall"],
                 ),
@@ -1671,7 +1721,7 @@ def generate_pdf_report(
         trades, key=lambda t: t.closed_at or t.exit_date or "",
     ):
         _pnl = t_entry.realized_pnl or 0.0
-        pnl_color = "#22c55e" if _pnl >= 0 else "#ef4444"
+        pnl_color = GREEN if _pnl > 0 else (RED if _pnl < 0 else NEUTRAL)
         rows.append([
             _cell(t_entry.ticker),
             _cell(t_entry.strategy[:16]),
@@ -1683,10 +1733,11 @@ def generate_pdf_report(
                 f'<font color="{pnl_color}">${_pnl:+.2f}</font>',
                 styles["CellSmall"],
             ),
-            _cell(f"{t_entry.r_multiple:+.2f}"
-                  if t_entry.r_multiple is not None
-                  and t_entry.initial_risk_dollars
-                  else "-"),
+            (_cv(f"{t_entry.r_multiple:+.2f}", t_entry.r_multiple,
+                 "CellSmall")
+             if t_entry.r_multiple is not None
+             and t_entry.initial_risk_dollars
+             else _cell("-")),
             _cell(str(t_entry.holding_days)
                   if t_entry.holding_days else "-"),
             _cell(t_entry.exit_reason or "-"),
