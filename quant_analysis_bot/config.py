@@ -51,6 +51,22 @@ DEFAULT_CONFIG: dict = {
     # Blend factor: 0.0 = pure Half-Kelly, 1.0 = pure vol-target.
     # 0.5 weights them equally.
     "vol_sizing_blend": 0.5,
+    # ── Triple barrier + meta-labeling ─────────────────────────────
+    # Feature flags (both default off for backward compat)
+    "triple_barrier_enabled": False,
+    "meta_label_enabled": False,
+    # Meta-label: minimum P(success) to keep a BUY signal
+    "meta_label_min_prob": 0.35,
+    # Meta-label: minimum training trades before trusting model
+    "meta_label_min_training_trades": 50,
+    # Triple barrier: max holding = avg_holding_days × this mult
+    "tb_max_holding_mult": 1.5,
+    # CUSUM filter: threshold = cusum_mult × ATR_14 / price
+    "cusum_mult": 0.5,
+    # Meta-label: retrain every N days (load cached on other days)
+    "meta_label_retrain_days": 7,
+    # Directory for meta-label model files (relative to working dir)
+    "meta_label_model_dir": "models",
 }
 
 RISK_PROFILES: dict = {

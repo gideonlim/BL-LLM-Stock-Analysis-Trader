@@ -104,13 +104,31 @@ def _analyze_ticker(
             per_window,
             comp_scores,
             trade_logs,
+            tb_training_data,
         ) = select_best_strategy(df, ticker, config)
 
         # 4. Signal generation (with earnings awareness)
+        #    Runs BEFORE meta-model training so today's signal uses
+        #    the model from the previous training cycle (OOS integrity).
         signal = generate_daily_signal(
             df, ticker, best_strat, best_result, config,
             earnings_ctx=earnings_ctx,
         )
+
+        # 4b. Meta-label training (after signal generation)
+        if (
+            config.get("meta_label_enabled", False)
+            and tb_training_data
+        ):
+            try:
+                from quant_analysis_bot.backtest import (
+                    train_meta_model_from_tb,
+                )
+                train_meta_model_from_tb(
+                    tb_training_data, config, ticker,
+                )
+            except Exception as ml_err:
+                log.debug("Meta-label training skipped: %s", ml_err)
 
         # 5. CSCV overfitting check (for BUY signals or --validate)
         cscv_res = None

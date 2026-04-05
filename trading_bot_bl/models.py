@@ -36,6 +36,8 @@ class Signal:
     vol_20: float = 0.0
     # CSCV overfitting probability (v3) — -1 = not computed
     pbo: float = -1.0
+    # Meta-label P(success) (v4) — -1 = not computed
+    meta_label_prob: float = -1.0
 
 
 @dataclass

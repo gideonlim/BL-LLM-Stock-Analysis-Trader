@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
+from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -11,7 +12,14 @@ import pandas as pd
 
 from quant_analysis_bot.config import RISK_PROFILES
 from quant_analysis_bot.models import BacktestResult, TradeRecord
+from quant_analysis_bot.signals import compute_atr_stop_loss_pct
 from quant_analysis_bot.strategies import ALL_STRATEGIES, Strategy
+from quant_analysis_bot.triple_barrier import (
+    BarrierTrade,
+    apply_triple_barrier,
+    cusum_filter,
+    score_barrier_trades,
+)
 
 log = logging.getLogger(__name__)
 
@@ -457,6 +465,141 @@ def score_single_window(
     return round(score, 2)
 
 
+# ── Triple barrier helper ─────────────────────────────────────────────
+
+
+@dataclass
+class _TBResult:
+    """Internal result from triple-barrier run, including arrays for training."""
+    trades: list
+    sl_pct_arr: np.ndarray
+    tp_pct_arr: np.ndarray
+    val_df: pd.DataFrame
+
+
+def _compute_dynamic_rr(val_df: pd.DataFrame) -> np.ndarray:
+    """Compute per-bar reward/risk ratio matching live signal logic.
+
+    Uses trend (SMA50 vs SMA200), ADX, and a default confidence
+    level to mirror the RR computation in signals.py.
+    """
+    n = len(val_df)
+    rr = np.full(n, 2.0)
+
+    sma50 = val_df.get("SMA_50", pd.Series(np.zeros(n), index=val_df.index)).values
+    sma200 = val_df.get("SMA_200", pd.Series(np.zeros(n), index=val_df.index)).values
+    adx = val_df.get("ADX_14", pd.Series(np.zeros(n), index=val_df.index)).values
+
+    for i in range(n):
+        is_bullish = sma50[i] > sma200[i] if (sma50[i] > 0 and sma200[i] > 0) else False
+        is_bearish = sma50[i] < sma200[i] if (sma50[i] > 0 and sma200[i] > 0) else False
+
+        if is_bullish:
+            rr[i] = 2.5
+        elif is_bearish:
+            rr[i] = 1.5
+
+        # ADX boost for strong bullish trend
+        if adx[i] > 30 and is_bullish:
+            rr[i] = min(rr[i] + 0.5, 3.5)
+
+    return rr
+
+
+def _run_triple_barrier(
+    val_df: pd.DataFrame,
+    val_signals: pd.Series,
+    config: dict,
+) -> _TBResult | None:
+    """Run triple-barrier labeling on a validation window.
+
+    Computes per-bar ATR-based SL/TP with dynamic RR, applies
+    CUSUM filter intersected with strategy signals, then runs the
+    barrier engine.
+
+    Returns a _TBResult with trades AND the SL/TP arrays used,
+    so callers can pass them to meta-label training without leakage.
+    """
+    close = val_df["Close"].values
+    high = val_df["High"].values
+    low = val_df["Low"].values
+    dates = val_df.index
+
+    n = len(close)
+    if n < 5:
+        return None
+
+    # Build per-bar SL% array
+    atr_arr = val_df.get("ATR_14", pd.Series(np.zeros(n), index=dates)).values
+    vol_arr = val_df.get("Volatility_20", pd.Series(np.full(n, 0.25), index=dates)).values
+    sl_pct_arr = np.array([
+        compute_atr_stop_loss_pct(
+            float(atr_arr[i]), float(vol_arr[i]), float(close[i]),
+        )
+        for i in range(n)
+    ])
+
+    # Build per-bar TP% using dynamic RR (matches live signal logic)
+    rr_arr = _compute_dynamic_rr(val_df)
+    tp_pct_arr = sl_pct_arr * rr_arr
+
+    # Entry mask: strategy BUY signals
+    # Apply same next-bar execution shift as the main backtest:
+    # signal on bar[i] enters at bar[i+1].
+    use_next_bar = config.get("next_bar_execution", True)
+    if use_next_bar:
+        shifted = pd.Series(val_signals.values).shift(1, fill_value=0)
+        sig_entries = np.asarray(shifted == 1, dtype=bool)
+    else:
+        sig_entries = np.asarray(val_signals == 1, dtype=bool)
+
+    # CUSUM filter: intersect with strategy signals
+    cusum_mult = config.get("cusum_mult", 0.5)
+    # Compute adaptive threshold per-bar (use median ATR/price)
+    median_atr = np.nanmedian(atr_arr[atr_arr > 0]) if np.any(atr_arr > 0) else 0
+    median_price = np.nanmedian(close[close > 0]) if np.any(close > 0) else 1
+    cusum_threshold = cusum_mult * median_atr / median_price
+    if cusum_threshold > 0:
+        cusum_events = cusum_filter(close, cusum_threshold)
+        entries = sig_entries & cusum_events
+    else:
+        entries = sig_entries
+
+    if not np.any(entries):
+        return None
+
+    # Max holding bars
+    tb_mult = config.get("tb_max_holding_mult", 1.5)
+    entry_positions = np.where(entries)[0]
+    if len(entry_positions) > 1:
+        avg_gap = np.mean(np.diff(entry_positions))
+        max_holding = max(int(avg_gap * tb_mult), 5)
+    else:
+        max_holding = 20
+
+    trades = apply_triple_barrier(
+        close=close,
+        high=high,
+        low=low,
+        dates=dates,
+        entries=entries,
+        sl_pct=sl_pct_arr,
+        tp_pct=tp_pct_arr,
+        max_holding_bars=max_holding,
+        cost_bps=config.get("transaction_cost_bps", 10),
+    )
+
+    if not trades:
+        return None
+
+    return _TBResult(
+        trades=trades,
+        sl_pct_arr=sl_pct_arr,
+        tp_pct_arr=tp_pct_arr,
+        val_df=val_df,
+    )
+
+
 # ── Multi-timeframe strategy selector ─────────────────────────────────
 
 
@@ -468,6 +611,7 @@ def select_best_strategy(
     Dict[str, list],
     Dict[str, float],
     List[TradeRecord],
+    list,
 ]:
     """
     Test all strategies across multiple timeframes using walk-forward
@@ -501,6 +645,8 @@ def select_best_strategy(
     strategy_windows: Dict[str, Dict[str, Tuple]] = {}
     per_window_results: Dict[str, list] = {}
     all_trade_logs: List[TradeRecord] = []
+    # Collect barrier trades + context for meta-label training
+    _tb_training_data: list[tuple[_TBResult, str, str]] = []
 
     for window_name, n_days in windows.items():
         window_df = df.tail(n_days).copy()
@@ -559,6 +705,34 @@ def select_best_strategy(
                 result.score = sc
                 window_results.append((strategy, result, sc))
                 all_trade_logs.extend(trade_log)
+
+                # ── Triple barrier parallel path ──────────────
+                if config.get("triple_barrier_enabled", False):
+                    try:
+                        tb_result = _run_triple_barrier(
+                            val_df, val_signals, config,
+                        )
+                        if tb_result is not None:
+                            metrics = score_barrier_trades(
+                                tb_result.trades,
+                            )
+                            result.tb_win_rate = metrics.win_rate
+                            result.tb_sl_rate = metrics.sl_rate
+                            result.tb_timeout_rate = metrics.timeout_rate
+                            result.tb_avg_winner_pct = metrics.avg_winner_pct
+                            result.tb_avg_loser_pct = metrics.avg_loser_pct
+                            result.tb_profit_factor = metrics.profit_factor
+                            result.tb_total_trades = metrics.total_trades
+                            result.tb_edge_ratio = metrics.edge_ratio
+                            # Collect for meta-label training
+                            _tb_training_data.append((
+                                tb_result, ticker, strategy.name,
+                            ))
+                    except Exception as tb_err:
+                        log.debug(
+                            "  TB failed for %s/%s: %s",
+                            strategy.name, window_name, tb_err,
+                        )
 
                 if strategy.name not in strategy_windows:
                     strategy_windows[strategy.name] = {}
@@ -620,4 +794,95 @@ def select_best_strategy(
         per_window_results,
         composite_scores,
         all_trade_logs,
+        _tb_training_data,
     )
+
+
+def train_meta_model_from_tb(
+    tb_data: list[tuple],
+    config: dict,
+    ticker: str,
+) -> None:
+    """Train meta-label model from accumulated barrier trades.
+
+    Should be called AFTER signal generation so that today's signal
+    uses the model from the previous training cycle, preserving
+    out-of-sample integrity.
+
+    Uses per-ticker model paths to avoid races when multiple
+    tickers are analysed in parallel via ProcessPoolExecutor.
+
+    Parameters
+    ----------
+    tb_data : list of (_TBResult, ticker, strategy_name) tuples
+        Collected during ``select_best_strategy()``.
+    config : dict
+        Must contain ``meta_label_model_dir``.
+    ticker : str
+        Ticker being analysed (used for per-ticker model path).
+    """
+    from quant_analysis_bot.meta_label import (
+        build_training_data,
+        load_meta_model,
+        save_meta_model,
+        should_promote,
+        should_retrain,
+        train_meta_model,
+    )
+
+    model_dir = config.get("meta_label_model_dir", "models")
+
+    # Check retrain cadence (per-ticker)
+    retrain_days = config.get("meta_label_retrain_days", 7)
+    if not should_retrain(
+        base_dir=model_dir, retrain_days=retrain_days, ticker=ticker,
+    ):
+        log.debug("Meta-label: skipping retrain for %s (within cadence)", ticker)
+        return
+
+    # Map strategy names to integer IDs
+    strat_ids = {s.name: i for i, s in enumerate(ALL_STRATEGIES)}
+
+    # Aggregate training data across all strategies/windows
+    all_X = []
+    all_y = []
+    all_events = []
+
+    for tb_result, tb_ticker, strat_name in tb_data:
+        strategy_id = strat_ids.get(strat_name, 0)
+        X, y, events = build_training_data(
+            barrier_trades=tb_result.trades,
+            df=tb_result.val_df,
+            ticker=tb_ticker,
+            strategy_id=strategy_id,
+            sl_pct_arr=tb_result.sl_pct_arr,
+            tp_pct_arr=tb_result.tp_pct_arr,
+        )
+        if len(X) > 0:
+            all_X.append(X)
+            all_y.append(y)
+            all_events.append(events)
+
+    if not all_X:
+        return
+
+    X_combined = np.concatenate(all_X)
+    y_combined = np.concatenate(all_y)
+    events_combined = pd.concat(all_events, ignore_index=True)
+
+    log.info(
+        "Meta-label: training on %d barrier trades for %s",
+        len(y_combined), ticker,
+    )
+
+    trained = train_meta_model(X_combined, y_combined, events_combined)
+    if trained is None:
+        return
+
+    # Promotion check against existing model
+    old_model = load_meta_model(base_dir=model_dir, ticker=ticker)
+    if old_model is not None:
+        if not should_promote(trained, old_model, X_combined, y_combined):
+            return
+
+    save_meta_model(trained, base_dir=model_dir, ticker=ticker)

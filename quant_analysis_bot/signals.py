@@ -108,6 +108,47 @@ def compute_earnings_confidence_adj(
     return adj
 
 
+# ── ATR-based stop-loss computation (shared with triple barrier) ───
+
+
+def compute_atr_stop_loss_pct(
+    atr: float,
+    vol_20: float,
+    price: float,
+) -> float:
+    """Compute stop-loss percentage from ATR and volatility regime.
+
+    Uses the same volatility-adaptive multiplier as live bracket
+    orders, so backtests match real execution.
+
+    Parameters
+    ----------
+    atr : float
+        ATR_14 value.
+    vol_20 : float
+        Annualised 20-day realised volatility.
+    price : float
+        Current close price.
+
+    Returns
+    -------
+    float
+        Stop-loss as a percentage (e.g. 5.0 = 5%), clamped [1.5, 12.0].
+        Returns 3.0 as default if ATR/price are invalid.
+    """
+    if atr <= 0 or price <= 0:
+        return 3.0  # safe default
+
+    if vol_20 > 0.4:
+        atr_mult = 2.0
+    elif vol_20 > 0.2:
+        atr_mult = 1.5
+    else:
+        atr_mult = 1.2
+
+    return round(min(max((atr * atr_mult / price) * 100, 1.5), 12.0), 2)
+
+
 # ── Volatility-targeted sizing ─────────────────────────────────────
 
 
@@ -329,31 +370,10 @@ def generate_daily_signal(
     current_price = round(float(latest["Close"]), 2)
 
     # ── Stop loss: volatility-adaptive ATR-based ──────────────────────
-    # The ATR multiplier adjusts with the volatility regime so that
-    # high-vol stocks get wider stops (avoid whipsaw) and low-vol
-    # stocks get tighter stops (capture gains faster).
     atr_val = float(latest.get("ATR_14", 0) or 0)
     if atr_val > 0 and current_price > 0:
-        # Volatility regime adjustment
-        # vol_20 > 0.4 → HIGH → widen stops (mult 2.0)
-        # vol_20 0.2-0.4 → MEDIUM → standard (mult 1.5)
-        # vol_20 < 0.2 → LOW → tighten stops (mult 1.2)
-        if vol_20 > 0.4:
-            atr_mult = 2.0
-        elif vol_20 > 0.2:
-            atr_mult = 1.5
-        else:
-            atr_mult = 1.2
-
-        stop_loss_pct = round(
-            min(
-                max(
-                    (atr_val * atr_mult / current_price) * 100,
-                    1.5,
-                ),
-                12.0,
-            ),
-            2,
+        stop_loss_pct = compute_atr_stop_loss_pct(
+            atr_val, vol_20, current_price,
         )
     else:
         stop_loss_pct = round(
@@ -435,6 +455,79 @@ def generate_daily_signal(
     if signal == "HOLD":
         suggested_position_size_pct = 0.0
 
+    # ── Meta-label sizing adjustment ──────────────────────────────────
+    meta_label_prob = -1.0
+    meta_label_size_mult = 1.0
+    if (
+        config.get("meta_label_enabled", False)
+        and signal_val == 1  # only for BUY signals
+    ):
+        try:
+            from quant_analysis_bot.meta_label import (
+                compute_meta_kelly,
+                load_meta_model,
+                predict_meta_label,
+            )
+
+            trained = load_meta_model(
+                base_dir=config.get("meta_label_model_dir", "models"),
+                ticker=ticker,
+            )
+            if trained is not None:
+                # Map strategy name to integer ID
+                from quant_analysis_bot.strategies import ALL_STRATEGIES
+                strat_ids = {s.name: i for i, s in enumerate(ALL_STRATEGIES)}
+                strat_id = strat_ids.get(strategy.name, 0)
+
+                meta_label_prob = predict_meta_label(
+                    trained, df, len(df) - 1, strat_id,
+                    sl_pct=stop_loss_pct, tp_pct=take_profit_pct,
+                )
+
+                if meta_label_prob >= 0:
+                    final_kelly, meta_label_size_mult = compute_meta_kelly(
+                        meta_prob=meta_label_prob,
+                        base_kelly_f=half_kelly,
+                        profit_factor=result.profit_factor,
+                        n_training_trades=trained.n_training_trades,
+                        is_calibrated=trained.is_calibrated,
+                        min_training_trades=config.get(
+                            "meta_label_min_training_trades", 50
+                        ),
+                    )
+                    # Apply as multiplier on the already-blended size
+                    # (preserves vol-target component)
+                    suggested_position_size_pct = round(
+                        min(
+                            suggested_position_size_pct * meta_label_size_mult,
+                            max_size,
+                        ),
+                        2,
+                    )
+
+                    # Gate: low-prob signals downgraded to HOLD
+                    min_prob = config.get("meta_label_min_prob", 0.35)
+                    if meta_label_prob < min_prob:
+                        signal = "HOLD"
+                        signal_val = 0
+                        suggested_position_size_pct = 0.0
+                        notes_parts.append(
+                            f"Meta-label gated: P={meta_label_prob:.2f} "
+                            f"< {min_prob}"
+                        )
+                    else:
+                        notes_parts.append(
+                            f"Meta P={meta_label_prob:.2f}, "
+                            f"size×{meta_label_size_mult:.2f}"
+                        )
+        except ImportError:
+            pass
+        except Exception as e:
+            log.debug("Meta-label sizing skipped: %s", e)
+
+    if signal == "HOLD":
+        suggested_position_size_pct = 0.0
+
     # ── Sizing notes ──────────────────────────────────────────────────
     if vol_target_pct >= 0 and signal != "HOLD":
         notes_parts.append(
@@ -495,6 +588,8 @@ def generate_daily_signal(
         vol_target_size_pct=(
             vol_target_pct if vol_target_pct >= 0 else -1.0
         ),
+        meta_label_prob=round(meta_label_prob, 4),
+        meta_label_size_mult=round(meta_label_size_mult, 4),
         days_to_earnings=earnings_ctx.days_to_earnings,
         earnings_date=earnings_ctx.earnings_date,
         last_surprise_pct=(
