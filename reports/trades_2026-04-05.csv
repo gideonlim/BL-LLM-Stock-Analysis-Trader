@@ -1,0 +1,9 @@
+trade_id,ticker,strategy,side,entry_signal_price,entry_fill_price,exit_price,exit_reason,realized_pnl,r_multiple,holding_days,mfe,mae,edge_ratio,etd,entry_vix,entry_market_regime,sl_price,tp_price,entry_slippage,exit_slippage,status
+BGC_120cfa1e,BGC,MACD Crossover,long,9.84,9.69,9.4,time_exit,-313.49,-0.53,12,,,0.36,0.39,23.450000762939453,FEAR,,,-0.15,0.0,closed
+CI_migrated,CI,Z-Score Mean Reversion,long,268.43,268.43,262.246364,take_profit,-272.08,0.0,16,,,0.47,9.41,23.450000762939453,FEAR,,,0.0,-0.3064,closed
+MS_migrated,MS,VWAP Trend,long,156.86,156.86,158.38,time_exit,115.52,,14,,,0.0,5.97,23.450000762939453,FEAR,,,0.0,,closed
+SBUX_migrated,SBUX,VWAP Trend,long,99.27,99.27,92.928,stop_loss,-761.04,0.0,3,,,0.0,6.34,23.450000762939453,FEAR,,,0.0,0.012,closed
+SLB_migrated,SLB,VWAP Trend,long,44.83,44.83,49.47,take_profit,1238.88,0.0,8,,,0.0,-1.64,23.450000762939453,FEAR,,,0.0,0.0,closed
+SPG_migrated,SPG,Z-Score Mean Reversion,long,190.02,190.02,179.956191,stop_loss,-422.68,0.0,8,,,0.0,0.0,23.450000762939453,FEAR,,,0.0,-0.0962,closed
+SYK_migrated,SYK,Stochastic Oscillator,long,346.48,346.48,329.05,stop_loss,-592.62,0.0,8,,,0.0,17.44,23.450000762939453,FEAR,,,0.0,2.67,closed
+VRSN_c37009b5,VRSN,VWAP Trend,long,251.7,252.63,259.09,market_close,277.78,0.72,7,,,1.36,0.45,26.790000915527344,FEAR,,,0.93,0.0,closed
