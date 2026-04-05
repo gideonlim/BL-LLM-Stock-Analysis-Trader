@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -34,13 +35,20 @@ from quant_analysis_bot.indicators import (
 
 log = logging.getLogger(__name__)
 
+_ET = ZoneInfo("America/New_York")
+
+
+def _et_date_str() -> str:
+    """Return today's date string in US Eastern (consistent with prefetch)."""
+    return datetime.now(_ET).strftime("%Y%m%d")
+
 
 def fetch_data(
     ticker: str, lookback_days: int, cache_dir: str
 ) -> pd.DataFrame:
     """Download OHLCV data from Yahoo Finance with local caching."""
     os.makedirs(cache_dir, exist_ok=True)
-    date_str = datetime.now().strftime("%Y%m%d")
+    date_str = _et_date_str()
     cache_file = os.path.join(
         cache_dir, f"{ticker}_{date_str}.parquet"
     )
@@ -88,7 +96,7 @@ def batch_fetch_data(
     already cached on disk are loaded from cache (no download).
     """
     os.makedirs(cache_dir, exist_ok=True)
-    date_str = datetime.now().strftime("%Y%m%d")
+    date_str = _et_date_str()
 
     results: dict[str, pd.DataFrame] = {}
     need_download: list[str] = []
