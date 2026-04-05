@@ -6,7 +6,7 @@ import argparse
 import logging
 import shutil
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from trading_bot_bl.config import TradingConfig
@@ -145,6 +145,35 @@ def _run_report(log_dir: Path, as_json: bool = False) -> None:
         log.info(f"{'=' * 60}\n")
 
 
+def _prune_old_logs(log_dir: Path) -> None:
+    """Remove old execution and monitor logs.
+
+    Execution logs are kept for 1 year, monitor logs for 30 days.
+    Journal files and equity_curve.jsonl are never touched.
+    """
+    if not log_dir.exists():
+        return
+
+    now = datetime.now()
+    removed = 0
+
+    for pattern, max_age in [
+        ("execution_*.json", timedelta(days=365)),
+        ("monitor_*.json", timedelta(days=30)),
+    ]:
+        for f in log_dir.glob(pattern):
+            try:
+                mtime = datetime.fromtimestamp(f.stat().st_mtime)
+                if now - mtime > max_age:
+                    f.unlink()
+                    removed += 1
+            except OSError:
+                pass
+
+    if removed:
+        log.info(f"  Pruned {removed} old log files")
+
+
 def _run_monitor_only(
     config: TradingConfig, log_dir: Path
 ) -> None:
@@ -210,6 +239,7 @@ def _run_monitor_only(
 
     if not portfolio.positions:
         log.info("  No open positions to monitor.")
+        _prune_old_logs(log_dir)
         return
 
     report = monitor_positions(
@@ -243,6 +273,9 @@ def _run_monitor_only(
         log.info("  All positions healthy.")
 
     log.info(f"{'=' * 60}\n")
+
+    # Prune old log files (execution: 1 year, monitor: 30 days)
+    _prune_old_logs(log_dir)
 
     # Exit with error only if there are critical alerts that
     # were NOT resolved by the monitor (i.e. no action was taken
