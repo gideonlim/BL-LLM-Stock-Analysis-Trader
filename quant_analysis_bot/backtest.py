@@ -193,9 +193,10 @@ def run_backtest(
         )
 
     # ── Sharpe Ratio ──────────────────────────────────────────────────
-    if returns_arr.std() > 0:
+    _std = returns_arr.std(ddof=1) if len(returns_arr) > 1 else 0.0
+    if _std > 0:
         result.sharpe_ratio = round(
-            np.sqrt(252) * returns_arr.mean() / returns_arr.std(), 2
+            np.sqrt(252) * returns_arr.mean() / _std, 2
         )
 
     # ── Sortino Ratio ─────────────────────────────────────────────────
