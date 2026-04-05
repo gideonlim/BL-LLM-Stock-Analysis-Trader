@@ -187,13 +187,13 @@ def _compute_benchmark_stats(
         return float(returns.mean() / std * np.sqrt(trading_days))
 
     def _sortino(returns: np.ndarray) -> float:
-        downside = returns[returns < 0]
-        if len(downside) < 2:
+        # TDD per Sortino & Price (1994): all observations,
+        # positives clamped to zero.
+        downside_diff = np.minimum(returns, 0.0)
+        tdd = float(np.sqrt(np.mean(downside_diff ** 2)))
+        if tdd == 0:
             return 0.0
-        ds = downside.std(ddof=1)
-        if ds == 0:
-            return 0.0
-        return float(returns.mean() / ds * np.sqrt(trading_days))
+        return float(returns.mean() / tdd * np.sqrt(trading_days))
 
     def _max_dd(returns: np.ndarray) -> float:
         cum = np.cumprod(1 + returns)

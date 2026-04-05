@@ -613,14 +613,17 @@ def _compute_risk_adjusted(
             mean_ret / std_ret * math.sqrt(252), 4
         )
 
-    # Sortino (downside deviation)
-    downside = [r for r in daily_returns if r < 0]
-    if downside:
-        downside_std = _std(downside)
-        if downside_std > 1e-10:
-            m.sortino_ratio = round(
-                mean_ret / downside_std * math.sqrt(252), 4
-            )
+    # Sortino — Target Downside Deviation per Sortino & Price (1994):
+    #   TDD = sqrt( (1/N) * Σ min(Rᵢ, 0)² )
+    # Uses ALL observations (positive returns contribute 0), not
+    # just negatives.  Dividing by n_total instead of n_negative
+    # avoids overstating downside risk.
+    downside_sq = [min(r, 0.0) ** 2 for r in daily_returns]
+    tdd = math.sqrt(sum(downside_sq) / len(downside_sq))
+    if tdd > 1e-10:
+        m.sortino_ratio = round(
+            mean_ret / tdd * math.sqrt(252), 4
+        )
 
     # Calmar
     max_dd_pct = max(
