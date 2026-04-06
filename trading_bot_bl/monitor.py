@@ -1083,13 +1083,21 @@ def _reattach_bracket(
         # shares may still be "held_for_orders". Cancelling
         # first frees them for the new OCO order.
         existing = broker.get_open_orders()
+        cancelled_ids: list[str] = []
         for order in existing:
             if order.symbol == ticker:
-                broker.cancel_order(str(order.id))
+                oid = str(order.id)
+                broker.cancel_order(oid)
+                cancelled_ids.append(oid)
                 log.info(
                     f"  Cancelled existing order {order.id} "
                     f"for {ticker} before reattach"
                 )
+
+        # Wait for Alpaca to fully release the held shares
+        # before submitting the replacement OCO.
+        if cancelled_ids:
+            broker._wait_for_cancels(ticker, cancelled_ids)
 
         # Submit a single OCO order with both legs linked.
         # Alpaca OCO requires explicit take_profit AND
@@ -1192,6 +1200,10 @@ def _replace_stop_loss(
                 f"  OCO parent {oco_parent_id} cancelled "
                 f"for {ticker} SL replacement"
             )
+
+            # Wait for Alpaca to fully release the held shares
+            # before submitting the replacement OCO.
+            broker._wait_for_cancels(ticker, [oco_parent_id])
 
             oco_request = LimitOrderRequest(
                 symbol=ticker,
