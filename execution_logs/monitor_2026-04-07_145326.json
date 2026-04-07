@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-07T14:53:26",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C up 7.0% \u2014 tightening SL from $109.82 to $110.16 (Chandelier: HH=$117.36, ATR=3.60)",
+      "action_taken": "SL tightened to $110.16",
+      "current_price": 116.74,
+      "entry_price": 109.06,
+      "pnl_pct": 7.04,
+      "timestamp": "2026-04-07T14:53:23"
+    },
+    {
+      "ticker": "NI",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "NI up 2.3% \u2014 moving SL to breakeven $46.65 (was $45.52)",
+      "action_taken": "SL moved to breakeven $46.65",
+      "current_price": 47.74,
+      "entry_price": 46.65,
+      "pnl_pct": 2.34,
+      "timestamp": "2026-04-07T14:53:25"
+    }
+  ]
+}

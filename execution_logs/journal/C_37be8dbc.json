@@ -147,6 +147,13 @@
       "new_sl": 109.82,
       "reason": "trailing",
       "price_at_modification": 116.9
+    },
+    {
+      "date": "2026-04-07T14:53:24",
+      "old_sl": 109.82,
+      "new_sl": 110.16,
+      "reason": "trailing",
+      "price_at_modification": 116.74
     }
   ],
   "price_samples": [
