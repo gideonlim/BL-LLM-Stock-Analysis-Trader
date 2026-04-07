@@ -262,32 +262,43 @@ def run_prefetch(config: dict, tickers: list[str]) -> None:
         _skip_prefetch=True,
     )
 
-    # 2. Validate each ticker's parquet has today's bar
+    # 2. Validate each ticker's parquet has a recent bar
+    #    The last bar must be within MAX_STALENESS_DAYS calendar days
+    #    of today.  Exact-date matching fails on holidays, long weekends,
+    #    and when Yahoo Finance delays data availability.
+    MAX_STALENESS_DAYS = 4  # covers 3-day weekends + 1 holiday
     verified_tickers: list[str] = []
+    stale_examples: list[str] = []
     for ticker in tickers:
         if ticker not in price_cache:
             continue
         df = price_cache[ticker]
         if df.empty:
             continue
-        # Check last bar date matches today's ET date
         last_bar = df.index[-1]
         if hasattr(last_bar, "date"):
             last_date = last_bar.date()
         else:
             last_date = pd.Timestamp(last_bar).date()
-        if last_date == today_et:
+        staleness = (today_et - last_date).days
+        if staleness <= MAX_STALENESS_DAYS:
             verified_tickers.append(ticker)
         else:
-            log.debug(
-                f"  {ticker}: last bar {last_date} != today {today_et}, "
-                f"excluding from manifest"
-            )
+            if len(stale_examples) < 5:
+                stale_examples.append(
+                    f"{ticker} (last_bar={last_date}, "
+                    f"{staleness}d stale)"
+                )
 
     log.info(
         f"Verified {len(verified_tickers)}/{len(tickers)} tickers "
-        f"have today's bar"
+        f"have a recent bar (within {MAX_STALENESS_DAYS}d)"
     )
+    if stale_examples:
+        log.warning(
+            f"Stale tickers excluded (showing first "
+            f"{len(stale_examples)}): {', '.join(stale_examples)}"
+        )
 
     # 3. Prefetch regime data (VIX + SPY)
     regime_cached = False

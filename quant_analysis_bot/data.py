@@ -60,10 +60,13 @@ def fetch_data(
     log.info(f"  Downloading data for {ticker}...")
     end = datetime.now()
     start = end - timedelta(days=lookback_days + 60)
+    # yfinance treats `end` as exclusive (like Python range), so add
+    # one day to include today's bar when it is available.
+    end_exclusive = end + timedelta(days=1)
     df = yf.download(
         ticker,
         start=start.strftime("%Y-%m-%d"),
-        end=end.strftime("%Y-%m-%d"),
+        end=end_exclusive.strftime("%Y-%m-%d"),
         progress=False,
         auto_adjust=True,
     )
@@ -178,6 +181,9 @@ def batch_fetch_data(
 
     end = datetime.now()
     start = end - timedelta(days=lookback_days + 60)
+    # yfinance treats `end` as exclusive (like Python range), so add
+    # one day to include today's bar when it is available.
+    end_exclusive = end + timedelta(days=1)
 
     raw = pd.DataFrame()
     for attempt in range(3):
@@ -185,7 +191,7 @@ def batch_fetch_data(
             raw = yf.download(
                 need_download,
                 start=start.strftime("%Y-%m-%d"),
-                end=end.strftime("%Y-%m-%d"),
+                end=end_exclusive.strftime("%Y-%m-%d"),
                 progress=False,
                 auto_adjust=True,
                 threads=True,
