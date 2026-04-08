@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-04-06T14:31:10",
+  "positions_checked": 5,
+  "orphaned": 2,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ACGL has NO protective orders (SL/TP legs missing). P&L: +0.8%, entry=$95.38, now=$96.11",
+      "action_taken": "Reattached OCO: SL=$91.3, TP=$105.72",
+      "current_price": 96.105,
+      "entry_price": 95.38,
+      "pnl_pct": 0.76,
+      "timestamp": "2026-04-06T14:31:08"
+    },
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C up 7.3% \u2014 tightening SL from $109.06 to $109.74 (Chandelier: HH=$117.02, ATR=3.64)",
+      "action_taken": "SL tightened to $109.74",
+      "current_price": 117.02,
+      "entry_price": 109.06,
+      "pnl_pct": 7.3,
+      "timestamp": "2026-04-06T14:31:09"
+    },
+    {
+      "ticker": "FLG",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "FLG up 3.8% \u2014 moving SL to breakeven $13.13 (was $12.48)",
+      "action_taken": "Failed to move SL to breakeven",
+      "current_price": 13.635,
+      "entry_price": 13.13,
+      "pnl_pct": 3.85,
+      "timestamp": "2026-04-06T14:31:09"
+    },
+    {
+      "ticker": "REG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "REG missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Failed to reattach: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"136\",\"held_for_orders\":\"136\",\"message\":\"insufficient qty available for order (requested: 136, available: 0)\",\"related_orders\":[\"b7a824f4-ba04-4ba2-8078-64005a4adccc\"],\"symbol\":\"REG\"}",
+      "current_price": 77.04,
+      "entry_price": 76.942353,
+      "pnl_pct": 0.13,
+      "timestamp": "2026-04-06T14:31:10"
+    }
+  ]
+}

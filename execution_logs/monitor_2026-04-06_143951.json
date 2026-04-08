@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-06T14:39:51",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FLG",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "FLG up 3.3% \u2014 moving SL to breakeven $13.13 (was $12.48)",
+      "action_taken": "SL moved to breakeven $13.13",
+      "current_price": 13.565,
+      "entry_price": 13.13,
+      "pnl_pct": 3.31,
+      "timestamp": "2026-04-06T14:39:50"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-06T21:52:58",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C up 7.6% \u2014 tightening SL from $109.82 to $110.08 (Chandelier: HH=$117.36, ATR=3.64)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 117.36,
+      "entry_price": 109.06,
+      "pnl_pct": 7.61,
+      "timestamp": "2026-04-06T21:52:56"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-07T16:07:05",
+  "positions_checked": 4,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "CUBE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CUBE missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$35.72, TP=$41.37",
+      "current_price": 37.605,
+      "entry_price": 37.55,
+      "pnl_pct": 0.15,
+      "timestamp": "2026-04-07T16:07:02"
+    }
+  ]
+}
