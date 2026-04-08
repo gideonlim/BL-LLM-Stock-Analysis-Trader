@@ -54,6 +54,13 @@ try:
 except ImportError:
     _JOURNAL_AVAILABLE = False
 
+# ── Strategy monitor imports (non-critical) ──────────────────────
+try:
+    from trading_bot_bl.strategy_monitor import StrategyMonitor
+    _STRATEGY_MONITOR_AVAILABLE = True
+except ImportError:
+    _STRATEGY_MONITOR_AVAILABLE = False
+
 log = logging.getLogger(__name__)
 
 
@@ -508,6 +515,32 @@ def execute(
                 )
         except Exception as exc:
             log.warning(f"  FinBERT scoring failed: {exc}")
+
+    # ── 7c. Strategy health monitor (observation only) ────────────
+    _ACTION_LABEL = {"would_reduce": "reduced", "would_block": "blocked"}
+    if _STRATEGY_MONITOR_AVAILABLE and _JOURNAL_AVAILABLE:
+        try:
+            sm = StrategyMonitor(history_dir)
+            closed_trades = [
+                t for t in _journal.load_all_trades(
+                    history_dir / "journal"
+                )
+                if t.status == "closed"
+            ]
+            buy_signals = [
+                s for s in actionable if s.signal_raw == 1
+            ]
+            sm_result = sm.evaluate(closed_trades, buy_signals)
+            for v in sm_result.verdicts:
+                label = _ACTION_LABEL.get(v.action)
+                if label:
+                    log.info(
+                        f"  OBSERVATION: would have {label} "
+                        f"{v.ticker} via {v.strategy}, "
+                        f"reason: {v.reason}"
+                    )
+        except Exception as exc:
+            log.warning(f"  Strategy monitor failed: {exc}")
 
     # ── 8. Build order intents ────────────────────────────────────
     intents = build_order_intents(
