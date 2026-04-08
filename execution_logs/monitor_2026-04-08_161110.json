@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-04-08T16:11:10",
+  "positions_checked": 8,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "CUBE",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "CUBE up 2.6% \u2014 moving SL to breakeven $37.55 (was $36.16)",
+      "action_taken": "SL moved to breakeven $37.55",
+      "current_price": 38.52,
+      "entry_price": 37.55,
+      "pnl_pct": 2.58,
+      "timestamp": "2026-04-08T16:11:02"
+    },
+    {
+      "ticker": "CVS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CVS missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$74.46, TP=$86.22",
+      "current_price": 78.38,
+      "entry_price": 78.16,
+      "pnl_pct": 0.28,
+      "timestamp": "2026-04-08T16:11:04"
+    },
+    {
+      "ticker": "FAF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FAF missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$59.65, TP=$69.07",
+      "current_price": 62.79,
+      "entry_price": 62.7,
+      "pnl_pct": 0.14,
+      "timestamp": "2026-04-08T16:11:05"
+    },
+    {
+      "ticker": "INTC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "INTC missing stop loss leg. P&L: +0.7%",
+      "action_taken": "Reattached OCO: SL=$54.93, TP=$63.61",
+      "current_price": 57.825,
+      "entry_price": 57.41,
+      "pnl_pct": 0.72,
+      "timestamp": "2026-04-08T16:11:07"
+    },
+    {
+      "ticker": "PK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "PK missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$10.19, TP=$11.8",
+      "current_price": 10.725,
+      "entry_price": 10.72,
+      "pnl_pct": 0.05,
+      "timestamp": "2026-04-08T16:11:09"
+    }
+  ]
+}
