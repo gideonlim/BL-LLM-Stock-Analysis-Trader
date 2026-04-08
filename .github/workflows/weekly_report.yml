@@ -56,6 +56,23 @@ jobs:
           echo "Generated reports:"
           ls -lh reports/performance/report_*.pdf reports/trades_*.csv 2>/dev/null || echo "No report files found."
 
+      - name: Set report date
+        run: echo "REPORT_DATE=$(TZ=America/New_York date +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: Email weekly report
+        if: ${{ success() && hashFiles('reports/performance/report_*.pdf', 'reports/trades_*.csv') != '' }}
+        uses: dawidd6/action-send-mail@v6
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_APP_PASSWORD }}
+          subject: "Weekly Quant Report — ${{ env.REPORT_DATE }}"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: "Weekly performance report and trade export attached."
+          attachments: "reports/performance/report_*.pdf,reports/trades_*.csv"
+
       - name: Upload reports as artifact
         if: always()
         uses: actions/upload-artifact@v4
