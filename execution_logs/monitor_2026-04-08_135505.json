@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-08T13:55:05",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C up 13.4% \u2014 tightening SL from $110.16 to $116.58 (Chandelier: HH=$123.72, ATR=3.57)",
+      "action_taken": "SL tightened to $116.58",
+      "current_price": 123.72,
+      "entry_price": 109.06,
+      "pnl_pct": 13.44,
+      "timestamp": "2026-04-08T13:55:03"
+    },
+    {
+      "ticker": "FLG",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "FLG up 8.3% \u2014 tightening SL from $13.13 to $13.44 (Chandelier: HH=$14.22, ATR=0.39)",
+      "action_taken": "SL tightened to $13.44",
+      "current_price": 14.22,
+      "entry_price": 13.13,
+      "pnl_pct": 8.3,
+      "timestamp": "2026-04-08T13:55:04"
+    }
+  ]
+}
