@@ -71,7 +71,7 @@ jobs:
           to: ${{ secrets.EMAIL_USERNAME }}
           from: ${{ secrets.EMAIL_USERNAME }}
           body: "Weekly performance report and trade export attached."
-          attachments: "reports/performance/report_*.pdf,reports/trades_*.csv"
+          attachments: "reports/performance/report_${{ env.REPORT_DATE }}.pdf,reports/trades_${{ env.REPORT_DATE }}.csv"
 
       - name: Upload reports as artifact
         if: always()
