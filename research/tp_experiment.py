@@ -323,7 +323,11 @@ def _aggregate_by_strategy_mode(
     """Collapse rows to one entry per (strategy, mode_label).
 
     Takes medians across (ticker × window) cells for robustness
-    and weights trades by sum.
+    and weights trades by sum.  Also computes
+    ``estimated_losing_trades``, a trade-count-weighted estimate of
+    actual losing trades — used by the winner picker's liquidity
+    filter to reject samples with too few losses for a reliable
+    profit factor (PF explodes on tiny denominators).
     """
     buckets: Dict[Tuple[str, str], List[Dict[str, Any]]] = defaultdict(list)
     for r in rows:
@@ -338,12 +342,22 @@ def _aggregate_by_strategy_mode(
     for key, bucket in buckets.items():
         strat, mode = key
         family = bucket[0]["family"]
+        total_trades = sum(int(r["tb_total_trades"]) for r in bucket)
+        # Weighted-by-trade estimate of losing trades is more robust
+        # than median(sl_rate) * total_trades because cells vary in
+        # size, and it matches the actual number of losses feeding
+        # the profit factor denominator.
+        estimated_losing_trades = sum(
+            float(r["tb_sl_rate"]) * int(r["tb_total_trades"])
+            for r in bucket
+        )
         agg[key] = {
             "strategy": strat,
             "family": family,
             "mode_label": mode,
             "n_cells": len(bucket),
-            "tb_total_trades_sum": sum(int(r["tb_total_trades"]) for r in bucket),
+            "tb_total_trades_sum": total_trades,
+            "estimated_losing_trades": estimated_losing_trades,
             "tb_win_rate_median": _median([r["tb_win_rate"] for r in bucket]),
             "tb_sl_rate_median": _median([r["tb_sl_rate"] for r in bucket]),
             "tb_timeout_rate_median": _median(
@@ -365,15 +379,34 @@ def _aggregate_by_strategy_mode(
     return agg
 
 
+# Minimum estimated losing trades per (strategy, mode) cell for the
+# liquidity filter.  PF = sum(wins) / abs(sum(losses)) explodes on
+# tiny denominators, so we require enough losses for the ratio to be
+# meaningful.  Also applied to edge_ratio ranking for consistency.
+_MIN_LOSING_TRADES = 5
+
+
 def _pick_winner_per_strategy(
     agg: Dict[Tuple[str, str], Dict[str, Any]],
     mode_labels: List[str],
+    *,
+    metric: str = "tb_edge_ratio_median",
+    min_losing_trades: float = _MIN_LOSING_TRADES,
 ) -> Dict[str, Dict[str, Any]]:
     """Apply the per-strategy decision rule.
 
-    Winner: highest tb_profit_factor among modes satisfying
-      (a) tb_total_trades_sum >= 20 (liquidity filter)
-      (b) max_drawdown >= base_dd - 5pp (no catastrophic DD regression)
+    Winner: highest ``metric`` among modes satisfying
+      (a) tb_total_trades_sum >= 20 (liquidity: total sample)
+      (b) estimated_losing_trades >= min_losing_trades (liquidity:
+          actual losses — rejects tiny-denominator PF artifacts)
+      (c) max_drawdown >= base_dd - 5pp (no catastrophic DD regression)
+
+    Default metric is ``tb_edge_ratio_median`` (avg MFE / avg MAE),
+    which is artifact-resistant because it's averaged per-trade and
+    bounded.  The earlier default ``tb_profit_factor_median`` was
+    shown to produce false-positive winners on samples with zero
+    losing trades (PF = sum(wins)/~0 = thousands).  See
+    research/tp_experiment_analyze.py for the analysis.
 
     base_dd comes from the "current" mode for each strategy.
     """
@@ -396,6 +429,8 @@ def _pick_winner_per_strategy(
             entry = agg[key]
             if entry["tb_total_trades_sum"] < 20:
                 continue
+            if entry["estimated_losing_trades"] < min_losing_trades:
+                continue
             if entry["legacy_max_drawdown_pct_median"] < base_dd - 5.0:
                 continue
             candidates.append((mode_label, entry))
@@ -404,8 +439,10 @@ def _pick_winner_per_strategy(
             continue
 
         # Tie-break: prefer simpler modes (current > capped > capped+strategy)
-        # and higher profit factor.
-        def _rank(item: Tuple[str, Dict[str, Any]]) -> Tuple[float, int]:
+        # and higher metric value.
+        def _rank(
+            item: Tuple[str, Dict[str, Any]],
+        ) -> Tuple[float, int]:
             mode_label, entry = item
             simpler_order = {
                 "current": 0,
@@ -414,21 +451,24 @@ def _pick_winner_per_strategy(
                 "capped@2.0": 3,
                 "capped+strategy@1.5": 4,
             }
-            pf = entry["tb_profit_factor_median"]
-            return (-pf, simpler_order.get(mode_label, 99))
+            value = entry[metric]
+            return (-value, simpler_order.get(mode_label, 99))
 
         candidates.sort(key=_rank)
         best_label, best_entry = candidates[0]
         winners[strat] = {
             "mode_label": best_label,
             "family": best_entry["family"],
+            "ranking_metric": metric,
+            "metric_value": best_entry[metric],
+            "base_metric_value": base[metric],
+            "metric_delta": best_entry[metric] - base[metric],
+            # Keep PF on the winner record even when it wasn't the
+            # ranking metric — useful for the summary output.
             "tb_profit_factor": best_entry["tb_profit_factor_median"],
             "base_tb_profit_factor": base["tb_profit_factor_median"],
-            "pf_delta": (
-                best_entry["tb_profit_factor_median"]
-                - base["tb_profit_factor_median"]
-            ),
             "tb_total_trades": best_entry["tb_total_trades_sum"],
+            "estimated_losing_trades": best_entry["estimated_losing_trades"],
             "base_trades": base_trades,
         }
     return winners
@@ -499,12 +539,15 @@ def _write_matrix_md(
             )
         winner = winners.get(strat)
         if winner:
+            metric_name = winner["ranking_metric"].replace("_median", "")
             lines.append("")
             lines.append(
                 f"**Winner**: `{winner['mode_label']}` "
-                f"(PF {winner['tb_profit_factor']:.2f} vs base "
-                f"{winner['base_tb_profit_factor']:.2f}, "
-                f"Δ={winner['pf_delta']:+.2f})"
+                f"({metric_name} {winner['metric_value']:.2f} vs base "
+                f"{winner['base_metric_value']:.2f}, "
+                f"Δ={winner['metric_delta']:+.2f}; "
+                f"PF {winner['tb_profit_factor']:.2f}, "
+                f"losses≈{winner['estimated_losing_trades']:.0f})"
             )
         else:
             lines.append("")
@@ -560,16 +603,31 @@ def _write_summary(
     lines.append(f"  Total rows:   {meta['n_rows']}")
     lines.append("=" * 70)
     lines.append("")
+    # Show the ranking metric used for the winner selection so
+    # readers know how to interpret the deltas.
+    if winners:
+        any_winner = next(iter(winners.values()))
+        ranking_metric = any_winner["ranking_metric"].replace("_median", "")
+    else:
+        ranking_metric = "tb_edge_ratio"
+    lines.append(f"  Ranking metric: {ranking_metric}")
+    lines.append("")
     lines.append("  Per-strategy winners:")
     if not winners:
-        lines.append("    (no strategy had a viable winner — check filters)")
+        lines.append(
+            "    (no strategy had a viable winner — check filters: "
+            "all candidates fail min_trades>=20, min_losses>=5, "
+            "or max_dd regression guard)"
+        )
     else:
         for strat in sorted(winners.keys()):
             w = winners[strat]
             lines.append(
                 f"    {strat:<32} -> {w['mode_label']:<22} "
-                f"PF {w['tb_profit_factor']:.2f} (base {w['base_tb_profit_factor']:.2f}, "
-                f"Δ {w['pf_delta']:+.2f})"
+                f"edge {w['metric_value']:.2f} "
+                f"(base {w['base_metric_value']:.2f}, "
+                f"Δ {w['metric_delta']:+.2f}; "
+                f"losses≈{w['estimated_losing_trades']:.0f})"
             )
     lines.append("")
     lines.append("  Weighted mode votes (weighted by base TB trades):")
@@ -588,15 +646,16 @@ def _write_summary(
             f"  Per-strategy wins:   {n_wins}/{len(winners)} "
             f"strategies prefer {recommended}"
         )
-        # Compute median PF delta for the recommended mode.
+        # Compute median delta (in the ranking metric) for the
+        # recommended mode, so readers know how big the lift is.
         deltas = [
-            w["pf_delta"] for w in winners.values()
+            w["metric_delta"] for w in winners.values()
             if w["mode_label"] == recommended
         ]
         median_delta = _median(deltas) if deltas else 0.0
         lines.append(
-            f"  Rationale:           median PF delta vs current = "
-            f"{median_delta:+.2f}"
+            f"  Rationale:           median {ranking_metric} delta "
+            f"vs current = {median_delta:+.2f}"
         )
         lines.append("-" * 70)
     lines.append("")

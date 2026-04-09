@@ -164,6 +164,52 @@ def run_backtest(
         daily_returns.append(daily_ret)
         equity.append(equity[-1] * (1 + daily_ret))
 
+    # ── End-of-window close ──────────────────────────────────────────
+    # If a position is still open when the for-loop exits, close it
+    # at the last bar's close and record the trade.  Without this,
+    # sparse-signal strategies (e.g. fear-gated mean reversion) that
+    # enter once and hold past the walk-forward validation window
+    # silently lose their open trade — trades_raw stays empty and
+    # avg_holding_days defaults to 0, which mis-reports the strategy
+    # as inactive and breaks the TP experiment's per-strategy
+    # holding_days input.  The triple-barrier path uses a vertical
+    # barrier for exactly this reason; this mirrors that behavior.
+    if position != 0 and len(close) >= 2:
+        exit_idx = len(close) - 1
+        if position == 1:
+            trade_ret = close[exit_idx] / entry_price - 1 - cost
+            direction = "LONG"
+        else:  # position == -1
+            trade_ret = entry_price / close[exit_idx] - 1 - cost
+            direction = "SHORT"
+        holding = (dates[exit_idx] - dates[entry_idx]).days
+        trade_count += 1
+        trade_log.append(
+            TradeRecord(
+                trade_num=trade_count,
+                ticker=ticker,
+                strategy=strategy_name,
+                timeframe=timeframe,
+                direction=direction,
+                entry_date=str(dates[entry_idx].date()),
+                entry_price=round(close[entry_idx], 2),
+                exit_date=str(dates[exit_idx].date()),
+                exit_price=round(close[exit_idx], 2),
+                holding_days=holding,
+                return_pct=round(trade_ret * 100, 2),
+                outcome="WIN" if trade_ret > 0 else "LOSS",
+            )
+        )
+        trades_raw.append(
+            {"return": trade_ret, "holding_days": holding}
+        )
+        # Deduct the exit cost from the last daily return so the
+        # equity curve reflects the close (matches the mid-loop
+        # exit convention at line ~155).
+        if daily_returns:
+            daily_returns[-1] -= cost
+            equity[-1] = equity[-2] * (1 + daily_returns[-1])
+
     equity_arr = np.array(equity)
     returns_arr = np.array(daily_returns)
 
