@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-09T15:08:07",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-14) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 123.02,
+      "entry_price": 109.06,
+      "pnl_pct": 12.8,
+      "timestamp": "2026-04-09T15:08:04"
+    },
+    {
+      "ticker": "INTC",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "INTC up 6.0% \u2014 moving SL to breakeven $57.41 (was $51.21)",
+      "action_taken": "SL moved to breakeven $57.41",
+      "current_price": 60.835,
+      "entry_price": 57.41,
+      "pnl_pct": 5.97,
+      "timestamp": "2026-04-09T15:08:06"
+    }
+  ]
+}
