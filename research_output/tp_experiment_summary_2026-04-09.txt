@@ -1,0 +1,37 @@
+======================================================================
+  TP MODE EXPERIMENT — SUMMARY (2026-04-09)
+======================================================================
+  Run ID:       c178ecee
+  Timestamp:    2026-04-09T20:51:19
+  Tickers:      113
+  Modes swept:  current, capped@1.0, capped@1.5, capped@2.0, capped+strategy@1.5
+  Wall-clock:   140s
+  Total rows:   25425
+======================================================================
+
+  Per-strategy winners:
+    52-Week High Momentum            -> capped@1.0             PF 0.38 (base 0.35, Δ +0.02)
+    ADX Trend Following              -> current                PF 0.00 (base 0.00, Δ +0.00)
+    Bollinger Band Mean Reversion    -> capped@1.0             PF 3680.00 (base 1638.60, Δ +2041.40)
+    Composite Multi-Indicator        -> capped@1.5             PF 1.98 (base 1.74, Δ +0.24)
+    EMA Crossover (9/21)             -> current                PF 0.00 (base 0.00, Δ +0.00)
+    MACD Crossover                   -> capped@2.0             PF 1.91 (base 1.87, Δ +0.03)
+    Momentum (Rate of Change)        -> capped@1.0             PF 0.55 (base 0.48, Δ +0.07)
+    Multi-Factor Momentum MR         -> current                PF 0.00 (base 0.00, Δ +0.00)
+    RSI Mean Reversion               -> capped@1.0             PF 4160.25 (base 3720.30, Δ +439.95)
+    SMA Crossover (10/50)            -> current                PF 0.00 (base 0.00, Δ +0.00)
+    Stochastic Oscillator            -> capped@1.0             PF 1.41 (base 1.26, Δ +0.15)
+    VWAP Trend                       -> current                PF 1.04 (base 1.04, Δ +0.00)
+    Z-Score Mean Reversion           -> current                PF 2.28 (base 2.28, Δ +0.00)
+
+  Weighted mode votes (weighted by base TB trades):
+    capped@1.0                 4246  ( 64.3%)
+    current                    1916  ( 29.0%)
+    capped@2.0                  290  (  4.4%)
+    capped@1.5                  156  (  2.4%)
+
+----------------------------------------------------------------------
+  RECOMMENDED TP MODE: capped@1.0
+  Per-strategy wins:   5/13 strategies prefer capped@1.0
+  Rationale:           median PF delta vs current = +0.15
+----------------------------------------------------------------------

@@ -124,6 +124,23 @@ def write_backtest_report(
         "backtest_start",
         "backtest_end",
         "trading_days",
+        # ── Triple-barrier metrics + tp_mode knobs ──────────────
+        # Populated only when config["triple_barrier_enabled"]
+        # is True; otherwise the fields default to zero.
+        # tp_mode / tp_cap_multiplier / tp_cap_holding_days make
+        # rows self-describing so future comparisons don't need
+        # a config-to-row join.
+        "tp_mode",
+        "tp_cap_multiplier",
+        "tp_cap_holding_days",
+        "tb_total_trades",
+        "tb_win_rate",
+        "tb_sl_rate",
+        "tb_timeout_rate",
+        "tb_profit_factor",
+        "tb_edge_ratio",
+        "tb_avg_winner_pct",
+        "tb_avg_loser_pct",
     ]
 
     rows: list[dict] = []
@@ -177,6 +194,31 @@ def write_backtest_report(
                         "backtest_start": r.backtest_start,
                         "backtest_end": r.backtest_end,
                         "trading_days": r.trading_days,
+                        # ── TP mode knobs (self-describing rows) ─
+                        "tp_mode": config.get("tp_mode", "current"),
+                        "tp_cap_multiplier": config.get(
+                            "tp_cap_multiplier", 1.5
+                        ),
+                        "tp_cap_holding_days": config.get(
+                            "tp_cap_holding_days", 20.0
+                        ),
+                        # ── Triple-barrier metrics ───────────────
+                        "tb_total_trades": r.tb_total_trades,
+                        "tb_win_rate": round(r.tb_win_rate, 4),
+                        "tb_sl_rate": round(r.tb_sl_rate, 4),
+                        "tb_timeout_rate": round(
+                            r.tb_timeout_rate, 4
+                        ),
+                        "tb_profit_factor": round(
+                            r.tb_profit_factor, 3
+                        ),
+                        "tb_edge_ratio": round(r.tb_edge_ratio, 3),
+                        "tb_avg_winner_pct": round(
+                            r.tb_avg_winner_pct, 2
+                        ),
+                        "tb_avg_loser_pct": round(
+                            r.tb_avg_loser_pct, 2
+                        ),
                     }
                 )
 

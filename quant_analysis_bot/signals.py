@@ -13,6 +13,12 @@ import pandas as pd
 from quant_analysis_bot.config import RISK_PROFILES
 from quant_analysis_bot.models import BacktestResult, DailySignal
 from quant_analysis_bot.strategies import Strategy
+from quant_analysis_bot.tp_logic import (
+    apply_tp_cap,
+    classify_strategy_family,
+    compute_expected_max_move_pct,
+    compute_rr_ratio,
+)
 
 log = logging.getLogger(__name__)
 
@@ -393,22 +399,42 @@ def generate_daily_signal(
         stop_loss_price = 0.0
 
     # ── Take profit: dynamic reward/risk ratio ────────────────────────
-    # R:R scales with trend strength and confidence:
-    #   Strong bullish + HIGH confidence → 3:1 (let winners run)
-    #   Neutral or MEDIUM confidence → 2:1 (standard)
-    #   Bearish or LOW confidence → 1.5:1 (take profits quicker)
-    if trend == "BULLISH" and confidence_score >= 4:
-        rr_ratio = 3.0
-    elif trend == "BEARISH" or confidence_score <= 1:
-        rr_ratio = 1.5
+    # R:R scales with trend strength and confidence; delegates to the
+    # shared helper so signals.py (live) and backtest.py (TB path)
+    # can never drift.  See quant_analysis_bot/tp_logic.py.
+    #
+    # tp_mode options (default "current" preserves today's behavior):
+    #   "current"         : SL × dynamic RR, no cap
+    #   "capped"          : cap TP at tp_cap_multiplier × 1σ expected move
+    #   "capped+strategy" : capped + mean-reversion family clamped at 1.5 RR
+    tp_mode = config.get("tp_mode", "current")
+    cap_multiplier = float(config.get("tp_cap_multiplier", 1.5))
+    family = classify_strategy_family(strategy.name)
+    rr_ratio = compute_rr_ratio(
+        trend=trend,
+        adx=float(adx_val),
+        confidence_score=confidence_score,
+        family=family,
+        tp_mode=tp_mode,
+    )
+
+    raw_tp_pct = stop_loss_pct * rr_ratio
+    if tp_mode in ("capped", "capped+strategy"):
+        # Use the strategy's measured holding window from its own
+        # backtest result; fall back to config when missing.
+        holding = float(result.avg_holding_days) if result.avg_holding_days else 0.0
+        if holding <= 0:
+            holding = float(config.get("tp_cap_holding_days", 20.0))
+        expected_max = compute_expected_max_move_pct(
+            vol_20=vol_20,
+            holding_days=holding,
+        )
+        take_profit_pct = round(
+            apply_tp_cap(raw_tp_pct, expected_max, cap_multiplier, tp_mode),
+            2,
+        )
     else:
-        rr_ratio = 2.0
-
-    # ADX boost: very strong trend (>30) bumps ratio by 0.5
-    if adx_val > 30 and trend == "BULLISH":
-        rr_ratio = min(rr_ratio + 0.5, 3.5)
-
-    take_profit_pct = round(stop_loss_pct * rr_ratio, 2)
+        take_profit_pct = round(raw_tp_pct, 2)
     if signal_val > 0:
         take_profit_price = round(
             current_price * (1 + take_profit_pct / 100), 2
