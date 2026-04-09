@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-09T15:12:38",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-14) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 123.04,
+      "entry_price": 109.06,
+      "pnl_pct": 12.82,
+      "timestamp": "2026-04-09T15:12:35"
+    }
+  ]
+}
