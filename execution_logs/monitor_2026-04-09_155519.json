@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-09T15:55:19",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-14) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 124.08,
+      "entry_price": 109.06,
+      "pnl_pct": 13.77,
+      "timestamp": "2026-04-09T15:55:16"
+    },
+    {
+      "ticker": "PK",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "PK up 3.6% \u2014 moving SL to breakeven $10.72 (was $10.23)",
+      "action_taken": "SL moved to breakeven $10.72",
+      "current_price": 11.11,
+      "entry_price": 10.72,
+      "pnl_pct": 3.64,
+      "timestamp": "2026-04-09T15:55:19"
+    }
+  ]
+}
