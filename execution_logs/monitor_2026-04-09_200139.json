@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-09T20:01:39",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-14) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 124.93,
+      "entry_price": 109.06,
+      "pnl_pct": 14.55,
+      "timestamp": "2026-04-09T20:01:37"
+    },
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C up 14.6% \u2014 tightening SL from $116.95 to $117.09 (Chandelier: HH=$124.93, ATR=3.92)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 124.93,
+      "entry_price": 109.06,
+      "pnl_pct": 14.55,
+      "timestamp": "2026-04-09T20:01:37"
+    }
+  ]
+}
