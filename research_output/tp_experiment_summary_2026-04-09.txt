@@ -1,0 +1,37 @@
+======================================================================
+  TP MODE EXPERIMENT — SUMMARY (2026-04-09)
+======================================================================
+  Run ID:       6336161c
+  Timestamp:    2026-04-09T22:42:41
+  Tickers:      113
+  Modes swept:  current, capped@1.0, capped@1.5, capped@2.0, capped+strategy@1.5
+  Wall-clock:   89s
+  Total rows:   25425
+======================================================================
+
+  Ranking metric: tb_edge_ratio
+
+  Per-strategy winners:
+    52-Week High Momentum            -> current                edge 0.77 (base 0.77, Δ +0.00; losses≈755)
+    ADX Trend Following              -> current                edge 0.79 (base 0.79, Δ +0.00; losses≈119)
+    Bollinger Band Mean Reversion    -> capped@1.0             edge 2.81 (base 2.65, Δ +0.15; losses≈59)
+    Composite Multi-Indicator        -> current                edge 1.88 (base 1.88, Δ +0.00; losses≈47)
+    EMA Crossover (9/21)             -> current                edge 0.32 (base 0.32, Δ +0.00; losses≈48)
+    MACD Crossover                   -> current                edge 1.20 (base 1.20, Δ +0.00; losses≈117)
+    Momentum (Rate of Change)        -> capped@1.0             edge 1.02 (base 0.97, Δ +0.05; losses≈421)
+    Multi-Factor Momentum MR         -> current                edge 0.83 (base 0.83, Δ +0.00; losses≈26)
+    RSI Mean Reversion               -> current                edge 3.21 (base 3.21, Δ +0.00; losses≈31)
+    SMA Crossover (10/50)            -> current                edge 0.69 (base 0.69, Δ +0.00; losses≈24)
+    Stochastic Oscillator            -> capped@1.0             edge 1.22 (base 1.21, Δ +0.01; losses≈244)
+    VWAP Trend                       -> current                edge 1.25 (base 1.25, Δ +0.00; losses≈414)
+    Z-Score Mean Reversion           -> current                edge 1.48 (base 1.48, Δ +0.00; losses≈173)
+
+  Weighted mode votes (weighted by base TB trades):
+    current                    4442  ( 67.2%)
+    capped@1.0                 2166  ( 32.8%)
+
+----------------------------------------------------------------------
+  RECOMMENDED TP MODE: current
+  Per-strategy wins:   10/13 strategies prefer current
+  Rationale:           median tb_edge_ratio delta vs current = +0.00
+----------------------------------------------------------------------

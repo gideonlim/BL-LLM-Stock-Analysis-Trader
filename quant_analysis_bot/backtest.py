@@ -14,6 +14,12 @@ from quant_analysis_bot.config import RISK_PROFILES
 from quant_analysis_bot.models import BacktestResult, TradeRecord
 from quant_analysis_bot.signals import compute_atr_stop_loss_pct
 from quant_analysis_bot.strategies import ALL_STRATEGIES, Strategy
+from quant_analysis_bot.tp_logic import (
+    apply_tp_cap,
+    classify_strategy_family,
+    compute_expected_max_move_pct,
+    compute_rr_ratio,
+)
 from quant_analysis_bot.triple_barrier import (
     BarrierTrade,
     apply_triple_barrier,
@@ -157,6 +163,52 @@ def run_backtest(
 
         daily_returns.append(daily_ret)
         equity.append(equity[-1] * (1 + daily_ret))
+
+    # ── End-of-window close ──────────────────────────────────────────
+    # If a position is still open when the for-loop exits, close it
+    # at the last bar's close and record the trade.  Without this,
+    # sparse-signal strategies (e.g. fear-gated mean reversion) that
+    # enter once and hold past the walk-forward validation window
+    # silently lose their open trade — trades_raw stays empty and
+    # avg_holding_days defaults to 0, which mis-reports the strategy
+    # as inactive and breaks the TP experiment's per-strategy
+    # holding_days input.  The triple-barrier path uses a vertical
+    # barrier for exactly this reason; this mirrors that behavior.
+    if position != 0 and len(close) >= 2:
+        exit_idx = len(close) - 1
+        if position == 1:
+            trade_ret = close[exit_idx] / entry_price - 1 - cost
+            direction = "LONG"
+        else:  # position == -1
+            trade_ret = entry_price / close[exit_idx] - 1 - cost
+            direction = "SHORT"
+        holding = (dates[exit_idx] - dates[entry_idx]).days
+        trade_count += 1
+        trade_log.append(
+            TradeRecord(
+                trade_num=trade_count,
+                ticker=ticker,
+                strategy=strategy_name,
+                timeframe=timeframe,
+                direction=direction,
+                entry_date=str(dates[entry_idx].date()),
+                entry_price=round(close[entry_idx], 2),
+                exit_date=str(dates[exit_idx].date()),
+                exit_price=round(close[exit_idx], 2),
+                holding_days=holding,
+                return_pct=round(trade_ret * 100, 2),
+                outcome="WIN" if trade_ret > 0 else "LOSS",
+            )
+        )
+        trades_raw.append(
+            {"return": trade_ret, "holding_days": holding}
+        )
+        # Deduct the exit cost from the last daily return so the
+        # equity curve reflects the close (matches the mid-loop
+        # exit convention at line ~155).
+        if daily_returns:
+            daily_returns[-1] -= cost
+            equity[-1] = equity[-2] * (1 + daily_returns[-1])
 
     equity_arr = np.array(equity)
     returns_arr = np.array(daily_returns)
@@ -478,31 +530,57 @@ class _TBResult:
     val_df: pd.DataFrame
 
 
-def _compute_dynamic_rr(val_df: pd.DataFrame) -> np.ndarray:
-    """Compute per-bar reward/risk ratio matching live signal logic.
+def _compute_dynamic_rr(
+    val_df: pd.DataFrame,
+    *,
+    strategy_name: str,
+    tp_mode: str = "current",
+) -> np.ndarray:
+    """Compute per-bar reward/risk ratio for the triple-barrier path.
 
-    Uses trend (SMA50 vs SMA200), ADX, and a default confidence
-    level to mirror the RR computation in signals.py.
+    Delegates to ``tp_logic.compute_rr_ratio`` with
+    ``confidence_score=None`` to select the backtest ladder
+    (bullish=2.5, bearish=1.5, neutral=2.0, bullish+ADX>30 → 3.0).
+    This is bit-identical to the hand-coded ladder that lived here
+    before the shared helper was introduced.
+
+    ``strategy_name`` is needed for strategy-family classification
+    when ``tp_mode="capped+strategy"``.  ``tp_mode="current"`` ignores
+    the family and produces the legacy output.
     """
     n = len(val_df)
     rr = np.full(n, 2.0)
 
-    sma50 = val_df.get("SMA_50", pd.Series(np.zeros(n), index=val_df.index)).values
-    sma200 = val_df.get("SMA_200", pd.Series(np.zeros(n), index=val_df.index)).values
-    adx = val_df.get("ADX_14", pd.Series(np.zeros(n), index=val_df.index)).values
+    sma50 = val_df.get(
+        "SMA_50", pd.Series(np.zeros(n), index=val_df.index)
+    ).values
+    sma200 = val_df.get(
+        "SMA_200", pd.Series(np.zeros(n), index=val_df.index)
+    ).values
+    adx = val_df.get(
+        "ADX_14", pd.Series(np.zeros(n), index=val_df.index)
+    ).values
+
+    family = classify_strategy_family(strategy_name)
 
     for i in range(n):
-        is_bullish = sma50[i] > sma200[i] if (sma50[i] > 0 and sma200[i] > 0) else False
-        is_bearish = sma50[i] < sma200[i] if (sma50[i] > 0 and sma200[i] > 0) else False
+        s50 = sma50[i]
+        s200 = sma200[i]
+        have_trend = s50 > 0 and s200 > 0
+        if have_trend and s50 > s200:
+            trend = "BULLISH"
+        elif have_trend and s50 < s200:
+            trend = "BEARISH"
+        else:
+            trend = "NEUTRAL"
 
-        if is_bullish:
-            rr[i] = 2.5
-        elif is_bearish:
-            rr[i] = 1.5
-
-        # ADX boost for strong bullish trend
-        if adx[i] > 30 and is_bullish:
-            rr[i] = min(rr[i] + 0.5, 3.5)
+        rr[i] = compute_rr_ratio(
+            trend=trend,
+            adx=float(adx[i]),
+            confidence_score=None,  # backtest schedule
+            family=family,
+            tp_mode=tp_mode,
+        )
 
     return rr
 
@@ -511,6 +589,9 @@ def _run_triple_barrier(
     val_df: pd.DataFrame,
     val_signals: pd.Series,
     config: dict,
+    *,
+    strategy_name: str,
+    avg_holding_days: float,
 ) -> _TBResult | None:
     """Run triple-barrier labeling on a validation window.
 
@@ -520,6 +601,17 @@ def _run_triple_barrier(
 
     Returns a _TBResult with trades AND the SL/TP arrays used,
     so callers can pass them to meta-label training without leakage.
+
+    ``strategy_name`` is used for strategy-family classification in
+    the reachability cap (only relevant when ``config["tp_mode"]``
+    is ``"capped+strategy"``).
+
+    ``avg_holding_days`` is the measured average holding window from
+    the strategy's own traditional backtest (the ``run_backtest``
+    result that just produced this validation window's trades).
+    Sizing the reachability cap by the strategy's actual horizon
+    lets short-hold strategies like VWAP Trend get a tighter cap
+    than a hardcoded 20-bar fallback would.
     """
     close = val_df["Close"].values
     high = val_df["High"].values
@@ -540,9 +632,42 @@ def _run_triple_barrier(
         for i in range(n)
     ])
 
-    # Build per-bar TP% using dynamic RR (matches live signal logic)
-    rr_arr = _compute_dynamic_rr(val_df)
-    tp_pct_arr = sl_pct_arr * rr_arr
+    # ── Take-profit: dynamic RR + optional reachability cap ──────
+    tp_mode = config.get("tp_mode", "current")
+    cap_multiplier = float(config.get("tp_cap_multiplier", 1.5))
+
+    # Use the measured avg_holding_days from the traditional backtest
+    # that just ran for this (strategy, window). Falls back to config
+    # when zero (no trades produced a measurement).
+    if avg_holding_days and avg_holding_days > 0:
+        holding_scalar = float(avg_holding_days)
+    else:
+        holding_scalar = float(config.get("tp_cap_holding_days", 20.0))
+
+    rr_arr = _compute_dynamic_rr(
+        val_df, strategy_name=strategy_name, tp_mode=tp_mode,
+    )
+    raw_tp_pct_arr = sl_pct_arr * rr_arr
+
+    if tp_mode == "current":
+        # Fast path — no per-bar cap computation needed.
+        tp_pct_arr = raw_tp_pct_arr
+    else:
+        expected_max_arr = np.array([
+            compute_expected_max_move_pct(
+                float(vol_arr[i]), holding_scalar,
+            )
+            for i in range(n)
+        ])
+        tp_pct_arr = np.array([
+            apply_tp_cap(
+                float(raw_tp_pct_arr[i]),
+                float(expected_max_arr[i]),
+                cap_multiplier,
+                tp_mode,
+            )
+            for i in range(n)
+        ])
 
     # Entry mask: strategy BUY signals
     # Apply same next-bar execution shift as the main backtest:
@@ -712,6 +837,8 @@ def select_best_strategy(
                     try:
                         tb_result = _run_triple_barrier(
                             val_df, val_signals, config,
+                            strategy_name=strategy.name,
+                            avg_holding_days=result.avg_holding_days,
                         )
                         if tb_result is not None:
                             metrics = score_barrier_trades(
