@@ -178,13 +178,13 @@ def _run_monitor_only(
     config: TradingConfig, log_dir: Path
 ) -> None:
     """Run the position monitor without placing new orders."""
-    from trading_bot_bl.broker import AlpacaBroker
+    from trading_bot_bl.config import get_broker
     from trading_bot_bl.monitor import (
         monitor_positions,
         write_monitor_log,
     )
 
-    broker = AlpacaBroker(config.alpaca)
+    broker = get_broker(config)
     portfolio = broker.get_portfolio()
 
     log.info(
@@ -505,7 +505,13 @@ def main() -> None:
         )
     log.info(f"{'=' * 60}")
 
-    execution_log_dir = Path(args.log_dir)
+    # Use config-scoped path unless operator explicitly overrides
+    if args.log_dir != "execution_logs":
+        # Explicit --log-dir override — respect it
+        execution_log_dir = Path(args.log_dir)
+    else:
+        # Default: use market-scoped path
+        execution_log_dir = config.path_for("execution_logs")
 
     # ── Reset history ─────────────────────────────────────────────
     if args.reset_history:
@@ -544,13 +550,20 @@ def main() -> None:
         log.info(f"  CSV export: {csv_path}")
         return
 
-    # ── Validate Alpaca credentials (only needed for trading/monitoring) ──
+    # ── Validate broker credentials (only needed for trading/monitoring) ──
     if not config.dry_run:
-        try:
-            config.alpaca.validate()
-        except ValueError as e:
-            log.error(str(e))
-            sys.exit(1)
+        broker_type = config.get_market().broker_type
+        if broker_type == "alpaca":
+            try:
+                config.alpaca.validate()
+            except ValueError as e:
+                log.error(str(e))
+                sys.exit(1)
+        elif broker_type == "ibkr":
+            log.info(
+                f"  IBKR broker — credentials managed by "
+                f"IB Gateway ({config.ibkr})"
+            )
 
     # ── Monitor-only mode ─────────────────────────────────────────
     if args.monitor_only:

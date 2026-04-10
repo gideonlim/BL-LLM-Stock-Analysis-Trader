@@ -118,8 +118,14 @@ def _make_broker(
         ticker="", status=close_result_status, side="close",
     )
     broker.cancel_order.return_value = True
-    # Mock _client for reattach_bracket
-    broker._client = MagicMock()
+    # Phase 1b: mock public BrokerInterface methods
+    broker.submit_oco_reattach.return_value = OrderResult(
+        ticker="", status="submitted", side="sell",
+    )
+    broker.update_stop_loss.return_value = OrderResult(
+        ticker="", status="submitted", side="sell",
+    )
+    broker.get_order_by_id.return_value = None
     return broker
 
 
@@ -336,7 +342,7 @@ class TestOrphanedPositions(unittest.TestCase):
         broker.close_position.assert_not_called()
         # OCO order: single submit_order call (SL + TP linked)
         self.assertEqual(
-            broker._client.submit_order.call_count, 1
+            broker.submit_oco_reattach.call_count, 1
         )
 
     @patch(
@@ -368,7 +374,7 @@ class TestOrphanedPositions(unittest.TestCase):
         broker.close_position.assert_not_called()
         # OCO order: single submit_order call (SL + TP linked)
         self.assertEqual(
-            broker._client.submit_order.call_count, 1
+            broker.submit_oco_reattach.call_count, 1
         )
         self.assertEqual(
             report.alerts[0].severity, "warning"
@@ -403,7 +409,7 @@ class TestOrphanedPositions(unittest.TestCase):
         broker.close_position.assert_not_called()
         # OCO order: single submit_order call (SL + TP linked)
         self.assertEqual(
-            broker._client.submit_order.call_count, 1
+            broker.submit_oco_reattach.call_count, 1
         )
 
 
@@ -465,7 +471,7 @@ class TestStopLimitClassification(unittest.TestCase):
         broker.close_position.assert_not_called()
         # No reattach attempts
         self.assertEqual(
-            broker._client.submit_order.call_count, 0
+            broker.submit_oco_reattach.call_count, 0
         )
 
     @patch(
@@ -510,11 +516,10 @@ class TestStopLimitClassification(unittest.TestCase):
         ]
         self.assertEqual(len(partial_alerts), 1)
         broker.close_position.assert_not_called()
-        # Partial bracket now triggers OCO reattach
-        # (cancels stale SL, places fresh OCO with both legs)
-        broker.cancel_order.assert_called()
+        # Partial bracket triggers OCO reattach
+        # (broker handles stale leg cancellation internally)
         self.assertEqual(
-            broker._client.submit_order.call_count, 1
+            broker.submit_oco_reattach.call_count, 1
         )
 
 
@@ -574,7 +579,7 @@ class TestOCOOrderClassification(unittest.TestCase):
 
         self.assertEqual(report.orphaned_count, 0)
         broker.close_position.assert_not_called()
-        broker._client.submit_order.assert_not_called()
+        broker.submit_oco_reattach.assert_not_called()
 
     def test_oco_parent_no_legs_trusted_as_complete(
         self, _atr: MagicMock
@@ -613,7 +618,7 @@ class TestOCOOrderClassification(unittest.TestCase):
         # SL child is invisible. NOT orphaned/partial.
         self.assertEqual(report.orphaned_count, 0)
         broker.close_position.assert_not_called()
-        broker._client.submit_order.assert_not_called()
+        broker.submit_oco_reattach.assert_not_called()
 
 
 # ── Check 3: Partial brackets (one leg missing) ────────────
@@ -659,10 +664,9 @@ class TestPartialBrackets(unittest.TestCase):
         alert = report.alerts[0]
         self.assertEqual(alert.severity, "warning")
         self.assertIn("stop loss", alert.message.lower())
-        # Stale TP cancelled + OCO reattach placed
-        broker.cancel_order.assert_called()
+        # OCO reattach placed (broker handles cancellation internally)
         self.assertEqual(
-            broker._client.submit_order.call_count, 1
+            broker.submit_oco_reattach.call_count, 1
         )
 
     @patch(
@@ -699,10 +703,9 @@ class TestPartialBrackets(unittest.TestCase):
         self.assertIn(
             "take profit", report.alerts[0].message.lower()
         )
-        # Stale SL cancelled + OCO reattach placed
-        broker.cancel_order.assert_called()
+        # OCO reattach placed (broker handles cancellation internally)
         self.assertEqual(
-            broker._client.submit_order.call_count, 1
+            broker.submit_oco_reattach.call_count, 1
         )
 
 

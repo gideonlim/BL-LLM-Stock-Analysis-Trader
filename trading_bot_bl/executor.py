@@ -8,8 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 
-from trading_bot_bl.broker import AlpacaBroker
-from trading_bot_bl.config import TradingConfig
+from trading_bot_bl.config import TradingConfig, get_broker
 from trading_bot_bl.cppi import (
     CppiState,
     load_cppi_state,
@@ -292,7 +291,7 @@ def execute(
         return results
 
     # ── 2. Load trade history ──────────────────────────────────────
-    history_dir = log_dir or Path("execution_logs")
+    history_dir = log_dir or config.path_for("execution_logs")
     history = load_trade_history(
         history_dir,
         lookback_days=config.history_lookback_days,
@@ -301,11 +300,11 @@ def execute(
 
     # Cross-reference with journal to clear churn cooldowns for
     # orders that were submitted but never filled (expired/cancelled).
-    journal_dir = history_dir / "journal"
+    journal_dir = config.path_for("journal")
     reconcile_with_journal(history, journal_dir)
 
     # ── 3. Connect to broker ──────────────────────────────────────
-    broker = AlpacaBroker(config.alpaca)
+    broker = get_broker(config)
 
     # ── 4. Check market hours ─────────────────────────────────────
     market_open = broker.is_market_open()
@@ -364,7 +363,7 @@ def execute(
     #    never block the trading pipeline.
     #    Skipped entirely in dry-run mode so simulated runs
     #    don't pollute real journal/equity data.
-    journal_dir = history_dir / "journal"
+    # journal_dir already set via config.path_for("journal") above
     if _JOURNAL_AVAILABLE and not config.dry_run:
         try:
             _equity.record_snapshot(portfolio, history_dir)

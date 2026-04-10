@@ -100,6 +100,7 @@ def _compute_benchmark_stats(
     spy_prices: list[tuple[datetime, float]],
     bot_sharpe_override: Optional[float] = None,
     bot_sortino_override: Optional[float] = None,
+    trading_days_per_year: int = 252,
 ) -> Optional[BenchmarkStats]:
     """Compute side-by-side bot vs SPY statistics.
 
@@ -168,7 +169,7 @@ def _compute_benchmark_stats(
     bot_r = np.array(bot_returns)
     spy_r = np.array(spy_returns)
 
-    trading_days = 252
+    trading_days = trading_days_per_year
 
     def _annualized_return(returns: np.ndarray) -> float:
         cum = np.prod(1 + returns) - 1
@@ -819,6 +820,7 @@ def _chart_monthly_returns_heatmap(
 def _chart_rolling_sharpe(
     snapshots: list[EquitySnapshot],
     window: int = 20,
+    trading_days_per_year: int = 252,
 ) -> Optional[io.BytesIO]:
     """Rolling annualised Sharpe ratio over a sliding window of daily returns.
 
@@ -874,7 +876,7 @@ def _chart_rolling_sharpe(
     # Rolling Sharpe (annualised)
     roll_sharpe = []
     roll_dates = []
-    sqrt_252 = np.sqrt(252)
+    sqrt_252 = np.sqrt(trading_days_per_year)
     for i in range(window - 1, len(returns)):
         w = returns[i - window + 1: i + 1]
         mean_r = sum(w) / window

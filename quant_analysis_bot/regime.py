@@ -46,6 +46,8 @@ def fetch_regime_data(
     vix_fear_threshold: float = 25.0,
     use_cache: bool = True,
     cache_dir: str | None = None,
+    benchmark_ticker: str = "SPY",
+    vol_ticker: str | None = "^VIX",
 ) -> pd.DataFrame:
     """Fetch historical VIX + SPY data and compute daily regime state.
 
@@ -116,6 +118,8 @@ def fetch_regime_data(
     regime_df = _build_regime_df(
         lookback_days=lookback_days,
         vix_fear_threshold=vix_fear_threshold,
+        benchmark_ticker=benchmark_ticker,
+        vol_ticker=vol_ticker,
     )
 
     # Persist to disk so subsequent runs can skip the yfinance call
@@ -143,8 +147,14 @@ def fetch_regime_data(
 def _build_regime_df(
     lookback_days: int,
     vix_fear_threshold: float,
+    benchmark_ticker: str = "SPY",
+    vol_ticker: str | None = "^VIX",
 ) -> pd.DataFrame:
-    """Internal: fetch and compute regime DataFrame."""
+    """Internal: fetch and compute regime DataFrame.
+
+    When *vol_ticker* is None, the VIX component is skipped and
+    the regime is trend-only (benchmark below/above 200-SMA).
+    """
     try:
         import yfinance as yf
     except ImportError:
@@ -194,32 +204,39 @@ def _build_regime_df(
                     time.sleep(wait)
         return pd.DataFrame()
 
-    # Fetch VIX
-    try:
-        vix_data = _download_with_retry("^VIX")
-        if isinstance(vix_data.columns, pd.MultiIndex):
-            vix_data.columns = vix_data.columns.get_level_values(0)
-        vix_close = (
-            vix_data["Close"].rename("VIX_Close")
-            if not vix_data.empty
-            else pd.Series(dtype=float, name="VIX_Close")
-        )
-    except Exception as exc:
-        log.warning(f"VIX fetch failed: {exc}")
+    # Fetch vol ticker (VIX or equivalent) — skip if None
+    if vol_ticker is not None:
+        try:
+            vix_data = _download_with_retry(vol_ticker)
+            if isinstance(vix_data.columns, pd.MultiIndex):
+                vix_data.columns = (
+                    vix_data.columns.get_level_values(0)
+                )
+            vix_close = (
+                vix_data["Close"].rename("VIX_Close")
+                if not vix_data.empty
+                else pd.Series(dtype=float, name="VIX_Close")
+            )
+        except Exception as exc:
+            log.warning(f"{vol_ticker} fetch failed: {exc}")
+            vix_close = pd.Series(dtype=float, name="VIX_Close")
+    else:
         vix_close = pd.Series(dtype=float, name="VIX_Close")
 
-    # Fetch SPY
+    # Fetch benchmark (SPY or equivalent)
     try:
-        spy_data = _download_with_retry("SPY")
+        spy_data = _download_with_retry(benchmark_ticker)
         if isinstance(spy_data.columns, pd.MultiIndex):
-            spy_data.columns = spy_data.columns.get_level_values(0)
+            spy_data.columns = (
+                spy_data.columns.get_level_values(0)
+            )
         spy_close = (
             spy_data["Close"].rename("SPY_Close")
             if not spy_data.empty
             else pd.Series(dtype=float, name="SPY_Close")
         )
     except Exception as exc:
-        log.warning(f"SPY fetch failed: {exc}")
+        log.warning(f"{benchmark_ticker} fetch failed: {exc}")
         spy_close = pd.Series(dtype=float, name="SPY_Close")
 
     if vix_close.empty and spy_close.empty:
@@ -339,6 +356,8 @@ def prefetch_regime_data(
     cache_dir: str,
     lookback_days: int = 500,
     vix_fear_threshold: float = 25.0,
+    benchmark_ticker: str = "SPY",
+    vol_ticker: str | None = "^VIX",
 ) -> pd.DataFrame:
     """Fetch regime data and persist to disk for next-day use.
 
@@ -351,6 +370,8 @@ def prefetch_regime_data(
     regime_df = _build_regime_df(
         lookback_days=lookback_days,
         vix_fear_threshold=vix_fear_threshold,
+        benchmark_ticker=benchmark_ticker,
+        vol_ticker=vol_ticker,
     )
 
     if regime_df.empty:

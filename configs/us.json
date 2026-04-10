@@ -1,0 +1,42 @@
+{
+  "market": {
+    "market_id": "US"
+  },
+
+  "risk": {
+    "max_portfolio_exposure_pct": 80.0,
+    "max_position_pct": 10.0,
+    "daily_loss_limit_pct": 3.0,
+    "min_composite_score": 15.0,
+    "min_confidence_score": 2,
+    "max_positions": 8,
+    "min_position_pct": 2.0,
+    "skip_hold_signals": true,
+    "check_signal_expiry": true,
+    "emergency_loss_pct": 8.0,
+    "stale_bracket_pct": 5.0,
+    "auto_close_orphaned_losers": true,
+    "orphan_max_loss_pct": 5.0,
+    "max_hold_days": 10,
+    "min_backtest_trades": 3,
+    "max_pbo": 0.50,
+    "ticker_cooldown_days": 2,
+    "earnings_blackout_enabled": true,
+    "earnings_blackout_pre_days": 3,
+    "earnings_blackout_post_days": 1,
+    "adv_liquidity_enabled": true,
+    "min_adv_shares": 500000,
+    "min_adv_dollar_volume": 5000000.0,
+    "max_adv_participation_pct": 1.0,
+    "cppi_enabled": false,
+    "cppi_max_drawdown_pct": 10.0,
+    "cppi_multiplier": 5,
+    "cppi_min_exposure_pct": 10.0
+  },
+
+  "time_in_force": "day",
+  "order_type": "market",
+  "max_entry_slippage_pct": 1.0,
+
+  "_comment": "Frozen US baseline for Phase 1 parity checks. Keys match TradingConfig.from_file() loader schema. 'market' block is read by Phase 1i; 'risk' and flat order keys are read today."
+}

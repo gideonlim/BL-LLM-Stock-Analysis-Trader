@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 
-from trading_bot_bl.broker import AlpacaBroker
+from trading_bot_bl.broker_base import BrokerInterface
 from trading_bot_bl.config import RiskLimits
 from trading_bot_bl.earnings import check_earnings_blackout
 from trading_bot_bl.models import (
@@ -60,7 +60,7 @@ class MonitorReport:
 
 
 def monitor_positions(
-    broker: AlpacaBroker,
+    broker: BrokerInterface,
     portfolio: PortfolioSnapshot,
     limits: RiskLimits,
     dry_run: bool = False,
@@ -83,7 +83,7 @@ def monitor_positions(
        issue) or below SL (same).
 
     Args:
-        broker: Connected AlpacaBroker instance.
+        broker: Connected BrokerInterface instance.
         portfolio: Current portfolio snapshot.
         limits: Risk limits with monitoring thresholds.
         dry_run: If True, log actions but don't execute.
@@ -977,22 +977,18 @@ def monitor_positions(
             order_id, j_entry, exit_price,
             exit_reason, expected_exit,
         ) in _deferred_journal:
-            try:
-                order = broker._client.get_order_by_id(order_id)
-                status = str(
-                    getattr(order.status, "value", order.status)
-                )
-                fill_price = getattr(
-                    order, "filled_avg_price", None
-                )
-            except Exception:
+            broker_order = broker.get_order_by_id(order_id)
+            if broker_order is not None:
+                status = broker_order.status.value
+                fill_price = broker_order.filled_avg_price
+            else:
                 status = "unknown"
-                fill_price = None
+                fill_price = 0.0
 
             if status == "filled":
                 # Use actual fill price if available
                 actual_exit = (
-                    float(fill_price) if fill_price else exit_price
+                    fill_price if fill_price else exit_price
                 )
                 try:
                     _journal.close_trade(
@@ -1031,7 +1027,7 @@ def monitor_positions(
 
 
 def _reattach_bracket(
-    broker: AlpacaBroker,
+    broker,
     ticker: str,
     qty: float,
     entry_price: float,
@@ -1042,20 +1038,8 @@ def _reattach_bracket(
     Attempt to place new SL/TP orders for an orphaned position.
 
     Uses a default 5% SL below current price and 10% TP above.
-
-    Submits a single OCO (One-Cancels-Other) order that links
-    both the SL and TP legs together. This is critical because
-    Alpaca reserves shares per order — two separate sell orders
-    for the full quantity would fail since the first order
-    reserves all shares, leaving none for the second.
-
-    An OCO order's parent is a limit sell (the TP leg) and its
-    child is a stop sell (the SL leg). When either leg fills,
-    the other is automatically cancelled. Both legs share the
-    same share reservation.
-
-    Before placing the OCO, cancels any existing orders for
-    this ticker to free up the held-for-orders quantity.
+    Delegates to ``broker.submit_oco_reattach()`` which handles
+    broker-specific OCO/OCA semantics internally.
     """
     sl_price = round(current_price * 0.95, 2)
     tp_price = round(current_price * 1.10, 2)
@@ -1066,77 +1050,24 @@ def _reattach_bracket(
             f"SL=${sl_price} and TP=${tp_price}"
         )
 
-    try:
-        from alpaca.trading.requests import (
-            StopLossRequest,
-            TakeProfitRequest,
-            LimitOrderRequest,
-        )
-        from alpaca.trading.enums import (
-            OrderClass,
-            OrderSide,
-            TimeInForce,
-        )
+    result = broker.submit_oco_reattach(
+        ticker=ticker,
+        qty=abs(qty),
+        stop_loss=sl_price,
+        take_profit=tp_price,
+        dry_run=False,
+    )
 
-        # Cancel any existing orders for this ticker first.
-        # If the position had stale/expired bracket legs, the
-        # shares may still be "held_for_orders". Cancelling
-        # first frees them for the new OCO order.
-        existing = broker.get_open_orders()
-        cancelled_ids: list[str] = []
-        for order in existing:
-            if order.symbol == ticker:
-                oid = str(order.id)
-                broker.cancel_order(oid)
-                cancelled_ids.append(oid)
-                log.info(
-                    f"  Cancelled existing order {order.id} "
-                    f"for {ticker} before reattach"
-                )
-
-        # Wait for Alpaca to fully release the held shares
-        # before submitting the replacement OCO.
-        if cancelled_ids:
-            broker._wait_for_cancels(ticker, cancelled_ids)
-
-        # Submit a single OCO order with both legs linked.
-        # Alpaca OCO requires explicit take_profit AND
-        # stop_loss parameters — the parent limit_price
-        # alone does not satisfy the TP requirement.
-        oco_request = LimitOrderRequest(
-            symbol=ticker,
-            qty=abs(qty),
-            side=OrderSide.SELL,
-            time_in_force=TimeInForce.GTC,
-            limit_price=tp_price,
-            order_class=OrderClass.OCO,
-            take_profit=TakeProfitRequest(
-                limit_price=tp_price,
-            ),
-            stop_loss=StopLossRequest(
-                stop_price=sl_price,
-            ),
-        )
-        broker._client.submit_order(oco_request)
-
-        log.info(
-            f"  OCO order placed for {ticker}: "
-            f"SL=${sl_price}, TP=${tp_price}, qty={abs(qty)}"
-        )
-
+    if result.status == "submitted":
         return (
             f"Reattached OCO: SL=${sl_price}, TP=${tp_price}"
         )
-
-    except Exception as e:
-        log.error(
-            f"Failed to reattach bracket for {ticker}: {e}"
-        )
-        return f"Failed to reattach: {e}"
+    else:
+        return f"Failed to reattach: {result.error}"
 
 
 def _replace_stop_loss(
-    broker: AlpacaBroker,
+    broker,
     ticker: str,
     old_sl_order_id: str,
     new_sl_price: float,
@@ -1146,24 +1077,11 @@ def _replace_stop_loss(
 ) -> bool:
     """Move a stop-loss to a tighter level.
 
-    Handles two bracket structures:
-
-    **Standalone SL** (``old_sl_order_id`` is set, no OCO parent):
-        Cancel the old stop order, then submit a new standalone
-        stop order at ``new_sl_price``.
-
-    **OCO bracket** (``oco_parent_id`` is set, SL leg is held /
-    invisible to the API):
-        Alpaca holds *all* shares for the entire OCO — cancelling
-        only the invisible SL leg leaves the parent alive and the
-        shares still reserved, so any new order is rejected with
-        ``available: 0``.  The correct approach is to cancel the
-        **OCO parent** (which atomically cancels both legs and
-        frees the share hold), then immediately resubmit a fresh
-        OCO with the original TP price and the new SL price.
+    Delegates to ``broker.update_stop_loss()`` which handles
+    broker-specific OCO/OCA semantics internally.
 
     Args:
-        broker:          AlpacaBroker instance.
+        broker:          BrokerInterface instance.
         ticker:          Position symbol.
         old_sl_order_id: Order ID of the standalone SL leg to
                          cancel (empty string if OCO).
@@ -1172,84 +1090,18 @@ def _replace_stop_loss(
         oco_parent_id:   Order ID of the OCO parent to cancel
                          (set when the bracket is an OCO).
         tp_price:        Existing take-profit price to preserve
-                         in the replacement OCO (required when
-                         ``oco_parent_id`` is set).
+                         in the replacement OCO.
     """
-    try:
-        from alpaca.trading.enums import (
-            OrderSide,
-            TimeInForce,
-        )
-
-        if oco_parent_id:
-            # ── OCO path ─────────────────────────────────────
-            # 1. Cancel the OCO parent → frees held shares for
-            #    both the TP limit leg and the SL stop leg.
-            # 2. Resubmit a fresh OCO with the original TP and
-            #    the updated SL so both legs are re-linked in
-            #    a single share reservation.
-            from alpaca.trading.requests import (
-                LimitOrderRequest,
-                TakeProfitRequest,
-                StopLossRequest,
-            )
-            from alpaca.trading.enums import OrderClass
-
-            broker.cancel_order(oco_parent_id)
-            log.info(
-                f"  OCO parent {oco_parent_id} cancelled "
-                f"for {ticker} SL replacement"
-            )
-
-            # Wait for Alpaca to fully release the held shares
-            # before submitting the replacement OCO.
-            broker._wait_for_cancels(ticker, [oco_parent_id])
-
-            oco_request = LimitOrderRequest(
-                symbol=ticker,
-                qty=abs(qty),
-                side=OrderSide.SELL,
-                time_in_force=TimeInForce.GTC,
-                limit_price=round(tp_price, 2),
-                order_class=OrderClass.OCO,
-                take_profit=TakeProfitRequest(
-                    limit_price=round(tp_price, 2),
-                ),
-                stop_loss=StopLossRequest(
-                    stop_price=round(new_sl_price, 2),
-                ),
-            )
-            broker._client.submit_order(oco_request)
-            log.info(
-                f"  New OCO submitted for {ticker}: "
-                f"SL=${new_sl_price:.2f}, TP=${tp_price:.2f}"
-            )
-
-        else:
-            # ── Standalone SL path ───────────────────────────
-            # Cancel old stop order (if we have its ID), then
-            # submit a plain stop order at the new price.
-            from alpaca.trading.requests import StopOrderRequest
-
-            if old_sl_order_id:
-                broker.cancel_order(old_sl_order_id)
-
-            request = StopOrderRequest(
-                symbol=ticker,
-                qty=abs(qty),
-                side=OrderSide.SELL,
-                time_in_force=TimeInForce.GTC,
-                stop_price=round(new_sl_price, 2),
-            )
-            broker._client.submit_order(request)
-
-        return True
-
-    except Exception as e:
-        log.error(
-            f"Failed to replace SL for {ticker}: {e}"
-        )
-        return False
+    result = broker.update_stop_loss(
+        ticker=ticker,
+        new_stop_loss=new_sl_price,
+        qty=abs(qty),
+        dry_run=False,
+        old_sl_order_id=old_sl_order_id,
+        oco_parent_id=oco_parent_id,
+        tp_price=tp_price,
+    )
+    return result.status != "rejected"
 
 
 def _calculate_trailing_stop(
@@ -1423,7 +1275,7 @@ def _check_time_exit(
             entry = date.fromisoformat(entry_date[:10])
 
         days_held = (date.today() - entry).days
-        if days_held >= max_hold_days:
+        if days_held > max_hold_days:
             log.info(
                 f"  {ticker}: held {days_held} days "
                 f"(max {max_hold_days}) — time exit candidate"

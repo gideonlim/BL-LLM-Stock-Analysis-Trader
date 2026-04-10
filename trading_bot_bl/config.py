@@ -7,6 +7,10 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from trading_bot_bl.broker_base import BrokerInterface
 
 log = logging.getLogger(__name__)
 
@@ -65,6 +69,41 @@ class AlpacaConfig:
         return (
             f"AlpacaConfig(mode={mode}, "
             f"key={has_key}, secret={has_secret})"
+        )
+
+
+@dataclass
+class IBKRConfig:
+    """Interactive Brokers connection configuration.
+
+    Credentials are managed by IB Gateway / TWS — the bot only
+    needs the host, port, and client ID to connect.
+    """
+
+    host: str = "127.0.0.1"
+    port: int = 7497          # 7497 = paper, 7496 = live
+    client_id: int = 1
+    account_id: str = ""      # optional — auto-detected if blank
+    max_equity_allocation: float = 1.0  # fraction of total equity
+
+    @classmethod
+    def from_env(cls) -> IBKRConfig:
+        return cls(
+            host=os.getenv("IBKR_HOST", "127.0.0.1"),
+            port=int(os.getenv("IBKR_PORT", "7497")),
+            client_id=int(os.getenv("IBKR_CLIENT_ID", "1")),
+            account_id=os.getenv("IBKR_ACCOUNT_ID", ""),
+            max_equity_allocation=float(
+                os.getenv("IBKR_MAX_EQUITY_ALLOCATION", "1.0")
+            ),
+        )
+
+    def __repr__(self) -> str:
+        mode = "paper" if self.port == 7497 else "live"
+        return (
+            f"IBKRConfig(mode={mode}, "
+            f"host={self.host}:{self.port}, "
+            f"client_id={self.client_id})"
         )
 
 
@@ -167,7 +206,11 @@ class TradingConfig:
     alpaca: AlpacaConfig = field(  # type: ignore[type-var]
         default_factory=AlpacaConfig.from_env
     )
+    ibkr: IBKRConfig = field(default_factory=IBKRConfig.from_env)
     risk: RiskLimits = field(default_factory=RiskLimits)
+
+    # Market configuration (defaults to US)
+    market: "MarketConfig | None" = None  # set in from_file or lazily
 
     # Path to the signals directory produced by quant_analysis_bot
     signals_dir: Path = Path("signals")
@@ -321,6 +364,37 @@ class TradingConfig:
 
     # Weight for LLM views when blending with quant views (0-1)
     llm_weight: float = 0.3
+
+    def get_market(self) -> "MarketConfig":
+        """Return the market config, defaulting to US if unset."""
+        if self.market is not None:
+            return self.market
+        from trading_bot_bl.market_config import US
+        return US
+
+    def path_for(self, kind: str) -> Path:
+        """Return the output directory for *kind*, scoped by market.
+
+        US (market_id="US") returns the flat base path (unchanged).
+        Non-US returns ``base_path / market_id``.
+
+        ``kind`` is one of: "signals", "execution_logs", "journal",
+        "reports", "equity_curve".
+        """
+        _base_map = {
+            "signals": self.signals_dir,
+            "execution_logs": Path("execution_logs"),
+            "journal": Path("journal"),
+            "reports": Path("reports"),
+            "equity_curve": Path("execution_logs"),
+        }
+        base = _base_map.get(kind, Path(kind))
+        mkt = self.get_market()
+        if mkt.market_id == "US":
+            return base
+        result = base / mkt.market_id.lower()
+        result.mkdir(parents=True, exist_ok=True)
+        return result
 
     @classmethod
     def from_env(cls) -> TradingConfig:
@@ -711,5 +785,76 @@ class TradingConfig:
                     overrides["llm_weight"]
                 )
 
+            # ── Market config (required in all config files) ────
+            if "market" not in overrides:
+                raise ValueError(
+                    f"Config file {path} is missing required "
+                    f"'market' block. Add "
+                    f'\"market\": {{\"market_id\": \"US\"}} '
+                    f"(or LSE, TSE) to specify the target market."
+                )
+            market_block = overrides["market"]
+            market_id = market_block.get("market_id", "")
+            if not market_id:
+                raise ValueError(
+                    f"Config file {path}: 'market' block must "
+                    f"contain 'market_id' (e.g. \"US\", \"LSE\", "
+                    f"\"TSE\")."
+                )
+            from trading_bot_bl.market_config import (
+                get_market_config,
+            )
+            config.market = get_market_config(market_id)
+            log.info(
+                f"  Market: {config.market.market_id} "
+                f"({config.market.currency})"
+            )
+
+            # Wire IBKR allocation from market config
+            if config.market.broker_type == "ibkr":
+                config.ibkr.max_equity_allocation = (
+                    config.market.max_equity_allocation
+                )
+
+            # ── IBKR overrides ───────────────────────────────
+            if "ibkr" in overrides:
+                ib = overrides["ibkr"]
+                if "host" in ib:
+                    config.ibkr.host = ib["host"]
+                if "port" in ib:
+                    config.ibkr.port = int(ib["port"])
+                if "client_id" in ib:
+                    config.ibkr.client_id = int(
+                        ib["client_id"]
+                    )
+                if "account_id" in ib:
+                    config.ibkr.account_id = ib["account_id"]
+                if "max_equity_allocation" in ib:
+                    config.ibkr.max_equity_allocation = float(
+                        ib["max_equity_allocation"]
+                    )
+
             log.info(f"Loaded trading config from {path}")
         return config
+
+
+def get_broker(config: TradingConfig) -> "BrokerInterface":
+    """Factory: return the correct broker for the configured market.
+
+    - ``broker_type == "alpaca"`` → ``AlpacaBroker``
+    - ``broker_type == "ibkr"`` → ``IBKRBroker`` (Phase 2)
+    """
+    market = config.get_market()
+    if market.broker_type == "alpaca":
+        from trading_bot_bl.broker import AlpacaBroker
+        return AlpacaBroker(config.alpaca)
+    elif market.broker_type == "ibkr":
+        raise NotImplementedError(
+            "IBKRBroker is not yet implemented (Phase 2). "
+            f"Market '{market.market_id}' requires broker_type='ibkr'."
+        )
+    else:
+        raise ValueError(
+            f"Unknown broker_type '{market.broker_type}' "
+            f"for market '{market.market_id}'"
+        )

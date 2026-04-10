@@ -39,6 +39,7 @@ def run_backtest(
     cost_bps: float = 10,
     long_only: bool = True,
     next_bar_execution: bool = True,
+    trading_days_per_year: int = 252,
 ) -> Tuple[BacktestResult, List[TradeRecord]]:
     """
     Run a full backtest on a signal series.
@@ -72,7 +73,8 @@ def run_backtest(
     dates = df.index
     close = df["Close"].values
     sig = df["Signal"].values
-    cost = cost_bps / 10000
+    cost = cost_bps / 10000       # one-way cost (per leg)
+    round_trip_cost = 2 * cost    # entry + exit
 
     result.backtest_start = str(dates[0].date())
     result.backtest_end = str(dates[-1].date())
@@ -95,9 +97,12 @@ def run_backtest(
 
         # ── Process signals ───────────────────────────────────────────
         if sig[i] == 1 and position <= 0:
-            if position == -1 and not long_only:
-                # Close short
-                trade_ret = entry_price / close[i] - 1 - cost
+            was_short = position == -1
+            if was_short and not long_only:
+                # Close short — round_trip_cost covers entry + exit
+                trade_ret = (
+                    entry_price / close[i] - 1 - round_trip_cost
+                )
                 holding = (dates[i] - dates[entry_idx]).days
                 trade_count += 1
                 trade_log.append(
@@ -119,16 +124,21 @@ def run_backtest(
                 trades_raw.append(
                     {"return": trade_ret, "holding_days": holding}
                 )
-            # Open long
+            # Open long (or reversal SHORT→LONG)
             position = 1
             entry_price = close[i]
             entry_idx = i
-            daily_ret -= cost
+            # Reversal: exit old short + enter new long = 2 cost legs
+            # Fresh entry from flat: 1 cost leg
+            daily_ret -= round_trip_cost if was_short else cost
 
         elif sig[i] == -1 and position >= 0:
-            if position == 1:
-                # Close long
-                trade_ret = close[i] / entry_price - 1 - cost
+            was_long = position == 1
+            if was_long:
+                # Close long — round_trip_cost covers entry + exit
+                trade_ret = (
+                    close[i] / entry_price - 1 - round_trip_cost
+                )
                 holding = (dates[i] - dates[entry_idx]).days
                 trade_count += 1
                 trade_log.append(
@@ -152,14 +162,16 @@ def run_backtest(
                 )
 
             if long_only:
-                daily_ret -= cost  # exit transaction cost
+                daily_ret -= cost  # exit cost only (entry was on open bar)
                 position = 0
                 entry_price = 0.0
             else:
                 position = -1
                 entry_price = close[i]
                 entry_idx = i
-                daily_ret -= cost
+                # Reversal LONG→SHORT: exit old long + enter new short
+                # Fresh entry from flat: 1 cost leg
+                daily_ret -= round_trip_cost if was_long else cost
 
         daily_returns.append(daily_ret)
         equity.append(equity[-1] * (1 + daily_ret))
@@ -177,10 +189,14 @@ def run_backtest(
     if position != 0 and len(close) >= 2:
         exit_idx = len(close) - 1
         if position == 1:
-            trade_ret = close[exit_idx] / entry_price - 1 - cost
+            trade_ret = (
+                close[exit_idx] / entry_price - 1 - round_trip_cost
+            )
             direction = "LONG"
         else:  # position == -1
-            trade_ret = entry_price / close[exit_idx] - 1 - cost
+            trade_ret = (
+                entry_price / close[exit_idx] - 1 - round_trip_cost
+            )
             direction = "SHORT"
         holding = (dates[exit_idx] - dates[entry_idx]).days
         trade_count += 1
@@ -231,7 +247,7 @@ def run_backtest(
 
     # ── Annualized returns ────────────────────────────────────────────
     if n_days > 0:
-        ann_factor = 252 / n_days
+        ann_factor = trading_days_per_year / n_days
         total_r = equity_arr[-1] / equity_arr[0]
         bh_r = close[-1] / close[0]
         result.annual_return_pct = round(
@@ -248,7 +264,8 @@ def run_backtest(
     _std = returns_arr.std(ddof=1) if len(returns_arr) > 1 else 0.0
     if _std > 0:
         result.sharpe_ratio = round(
-            np.sqrt(252) * returns_arr.mean() / _std, 2
+            np.sqrt(trading_days_per_year)
+            * returns_arr.mean() / _std, 2
         )
 
     # ── Sortino Ratio ─────────────────────────────────────────────────
@@ -262,7 +279,8 @@ def run_backtest(
     tdd = np.sqrt(np.mean(downside_diff ** 2))
     if tdd > 0:
         result.sortino_ratio = round(
-            np.sqrt(252) * returns_arr.mean() / tdd, 2
+            np.sqrt(trading_days_per_year)
+            * returns_arr.mean() / tdd, 2
         )
 
     # ── Max Drawdown ──────────────────────────────────────────────────

@@ -21,6 +21,10 @@ anthropic>=0.40.0      # optional, for Claude LLM views
 # transformers>=4.30.0  # HuggingFace model loading
 # torch>=2.0.0          # PyTorch inference backend
 
+# ── Multi-Market Support ─────────────────────────
+ib_async>=1.0.0        # Interactive Brokers API (EU/Asia markets)
+pandas_market_calendars>=4.3  # exchange holiday/session calendars
+
 # ── Journal & PDF Reports ────────────────────────
 # Core journal: no extra deps (uses stdlib json/dataclasses)
 # PDF reports (optional — only needed with --report-pdf):

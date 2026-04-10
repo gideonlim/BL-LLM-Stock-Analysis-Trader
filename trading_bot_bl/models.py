@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 
 
 @dataclass
@@ -214,3 +215,53 @@ class EquitySnapshot:
     drawdown_pct: float = 0.0
     high_water_mark: float = 0.0
     exposure_pct: float = 0.0
+
+
+# ── Normalized Broker Models ─────────────────────────────────────
+#
+# These models decouple monitor/journal from broker-specific types.
+# Each broker translates its native objects into these via
+# ``_to_broker_order()``.
+
+
+class OrderStatus(str, Enum):
+    """Normalized order statuses across all brokers."""
+
+    SUBMITTED = "submitted"
+    FILLED = "filled"
+    PARTIALLY_FILLED = "partially_filled"
+    CANCELED = "canceled"
+    REJECTED = "rejected"
+    PENDING_CANCEL = "pending_cancel"
+    UNKNOWN = "unknown"  # catch-all for unrecognized broker statuses
+
+
+class OrderSideNorm(str, Enum):
+    """Normalized order side."""
+
+    BUY = "buy"
+    SELL = "sell"
+
+
+@dataclass
+class BrokerOrder:
+    """Broker-agnostic representation of an order.
+
+    Each broker implementation translates its native order object
+    into this dataclass.  Monitor and journal code only interact
+    with ``BrokerOrder`` — never with raw Alpaca/IBKR objects.
+    """
+
+    id: str
+    symbol: str
+    status: OrderStatus
+    side: OrderSideNorm
+    filled_qty: float = 0.0
+    filled_avg_price: float = 0.0
+    filled_at: str = ""
+    stop_price: float | None = None
+    limit_price: float | None = None
+    order_type: str = ""
+    order_class: str = ""
+    commission: float = 0.0
+    commission_currency: str = ""

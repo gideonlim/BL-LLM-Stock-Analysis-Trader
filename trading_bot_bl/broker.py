@@ -5,8 +5,15 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
+from trading_bot_bl.broker_base import BrokerInterface
 from trading_bot_bl.config import AlpacaConfig
-from trading_bot_bl.models import OrderResult, PortfolioSnapshot
+from trading_bot_bl.models import (
+    BrokerOrder,
+    OrderResult,
+    OrderSideNorm,
+    OrderStatus,
+    PortfolioSnapshot,
+)
 
 log = logging.getLogger(__name__)
 
@@ -14,8 +21,10 @@ try:
     from alpaca.trading.client import TradingClient
     from alpaca.trading.requests import (
         GetAssetsRequest,
+        GetOrdersRequest,
         LimitOrderRequest,
         MarketOrderRequest,
+        StopOrderRequest,
         TakeProfitRequest,
         StopLossRequest,
     )
@@ -23,6 +32,7 @@ try:
         AssetClass,
         OrderClass,
         OrderSide,
+        QueryOrderStatus,
         TimeInForce,
     )
     from alpaca.data.historical import StockHistoricalDataClient
@@ -34,7 +44,81 @@ except ImportError as exc:
     ) from exc
 
 
-class AlpacaBroker:
+# ── Alpaca status → normalized OrderStatus mapping ───────────────
+
+_ALPACA_STATUS_MAP: dict[str, OrderStatus] = {
+    "new": OrderStatus.SUBMITTED,
+    "accepted": OrderStatus.SUBMITTED,
+    "pending_new": OrderStatus.SUBMITTED,
+    "partially_filled": OrderStatus.PARTIALLY_FILLED,
+    "filled": OrderStatus.FILLED,
+    "canceled": OrderStatus.CANCELED,
+    "cancelled": OrderStatus.CANCELED,
+    "expired": OrderStatus.CANCELED,
+    "rejected": OrderStatus.REJECTED,
+    "pending_cancel": OrderStatus.PENDING_CANCEL,
+    "pending_replace": OrderStatus.SUBMITTED,
+}
+
+
+def _to_broker_order(order) -> BrokerOrder:
+    """Translate an Alpaca order object to a BrokerOrder."""
+    raw_status = str(
+        getattr(
+            getattr(order, "status", ""), "value",
+            getattr(order, "status", ""),
+        ) or ""
+    ).lower()
+    raw_side = str(
+        getattr(
+            getattr(order, "side", ""), "value",
+            getattr(order, "side", ""),
+        ) or ""
+    ).lower()
+
+    return BrokerOrder(
+        id=str(order.id),
+        symbol=str(getattr(order, "symbol", "")),
+        status=_ALPACA_STATUS_MAP.get(
+            raw_status, OrderStatus.UNKNOWN
+        ),
+        side=(
+            OrderSideNorm.BUY if raw_side == "buy"
+            else OrderSideNorm.SELL
+        ),
+        filled_qty=float(
+            getattr(order, "filled_qty", 0) or 0
+        ),
+        filled_avg_price=float(
+            getattr(order, "filled_avg_price", 0) or 0
+        ),
+        filled_at=str(getattr(order, "filled_at", "") or ""),
+        stop_price=(
+            float(order.stop_price)
+            if getattr(order, "stop_price", None)
+            else None
+        ),
+        limit_price=(
+            float(order.limit_price)
+            if getattr(order, "limit_price", None)
+            else None
+        ),
+        order_type=str(
+            getattr(
+                getattr(order, "order_type", ""), "value",
+                getattr(order, "order_type", ""),
+            ) or ""
+        ),
+        order_class=str(
+            getattr(
+                getattr(order, "order_class", ""), "value",
+                getattr(order, "order_class", ""),
+            ) or ""
+        ),
+    )
+
+
+class AlpacaBroker(BrokerInterface):
     """Wrapper around the Alpaca Trading API."""
 
     def __init__(self, config: AlpacaConfig) -> None:
@@ -704,3 +788,239 @@ class AlpacaBroker:
                     error=str(e),
                 )
             ]
+
+    # ── BrokerInterface methods (Phase 1b) ───────────────────────────
+
+    def get_order_by_id(
+        self, order_id: str
+    ) -> BrokerOrder | None:
+        """Fetch a single order by ID, normalized to BrokerOrder."""
+        try:
+            order = self._client.get_order_by_id(order_id)
+            return _to_broker_order(order)
+        except Exception as exc:
+            log.debug(
+                f"get_order_by_id({order_id}) failed: {exc}"
+            )
+            return None
+
+    def get_filled_orders_for_ticker(
+        self,
+        ticker: str,
+        since_date: str | None = None,
+    ) -> list[BrokerOrder]:
+        """Return filled SELL orders for *ticker*.
+
+        When *since_date* is provided (ISO date string), only
+        orders filled on or after that date are returned.  Results
+        are sorted newest-first so the caller gets the most recent
+        exit first, preventing stale exit attribution.
+        """
+        try:
+            kwargs: dict = {
+                "status": QueryOrderStatus.CLOSED,
+                "symbols": [ticker],
+                "side": OrderSide.SELL,
+                "limit": 20,
+            }
+            if since_date:
+                from datetime import datetime as _dt
+                kwargs["after"] = _dt.fromisoformat(
+                    since_date
+                )
+            request = GetOrdersRequest(**kwargs)
+            orders = self._client.get_orders(filter=request)
+
+            # Translate and filter to actually-filled orders
+            result = []
+            for o in orders:
+                bo = _to_broker_order(o)
+                if (
+                    bo.status == OrderStatus.FILLED
+                    and bo.filled_avg_price > 0
+                ):
+                    result.append(bo)
+
+            # Sort newest-first by filled_at
+            result.sort(
+                key=lambda x: x.filled_at or "", reverse=True
+            )
+            return result
+
+        except Exception as exc:
+            log.debug(
+                f"get_filled_orders_for_ticker({ticker}) "
+                f"failed: {exc}"
+            )
+            return []
+
+    def submit_oco_reattach(
+        self,
+        ticker: str,
+        qty: float,
+        stop_loss: float,
+        take_profit: float,
+        dry_run: bool = False,
+    ) -> OrderResult:
+        """Reattach an OCO bracket (SL + TP) to an orphaned position.
+
+        Cancels any existing orders for this ticker first, waits for
+        Alpaca to release held shares, then submits a linked OCO.
+        """
+        if dry_run:
+            return OrderResult(
+                ticker=ticker,
+                status="dry_run",
+                side="sell",
+            )
+
+        try:
+            # Cancel existing orders to free held shares
+            existing = self.get_open_orders()
+            cancelled_ids: list[str] = []
+            for order in existing:
+                if order.symbol == ticker:
+                    oid = str(order.id)
+                    self.cancel_order(oid)
+                    cancelled_ids.append(oid)
+                    log.info(
+                        f"  Cancelled existing order {oid} "
+                        f"for {ticker} before reattach"
+                    )
+
+            if cancelled_ids:
+                self._wait_for_cancels(ticker, cancelled_ids)
+
+            sl_price = round(stop_loss, 2)
+            tp_price = round(take_profit, 2)
+
+            oco_request = LimitOrderRequest(
+                symbol=ticker,
+                qty=abs(int(qty)),
+                side=OrderSide.SELL,
+                time_in_force=TimeInForce.GTC,
+                limit_price=tp_price,
+                order_class=OrderClass.OCO,
+                take_profit=TakeProfitRequest(
+                    limit_price=tp_price,
+                ),
+                stop_loss=StopLossRequest(
+                    stop_price=sl_price,
+                ),
+            )
+            order = self._client.submit_order(oco_request)
+
+            log.info(
+                f"  OCO order placed for {ticker}: "
+                f"SL=${sl_price}, TP=${tp_price}, "
+                f"qty={abs(int(qty))}"
+            )
+
+            return OrderResult(
+                ticker=ticker,
+                order_id=str(order.id),
+                status="submitted",
+                side="sell",
+                stop_loss_price=sl_price,
+                take_profit_price=tp_price,
+            )
+
+        except Exception as e:
+            log.error(
+                f"Failed to reattach OCO for {ticker}: {e}"
+            )
+            return OrderResult(
+                ticker=ticker,
+                status="rejected",
+                side="sell",
+                error=str(e),
+            )
+
+    def update_stop_loss(
+        self,
+        ticker: str,
+        new_stop_loss: float,
+        qty: float,
+        dry_run: bool = False,
+        old_sl_order_id: str = "",
+        oco_parent_id: str = "",
+        tp_price: float = 0.0,
+    ) -> OrderResult:
+        """Replace the stop-loss on an existing bracket.
+
+        Handles two bracket structures:
+        - Standalone SL: cancel old stop, submit new stop.
+        - OCO bracket: cancel OCO parent (frees both legs), resubmit
+          fresh OCO with original TP and new SL.
+        """
+        if dry_run:
+            return OrderResult(
+                ticker=ticker,
+                status="dry_run",
+                side="sell",
+            )
+
+        try:
+            if oco_parent_id:
+                # Cancel OCO parent → frees held shares for both legs
+                self.cancel_order(oco_parent_id)
+                log.info(
+                    f"  OCO parent {oco_parent_id} cancelled "
+                    f"for {ticker} SL replacement"
+                )
+                self._wait_for_cancels(
+                    ticker, [oco_parent_id]
+                )
+
+                oco_request = LimitOrderRequest(
+                    symbol=ticker,
+                    qty=abs(int(qty)),
+                    side=OrderSide.SELL,
+                    time_in_force=TimeInForce.GTC,
+                    limit_price=round(tp_price, 2),
+                    order_class=OrderClass.OCO,
+                    take_profit=TakeProfitRequest(
+                        limit_price=round(tp_price, 2),
+                    ),
+                    stop_loss=StopLossRequest(
+                        stop_price=round(new_stop_loss, 2),
+                    ),
+                )
+                order = self._client.submit_order(oco_request)
+                log.info(
+                    f"  New OCO submitted for {ticker}: "
+                    f"SL=${new_stop_loss:.2f}, "
+                    f"TP=${tp_price:.2f}"
+                )
+            else:
+                # Standalone SL path
+                if old_sl_order_id:
+                    self.cancel_order(old_sl_order_id)
+
+                request = StopOrderRequest(
+                    symbol=ticker,
+                    qty=abs(int(qty)),
+                    side=OrderSide.SELL,
+                    time_in_force=TimeInForce.GTC,
+                    stop_price=round(new_stop_loss, 2),
+                )
+                order = self._client.submit_order(request)
+
+            return OrderResult(
+                ticker=ticker,
+                order_id=str(order.id),
+                status="submitted",
+                side="sell",
+                stop_loss_price=new_stop_loss,
+            )
+
+        except Exception as e:
+            log.error(
+                f"Failed to replace SL for {ticker}: {e}"
+            )
+            return OrderResult(
+                ticker=ticker,
+                status="rejected",
+                side="sell",
+                error=str(e),
+            )

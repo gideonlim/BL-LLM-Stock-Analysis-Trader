@@ -177,6 +177,7 @@ def _partition_matrix(
 def _score_partition_set(
     partitions: List[pd.DataFrame],
     indices: Tuple[int, ...],
+    trading_days_per_year: int = 252,
 ) -> Dict[str, float]:
     """
     Score each strategy on a subset of partitions.
@@ -187,6 +188,7 @@ def _score_partition_set(
     # Concatenate the selected partitions
     combined = pd.concat([partitions[i] for i in indices])
 
+    sqrt_td = np.sqrt(trading_days_per_year)
     scores = {}
     for col in combined.columns:
         returns = combined[col].values
@@ -194,7 +196,7 @@ def _score_partition_set(
             scores[col] = 0.0
         else:
             scores[col] = float(
-                np.sqrt(252) * returns.mean() / returns.std()
+                sqrt_td * returns.mean() / returns.std()
             )
     return scores
 
@@ -217,6 +219,7 @@ def run_cscv(
     n_partitions: int = 0,
     strategies: Optional[List[Strategy]] = None,
     max_combinations: int = 500,
+    trading_days_per_year: int = 252,
 ) -> CSCVResult:
     """
     Run full CSCV / PBO analysis on a ticker's data.
@@ -317,8 +320,12 @@ def run_cscv(
         )
 
         # Score strategies on IS and OOS
-        is_scores = _score_partition_set(partitions, combo)
-        oos_scores = _score_partition_set(partitions, oos_indices)
+        is_scores = _score_partition_set(
+            partitions, combo, trading_days_per_year
+        )
+        oos_scores = _score_partition_set(
+            partitions, oos_indices, trading_days_per_year
+        )
 
         # Rank strategies (1 = best)
         is_ranked = sorted(

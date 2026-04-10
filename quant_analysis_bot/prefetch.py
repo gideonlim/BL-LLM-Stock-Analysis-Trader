@@ -34,14 +34,18 @@ def _et_now() -> datetime:
     return datetime.now(ET)
 
 
-def is_market_open() -> bool:
-    """Check if the US equity market is currently in regular session.
+def is_market_open(market=None) -> bool:
+    """Check if the market is currently in regular session.
 
-    Returns ``True`` if it is a weekday and the current ET time is
-    between 9:30 AM and 4:00 PM (exclusive of close).  Does not
-    account for market holidays — worst case is a false positive that
-    causes a re-fetch, which is acceptable.
+    When *market* is provided (a ``MarketConfig``), uses
+    ``pandas_market_calendars`` for authoritative session checks
+    including holidays and early closes.  When None (backward compat),
+    falls back to the original US weekday + time-of-day check.
     """
+    if market is not None:
+        from shared.trading_calendar import is_session_open
+        return is_session_open(market)
+    # Legacy US fallback
     now = _et_now()
     if now.weekday() >= 5:  # Saturday=5, Sunday=6
         return False

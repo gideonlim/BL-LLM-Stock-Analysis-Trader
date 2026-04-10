@@ -27,7 +27,7 @@ import pandas as pd
 
 log = logging.getLogger(__name__)
 
-# ── Constants ────────────────────────────────────────────────────
+# ── Constants (defaults for US; overridden by MarketConfig) ──────
 LOOKBACK_DAYS = 60
 ANNUALIZATION_FACTOR = np.sqrt(252)
 RISK_FREE_RATE = 0.05 / 252
@@ -237,6 +237,8 @@ def compute_portfolio_sharpe(
     weights: np.ndarray,
     mean_returns: np.ndarray,
     cov_matrix: np.ndarray,
+    ann_factor: float = ANNUALIZATION_FACTOR,
+    risk_free_rate: float = RISK_FREE_RATE,
 ) -> float:
     """Compute annualized Sharpe ratio for a portfolio."""
     port_return = np.dot(weights, mean_returns)
@@ -245,14 +247,16 @@ def compute_portfolio_sharpe(
     )
     if port_vol <= 0:
         return 0.0
-    daily_sharpe = (port_return - RISK_FREE_RATE) / port_vol
-    return float(daily_sharpe * ANNUALIZATION_FACTOR)
+    daily_sharpe = (port_return - risk_free_rate) / port_vol
+    return float(daily_sharpe * ann_factor)
 
 
 def rank_intents_by_marginal_sharpe(
     intents: list,
     held_positions: dict,
     portfolio_equity: float,
+    ann_factor: float = ANNUALIZATION_FACTOR,
+    risk_free_rate: float = RISK_FREE_RATE,
 ) -> list[RankedIntent]:
     """
     Rank BUY intents by marginal Sharpe contribution (fallback).
@@ -307,7 +311,9 @@ def rank_intents_by_marginal_sharpe(
 
     current_sharpe = (
         compute_portfolio_sharpe(
-            current_weights, mean_returns, cov_matrix
+            current_weights, mean_returns, cov_matrix,
+            ann_factor=ann_factor,
+            risk_free_rate=risk_free_rate,
         )
         if current_weights.sum() > 0 else 0.0
     )
@@ -334,8 +340,8 @@ def rank_intents_by_marginal_sharpe(
         std = returns[ticker].std()
         ind_sharpe = (
             float(
-                (returns[ticker].mean() - RISK_FREE_RATE)
-                / std * ANNUALIZATION_FACTOR
+                (returns[ticker].mean() - risk_free_rate)
+                / std * ann_factor
             )
             if std > 0 else 0.0
         )
@@ -363,7 +369,9 @@ def rank_intents_by_marginal_sharpe(
             new_weights = new_weights / total
 
         new_sharpe = compute_portfolio_sharpe(
-            new_weights, mean_returns, cov_matrix
+            new_weights, mean_returns, cov_matrix,
+            ann_factor=ann_factor,
+            risk_free_rate=risk_free_rate,
         )
         marginal = new_sharpe - current_sharpe
         div_score = max(0.0, min(1.0, (1.0 - corr) / 2.0))

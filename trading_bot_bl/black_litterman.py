@@ -24,7 +24,7 @@ import pandas as pd
 
 log = logging.getLogger(__name__)
 
-# ── Constants ────────────────────────────────────────────────────
+# ── Constants (defaults for US; overridden by MarketConfig) ──────
 ANNUALIZATION_FACTOR = np.sqrt(252)
 DAILY_RISK_FREE = 0.05 / 252  # ~5% annual, daily
 

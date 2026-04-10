@@ -734,27 +734,36 @@ def _resolve_fill(
     broker: object,
     order_id: str,
 ) -> tuple[float, str, float]:
-    """Get actual fill price, time, and qty from Alpaca.
+    """Get actual fill price, time, and qty from the broker.
+
+    Uses ``broker.get_order_by_id()`` — no direct ``_client``
+    access.
 
     Returns:
         (fill_price, fill_datetime_str, filled_qty)
         (0.0, "", 0.0) if still pending.
         (-1.0, "", 0.0) if order is dead (cancelled/expired).
     """
-    try:
-        order = broker._client.get_order_by_id(order_id)  # type: ignore[attr-defined]
-        raw_status = getattr(order, "status", "")
-        status = str(
-            getattr(raw_status, "value", raw_status) or ""
-        ).lower()
+    from trading_bot_bl.models import OrderStatus
 
-        if status == "filled" and order.filled_avg_price:
+    try:
+        broker_order = broker.get_order_by_id(order_id)  # type: ignore[attr-defined]
+        if broker_order is None:
+            return (0.0, "", 0.0)
+
+        if (
+            broker_order.status == OrderStatus.FILLED
+            and broker_order.filled_avg_price
+        ):
             return (
-                float(order.filled_avg_price),
-                str(order.filled_at),
-                float(order.filled_qty),
+                broker_order.filled_avg_price,
+                broker_order.filled_at,
+                broker_order.filled_qty,
             )
-        if status in ("cancelled", "expired", "rejected"):
+        if broker_order.status in (
+            OrderStatus.CANCELED,
+            OrderStatus.REJECTED,
+        ):
             return (-1.0, "", 0.0)
         return (0.0, "", 0.0)  # still pending
 
@@ -767,55 +776,39 @@ def _query_exit_details(
     broker: object,
     entry: JournalEntry,
 ) -> tuple[float, str, float]:
-    """Query Alpaca for exit details of a closed position.
+    """Query the broker for exit details of a closed position.
 
-    Looks for recently filled SELL orders for this ticker.
+    Uses ``broker.get_filled_orders_for_ticker()`` — no direct
+    ``_client`` access.
 
     Returns:
         (exit_fill_price, exit_reason, expected_exit_price)
     """
     try:
-        from alpaca.trading.requests import GetOrdersRequest
-        from alpaca.trading.enums import (
-            QueryOrderStatus,
-            OrderSide,
+        orders = broker.get_filled_orders_for_ticker(  # type: ignore[attr-defined]
+            entry.ticker,
+            since_date=entry.entry_date or None,
         )
-
-        request = GetOrdersRequest(
-            status=QueryOrderStatus.CLOSED,
-            symbols=[entry.ticker],
-            side=OrderSide.SELL,
-            limit=10,
-        )
-        orders = broker._client.get_orders(filter=request)  # type: ignore[attr-defined]
 
         for order in orders:
-            filled_at = getattr(order, "filled_at", None)
-            if not filled_at:
+            if not order.filled_at:
                 continue
-            fill_price = float(order.filled_avg_price or 0)
+            fill_price = order.filled_avg_price
             if fill_price <= 0:
                 continue
 
-            # Determine exit reason from order type
-            raw_type = getattr(order, "order_type", "")
-            order_type = str(
-                getattr(raw_type, "value", raw_type) or ""
-            ).lower()
-            stop_px = getattr(order, "stop_price", None)
-            limit_px = getattr(order, "limit_price", None)
-
-            if stop_px:
+            # Determine exit reason from order fields
+            if order.stop_price:
                 return (
                     fill_price,
                     "stop_loss",
-                    float(stop_px),
+                    order.stop_price,
                 )
-            elif limit_px:
+            elif order.limit_price:
                 return (
                     fill_price,
                     "take_profit",
-                    float(limit_px),
+                    order.limit_price,
                 )
             else:
                 return (fill_price, "market_close", 0.0)

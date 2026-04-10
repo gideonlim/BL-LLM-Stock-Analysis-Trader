@@ -272,7 +272,10 @@ def batch_fetch_data(
     return results
 
 
-def enrich_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def enrich_dataframe(
+    df: pd.DataFrame,
+    trading_days_per_year: int = 252,
+) -> pd.DataFrame:
     """Add all technical indicators to the dataframe."""
     c, h, l, v = df["Close"], df["High"], df["Low"], df["Volume"]
 
@@ -307,7 +310,10 @@ def enrich_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     # 52-week high (for nearness-to-high feature)
-    df["High_52w"] = h.rolling(window=252, min_periods=126).max()
+    df["High_52w"] = h.rolling(
+        window=trading_days_per_year,
+        min_periods=trading_days_per_year // 2,
+    ).max()
     df["Nearness_52w_High"] = c / df["High_52w"].replace(0, 1e-10)
 
     # Statistical
@@ -322,7 +328,8 @@ def enrich_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     # Price features
     df["Daily_Return"] = c.pct_change()
     df["Volatility_20"] = (
-        df["Daily_Return"].rolling(20).std() * np.sqrt(252)
+        df["Daily_Return"].rolling(20).std()
+        * np.sqrt(trading_days_per_year)
     )
 
     return df
