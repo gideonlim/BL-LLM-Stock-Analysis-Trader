@@ -80,4 +80,5 @@ jobs:
           git add signals/lse/ execution_logs/lse/ -f
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "chore: LSE signals + paper sim $(date +%Y-%m-%d)"
-          git push
+          git pull --rebase origin feature/multi-market || true
+          git push origin HEAD:feature/multi-market
