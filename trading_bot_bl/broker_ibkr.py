@@ -210,28 +210,28 @@ class IBKRBroker(BrokerInterface):
         alloc = self._config.max_equity_allocation
         effective_equity = equity * alloc
 
-        # Positions
+        # Positions — only include those belonging to this market
         positions = {}
         market_value = 0.0
         for pos in self.ib.positions():
-            if pos.contract.symbol:
-                sym = pos.contract.symbol
-                # Reconstruct suffixed ticker
-                suffix = self._exchange_to_suffix(
-                    pos.contract.exchange
-                    or pos.contract.primaryExchange
-                )
-                full_ticker = sym + suffix
-                mv = float(pos.marketValue or 0)
-                positions[full_ticker] = {
-                    "qty": float(pos.position),
-                    "market_value": abs(mv),
-                    "avg_entry": float(pos.avgCost or 0),
-                    "unrealized_pnl": float(
-                        pos.unrealizedPNL or 0
-                    ),
-                }
-                market_value += abs(mv)
+            if not pos.contract.symbol:
+                continue
+            if not self._owns_contract(pos.contract):
+                continue
+            sym = pos.contract.symbol
+            exch = self._resolve_exchange(pos.contract)
+            suffix = self._exchange_to_suffix(exch)
+            full_ticker = sym + suffix
+            mv = float(pos.marketValue or 0)
+            positions[full_ticker] = {
+                "qty": float(pos.position),
+                "market_value": abs(mv),
+                "avg_entry": float(pos.avgCost or 0),
+                "unrealized_pnl": float(
+                    pos.unrealizedPNL or 0
+                ),
+            }
+            market_value += abs(mv)
 
         return PortfolioSnapshot(
             equity=effective_equity,
@@ -242,6 +242,52 @@ class IBKRBroker(BrokerInterface):
             day_pnl_pct=0.0,
             positions=positions,
         )
+
+    def _resolve_exchange(self, contract) -> str:
+        """Return the real exchange for a contract.
+
+        IBKR uses ``SMART`` as a routing exchange — the actual exchange
+        is in ``primaryExchange``.  Prefer ``primaryExchange`` when
+        ``exchange`` is ``SMART`` or empty.
+        """
+        exch = contract.exchange or ""
+        if exch == "SMART" or not exch:
+            return contract.primaryExchange or exch
+        return exch
+
+    def _owns_contract(self, contract) -> bool:
+        """Return True if *contract* belongs to this market instance.
+
+        Classification (fail-closed — unknown contracts are excluded):
+        1. Real exchange in ``ibkr_exchanges`` → ours.
+        2. SMART-routed with ``primaryExchange`` in
+           ``ibkr_primary_exchanges`` → ours.
+        3. Currency matches ``ibkr_currency`` → ours (last-resort,
+           logged for review).
+        4. Otherwise → not ours.
+        """
+        exch = contract.exchange or ""
+        primary = contract.primaryExchange or ""
+        ccy = contract.currency or ""
+
+        if exch in self._market.ibkr_exchanges:
+            return True
+        if exch == "SMART" and primary in self._market.ibkr_primary_exchanges:
+            return True
+        if ccy and ccy == self._market.ibkr_currency:
+            log.warning(
+                f"Position {contract.symbol} classified by currency "
+                f"({ccy}) only — exchange={exch}, "
+                f"primaryExchange={primary}"
+            )
+            return True
+        log.warning(
+            f"Excluding position {contract.symbol}: "
+            f"exchange={exch}, primaryExchange={primary}, "
+            f"currency={ccy} — does not match market "
+            f"{self._market.market_id}"
+        )
+        return False
 
     def _exchange_to_suffix(self, exchange: str) -> str:
         """Convert IBKR exchange to yfinance ticker suffix."""
@@ -280,12 +326,8 @@ class IBKRBroker(BrokerInterface):
         result = set()
         for trade in self.ib.openTrades():
             sym = getattr(trade.contract, "symbol", "")
-            suffix = self._exchange_to_suffix(
-                getattr(trade.contract, "exchange", "")
-                or getattr(
-                    trade.contract, "primaryExchange", ""
-                )
-            )
+            exch = self._resolve_exchange(trade.contract)
+            suffix = self._exchange_to_suffix(exch)
             if sym:
                 result.add(sym + suffix)
         return result
@@ -545,9 +587,8 @@ class IBKRBroker(BrokerInterface):
         cancelled = []
         for trade in self.ib.openTrades():
             sym = getattr(trade.contract, "symbol", "")
-            suffix = self._exchange_to_suffix(
-                getattr(trade.contract, "exchange", "")
-            )
+            exch = self._resolve_exchange(trade.contract)
+            suffix = self._exchange_to_suffix(exch)
             full = sym + suffix
             if full not in position_tickers:
                 self.ib.cancelOrder(trade.order)
@@ -609,12 +650,8 @@ class IBKRBroker(BrokerInterface):
         results = []
         for pos in self.ib.positions():
             sym = getattr(pos.contract, "symbol", "")
-            suffix = self._exchange_to_suffix(
-                getattr(pos.contract, "exchange", "")
-                or getattr(
-                    pos.contract, "primaryExchange", ""
-                )
-            )
+            exch = self._resolve_exchange(pos.contract)
+            suffix = self._exchange_to_suffix(exch)
             if pos.position != 0:
                 results.append(
                     self.close_position(sym + suffix)

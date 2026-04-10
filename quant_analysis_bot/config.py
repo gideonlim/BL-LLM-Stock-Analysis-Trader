@@ -119,5 +119,12 @@ def load_config(config_path: Optional[str] = None) -> dict:
                 "market_id", "US"
             )
         config.setdefault("market_id", "US")
+        # Scope output directories by market so US and non-US signals
+        # don't overwrite each other.
+        mid = config["market_id"]
+        if mid != "US":
+            config["output_dir"] = os.path.join(
+                "signals", mid.lower()
+            )
         log.info(f"Loaded config from {config_path}")
     return config

@@ -526,14 +526,22 @@ def main() -> None:
 
     if args.report_pdf is not None:
         from trading_bot_bl.journal_report import generate_pdf_report
+        market = config.get_market()
         date_str = datetime.now().strftime("%Y-%m-%d")
         if args.report_pdf:
             pdf_path = Path(args.report_pdf)
         else:
-            reports_dir = execution_log_dir.parent / "reports"/ "performance"
+            reports_dir = (
+                config.path_for("reports") / "performance"
+            )
             reports_dir.mkdir(parents=True, exist_ok=True)
             pdf_path = reports_dir / f"report_{date_str}.pdf"
-        generate_pdf_report(execution_log_dir, pdf_path)
+        generate_pdf_report(
+            execution_log_dir,
+            pdf_path,
+            benchmark_ticker=market.regime_benchmark_ticker,
+            trading_days_per_year=market.trading_days_per_year,
+        )
         log.info(f"  PDF report: {pdf_path}")
         return
 
@@ -543,7 +551,7 @@ def main() -> None:
         if args.report_csv:
             csv_path = Path(args.report_csv)
         else:
-            reports_dir = execution_log_dir.parent / "reports"
+            reports_dir = config.path_for("reports")
             reports_dir.mkdir(parents=True, exist_ok=True)
             csv_path = reports_dir / f"trades_{date_str}.csv"
         generate_csv_export(execution_log_dir, csv_path)

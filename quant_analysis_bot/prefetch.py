@@ -245,7 +245,13 @@ def run_prefetch(config: dict, tickers: list[str]) -> None:
     from quant_analysis_bot.data import batch_fetch_data
     from quant_analysis_bot.regime import prefetch_regime_data
 
-    market_closed = not is_market_open()
+    # Use market-aware session check when market_id is available
+    market_id = config.get("market_id", "US")
+    _market = None
+    if market_id != "US":
+        from trading_bot_bl.market_config import get_market_config
+        _market = get_market_config(market_id)
+    market_closed = not is_market_open(_market)
     cache_dir = config.get("data_cache_dir", "cache")
     today_et = _et_now().date()
     date_str = today_et.strftime("%Y%m%d")

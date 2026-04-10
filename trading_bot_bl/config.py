@@ -380,11 +380,18 @@ class TradingConfig:
 
         ``kind`` is one of: "signals", "execution_logs", "journal",
         "reports", "equity_curve".
+
+        Journal lives under execution_logs (US: ``execution_logs/journal``,
+        LSE: ``execution_logs/lse/journal``).
         """
+        if kind == "journal":
+            base = self.path_for("execution_logs") / "journal"
+            base.mkdir(parents=True, exist_ok=True)
+            return base
+
         _base_map = {
             "signals": self.signals_dir,
             "execution_logs": Path("execution_logs"),
-            "journal": Path("journal"),
             "reports": Path("reports"),
             "equity_curve": Path("execution_logs"),
         }

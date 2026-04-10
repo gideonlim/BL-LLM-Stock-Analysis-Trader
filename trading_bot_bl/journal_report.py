@@ -54,32 +54,33 @@ class BenchmarkStats:
     correlation: float = 0.0
 
 
-def _fetch_spy_prices(
+def _fetch_benchmark_prices(
+    ticker: str,
     start_date: datetime,
     end_date: datetime,
 ) -> Optional[list[tuple[datetime, float]]]:
-    """Fetch SPY daily close prices for the given date range.
+    """Fetch daily close prices for *ticker* over the given date range.
 
     Returns list of (date, price) sorted by date, or None on failure.
     """
     try:
         import yfinance as yf
     except ImportError:
-        log.warning("yfinance not installed — cannot fetch SPY benchmark")
+        log.warning("yfinance not installed — cannot fetch benchmark")
         return None
 
     try:
         # Pad start by a few days to ensure we get data on/before start_date
         padded_start = start_date - timedelta(days=5)
         data = yf.download(
-            "SPY",
+            ticker,
             start=padded_start.strftime("%Y-%m-%d"),
             end=(end_date + timedelta(days=1)).strftime("%Y-%m-%d"),
             progress=False,
             auto_adjust=True,
         )
         if data.empty:
-            log.warning("SPY download returned empty data")
+            log.warning(f"{ticker} download returned empty data")
             return None
 
         prices: list[tuple[datetime, float]] = []
@@ -90,65 +91,65 @@ def _fetch_spy_prices(
         prices.sort(key=lambda x: x[0])
         return prices
     except Exception as e:
-        log.warning(f"Could not fetch SPY benchmark: {e}")
+        log.warning(f"Could not fetch {ticker} benchmark: {e}")
         return None
 
 
 def _compute_benchmark_stats(
     bot_dates: list[datetime],
     bot_equity: list[float],
-    spy_prices: list[tuple[datetime, float]],
+    bench_prices: list[tuple[datetime, float]],
     bot_sharpe_override: Optional[float] = None,
     bot_sortino_override: Optional[float] = None,
     trading_days_per_year: int = 252,
 ) -> Optional[BenchmarkStats]:
-    """Compute side-by-side bot vs SPY statistics.
+    """Compute side-by-side bot vs benchmark statistics.
 
-    Aligns bot equity to SPY by calendar date so both series
+    Aligns bot equity to benchmark by calendar date so both series
     cover the same time window.  Bot snapshots on non-trading
-    days are carried forward to the next SPY trading day.
+    days are carried forward to the next benchmark trading day.
     """
-    if len(bot_dates) < 3 or len(spy_prices) < 3:
+    if len(bot_dates) < 3 or len(bench_prices) < 3:
         return None
 
     # Index bot equity by date (last snapshot per day wins).
     # Filter to weekdays only — weekend snapshots contain stale or
-    # after-hours equity values that don't correspond to any SPY
+    # after-hours equity values that don't correspond to any benchmark
     # trading day, introducing noise into the correlation.
     bot_by_date: dict[str, float] = {}
     for dt, eq in zip(bot_dates, bot_equity):
         if dt.weekday() < 5:  # Mon-Fri only
             bot_by_date[dt.strftime("%Y-%m-%d")] = eq
 
-    # Index SPY prices by date
-    spy_by_date: dict[str, float] = {}
-    for dt, price in spy_prices:
-        spy_by_date[dt.strftime("%Y-%m-%d")] = price
+    # Index benchmark prices by date
+    bench_by_date: dict[str, float] = {}
+    for dt, price in bench_prices:
+        bench_by_date[dt.strftime("%Y-%m-%d")] = price
 
-    # Align bot equity to SPY trading days.  Prefer exact date
+    # Align bot equity to benchmark trading days.  Prefer exact date
     # matches; carry forward only when the bot missed a weekday
     # (e.g. didn't run on a trading day).
-    spy_dates_sorted = sorted(spy_by_date.keys())
+    bench_dates_sorted = sorted(bench_by_date.keys())
     bot_dates_sorted = sorted(bot_by_date.keys())
 
     aligned_bot: list[float] = []
-    aligned_spy: list[float] = []
+    aligned_bench: list[float] = []
     last_bot_eq: Optional[float] = None
 
-    all_dates = sorted(set(bot_dates_sorted + spy_dates_sorted))
+    all_dates = sorted(set(bot_dates_sorted + bench_dates_sorted))
     for d in all_dates:
         if d in bot_by_date:
             last_bot_eq = bot_by_date[d]
-        if d in spy_by_date and last_bot_eq is not None:
+        if d in bench_by_date and last_bot_eq is not None:
             aligned_bot.append(last_bot_eq)
-            aligned_spy.append(spy_by_date[d])
+            aligned_bench.append(bench_by_date[d])
 
     if len(aligned_bot) < 3:
         return None
 
     # Compute daily returns from the aligned equity/price series
     bot_returns: list[float] = []
-    spy_returns: list[float] = []
+    bench_returns: list[float] = []
     for i in range(1, len(aligned_bot)):
         if aligned_bot[i - 1] != 0:
             bot_returns.append(
@@ -156,18 +157,18 @@ def _compute_benchmark_stats(
             )
         else:
             bot_returns.append(0.0)
-        if aligned_spy[i - 1] != 0:
-            spy_returns.append(
-                aligned_spy[i] / aligned_spy[i - 1] - 1
+        if aligned_bench[i - 1] != 0:
+            bench_returns.append(
+                aligned_bench[i] / aligned_bench[i - 1] - 1
             )
         else:
-            spy_returns.append(0.0)
+            bench_returns.append(0.0)
 
     if len(bot_returns) < 2:
         return None
 
     bot_r = np.array(bot_returns)
-    spy_r = np.array(spy_returns)
+    bench_r = np.array(bench_returns)
 
     trading_days = trading_days_per_year
 
@@ -207,22 +208,22 @@ def _compute_benchmark_stats(
         return float(std * np.sqrt(trading_days))
 
     # Beta & alpha (CAPM)
-    cov = np.cov(bot_r, spy_r)
-    spy_var = cov[1, 1]
-    beta = float(cov[0, 1] / spy_var) if spy_var != 0 else 0.0
+    cov = np.cov(bot_r, bench_r)
+    bench_var = cov[1, 1]
+    beta = float(cov[0, 1] / bench_var) if bench_var != 0 else 0.0
     bot_ann = _annualized_return(bot_r)
-    spy_ann = _annualized_return(spy_r)
-    alpha = bot_ann - beta * spy_ann  # simplified (risk-free ≈ 0)
+    bench_ann = _annualized_return(bench_r)
+    alpha = bot_ann - beta * bench_ann  # simplified (risk-free ≈ 0)
 
     # Information ratio
-    excess = bot_r - spy_r
+    excess = bot_r - bench_r
     ir = (
         float(excess.mean() / excess.std() * np.sqrt(trading_days))
         if excess.std() != 0
         else 0.0
     )
 
-    corr_matrix = np.corrcoef(bot_r, spy_r)
+    corr_matrix = np.corrcoef(bot_r, bench_r)
     corr = float(corr_matrix[0, 1]) if corr_matrix.shape == (2, 2) else 0.0
 
     return BenchmarkStats(
@@ -236,12 +237,12 @@ def _compute_benchmark_stats(
                      else _sortino(bot_r)),
         bot_max_drawdown=_max_dd(bot_r),
         bot_volatility=_volatility(bot_r),
-        bench_cumulative_return=_cumulative_return(spy_r),
-        bench_annualized_return=spy_ann,
-        bench_sharpe=_sharpe(spy_r),
-        bench_sortino=_sortino(spy_r),
-        bench_max_drawdown=_max_dd(spy_r),
-        bench_volatility=_volatility(spy_r),
+        bench_cumulative_return=_cumulative_return(bench_r),
+        bench_annualized_return=bench_ann,
+        bench_sharpe=_sharpe(bench_r),
+        bench_sortino=_sortino(bench_r),
+        bench_max_drawdown=_max_dd(bench_r),
+        bench_volatility=_volatility(bench_r),
         alpha=alpha,
         beta=beta,
         information_ratio=ir,
@@ -330,13 +331,14 @@ def _parse_snapshots(
 
 def _chart_equity_curve(
     snapshots: list[EquitySnapshot],
-    spy_prices: Optional[list[tuple[datetime, float]]] = None,
+    bench_prices: Optional[list[tuple[datetime, float]]] = None,
+    benchmark_name: str = "S&P 500 (SPY)",
 ) -> Optional[io.BytesIO]:
-    """Equity over time with drawdown shading and optional SPY overlay.
+    """Equity over time with drawdown shading and optional benchmark overlay.
 
-    When *spy_prices* is provided both series are normalized to 100.
+    When *bench_prices* is provided both series are normalized to 100.
     Data is aggregated to one point per calendar day (last snapshot)
-    and restricted to trading days where SPY data exists, so the
+    and restricted to trading days where benchmark data exists, so the
     chart stays clean on weekends / holidays.
     """
     parsed = _parse_snapshots(snapshots)
@@ -352,19 +354,19 @@ def _chart_equity_curve(
     for ts, snap in parsed:
         daily_bot[ts.date()] = snap  # last snapshot of day wins
 
-    # ── Build SPY lookup by date ─────────────────────────────
-    spy_by_date: dict[date_type, float] = {}
-    if spy_prices and len(spy_prices) >= 2:
-        for ts, price in spy_prices:
-            spy_by_date[ts.date()] = price
+    # ── Build benchmark lookup by date ────────────────────────
+    bench_by_date: dict[date_type, float] = {}
+    if bench_prices and len(bench_prices) >= 2:
+        for ts, price in bench_prices:
+            bench_by_date[ts.date()] = price
 
     # ── Align series to common dates ─────────────────────────
-    # When SPY data is available, restrict to trading days only
-    # (dates that exist in both bot AND spy data).
-    # When SPY is absent, use all bot dates.
-    if spy_by_date:
+    # When benchmark data is available, restrict to trading days only
+    # (dates that exist in both bot AND benchmark data).
+    # When benchmark is absent, use all bot dates.
+    if bench_by_date:
         common_dates = sorted(
-            d for d in daily_bot if d in spy_by_date
+            d for d in daily_bot if d in bench_by_date
         )
         # If the latest bot snapshot falls on a non-trading day
         # (weekend / holiday), carry its equity back to the last
@@ -373,7 +375,7 @@ def _chart_equity_curve(
         if all_bot_dates and common_dates:
             latest_bot = all_bot_dates[-1]
             last_common = common_dates[-1]
-            if latest_bot > last_common and last_common in spy_by_date:
+            if latest_bot > last_common and last_common in bench_by_date:
                 # Overwrite the last trading day's snapshot with the
                 # newer (more accurate) weekend/holiday reading.
                 daily_bot[last_common] = daily_bot[latest_bot]
@@ -392,20 +394,20 @@ def _chart_equity_curve(
     base_eq = plot_equity[0] if plot_equity[0] != 0 else 1.0
     norm_equity = [e / base_eq * 100 for e in plot_equity]
 
-    norm_spy: Optional[list[float]] = None
-    if spy_by_date and len(common_dates) >= 2:
-        first_spy = spy_by_date.get(common_dates[0])
-        if first_spy and first_spy != 0:
-            norm_spy = [
-                spy_by_date[d] / first_spy * 100
+    norm_bench: Optional[list[float]] = None
+    if bench_by_date and len(common_dates) >= 2:
+        first_bench = bench_by_date.get(common_dates[0])
+        if first_bench and first_bench != 0:
+            norm_bench = [
+                bench_by_date[d] / first_bench * 100
                 for d in common_dates
-                if d in spy_by_date
+                if d in bench_by_date
             ]
             # Guard: lengths must match after filtering
-            if len(norm_spy) != len(common_dates):
-                norm_spy = None
+            if len(norm_bench) != len(common_dates):
+                norm_bench = None
 
-    has_spy = norm_spy is not None
+    has_bench = norm_bench is not None
 
     fig, (ax1, ax2) = plt.subplots(
         2, 1, figsize=(10, 5.5), height_ratios=[3, 1],
@@ -418,17 +420,17 @@ def _chart_equity_curve(
         color="#2563eb", linewidth=1.5, marker="o", markersize=3,
         label="Bot",
     )
-    if has_spy:
+    if has_bench:
         ax1.plot(
-            plot_dates, norm_spy,
+            plot_dates, norm_bench,
             color="#f59e0b", linewidth=1.3, marker="s", markersize=3,
-            linestyle="--", label="S&P 500 (SPY)", alpha=0.85,
+            linestyle="--", label=benchmark_name, alpha=0.85,
         )
     ax1.axhline(y=100, color="#94a3b8", linewidth=0.6, linestyle=":")
-    ax1.set_ylabel("Growth of $100")
+    ax1.set_ylabel("Growth of 100")
     ax1.legend(loc="upper left", fontsize=8)
     ax1.grid(True, alpha=0.3)
-    title = "Performance vs S&P 500" if has_spy else "Equity Curve"
+    title = f"Performance vs {benchmark_name}" if has_bench else "Equity Curve"
     ax1.set_title(title, fontsize=12, fontweight="bold")
 
     # ── Bottom panel: drawdown ────────────────────────────────
@@ -1117,15 +1119,27 @@ def _chart_holding_vs_return(trades: list[JournalEntry]) -> Optional[io.BytesIO]
 # ── PDF assembly ─────────────────────────────────────────────────
 
 
+_BENCHMARK_NAMES: dict[str, str] = {
+    "SPY": "S&P 500 (SPY)",
+    "^FTSE": "FTSE 100",
+    "^N225": "Nikkei 225",
+}
+
+
 def generate_pdf_report(
     log_dir: Path,
     output_path: Path,
+    benchmark_ticker: str = "SPY",
+    trading_days_per_year: int = 252,
 ) -> Path:
     """Build a full PDF performance report with charts.
 
     Args:
         log_dir: Directory containing journal/ and equity_curve.jsonl.
         output_path: Where to write the PDF.
+        benchmark_ticker: Ticker for benchmark comparison
+            (default ``"SPY"``).
+        trading_days_per_year: For annualization (252 US/UK, 245 JP).
 
     Returns:
         The output path.
@@ -1153,15 +1167,20 @@ def generate_pdf_report(
     trades, snapshots, open_count, pending_count = _load_journal_data(log_dir)
     metrics = compute_journal_metrics(trades, snapshots) if trades else None
 
-    # ── Fetch SPY benchmark data ─────────────────────────────
+    # ── Fetch benchmark data ────────────────────────────────
+    benchmark_name = _BENCHMARK_NAMES.get(
+        benchmark_ticker, benchmark_ticker
+    )
     parsed_snaps = _parse_snapshots(snapshots)
-    spy_prices: Optional[list[tuple[datetime, float]]] = None
+    bench_prices: Optional[list[tuple[datetime, float]]] = None
     bench_stats: Optional[BenchmarkStats] = None
     if len(parsed_snaps) >= 2:
         start_dt = parsed_snaps[0][0]
         end_dt = parsed_snaps[-1][0]
-        spy_prices = _fetch_spy_prices(start_dt, end_dt)
-        if spy_prices:
+        bench_prices = _fetch_benchmark_prices(
+            benchmark_ticker, start_dt, end_dt,
+        )
+        if bench_prices:
             bot_dates = [ts for ts, _ in parsed_snaps]
             bot_equity = [s.equity for _, s in parsed_snaps]
             # Pass the already-computed bot Sharpe/Sortino from
@@ -1169,9 +1188,10 @@ def generate_pdf_report(
             # shows the same values as the Key Metrics table.
             _ra = metrics.risk_adjusted if metrics else None
             bench_stats = _compute_benchmark_stats(
-                bot_dates, bot_equity, spy_prices,
+                bot_dates, bot_equity, bench_prices,
                 bot_sharpe_override=_ra.sharpe_ratio if _ra else None,
                 bot_sortino_override=_ra.sortino_ratio if _ra else None,
+                trading_days_per_year=trading_days_per_year,
             )
 
     # ── Styles ──────────────────────────────────────────────────
@@ -1372,12 +1392,18 @@ def generate_pdf_report(
     # header + chart don't fit on the current page, both move
     # together to the next page.
 
-    # Equity curve (with SPY overlay when available)
-    eq_buf = _chart_equity_curve(snapshots, spy_prices=spy_prices)
+    # Equity curve (with benchmark overlay when available)
+    eq_buf = _chart_equity_curve(
+        snapshots,
+        bench_prices=bench_prices,
+        benchmark_name=benchmark_name,
+    )
     if eq_buf:
+        # Escape ampersands for reportlab XML
+        safe_name = benchmark_name.replace("&", "&amp;")
         eq_title = (
-            "Performance vs S&amp;P 500"
-            if spy_prices
+            f"Performance vs {safe_name}"
+            if bench_prices
             else "Equity Curve &amp; Drawdown"
         )
         story.append(KeepTogether([
@@ -1388,8 +1414,12 @@ def generate_pdf_report(
 
     # Benchmark comparison table
     if bench_stats:
+        safe_name = benchmark_name.replace("&", "&amp;")
         story.append(
-            Paragraph("Benchmark Comparison (SPY)", styles["SectionHead"])
+            Paragraph(
+                f"Benchmark Comparison ({safe_name})",
+                styles["SectionHead"],
+            )
         )
 
         def _color_val(val: float, fmt: str = "{:+.2f}") -> Paragraph:
@@ -1401,7 +1431,7 @@ def generate_pdf_report(
                 styles["CellValue"],
             )
 
-        bench_header = [_lbl(""), _lbl("Bot"), _lbl("S&amp;P 500")]
+        bench_header = [_lbl(""), _lbl("Bot"), _lbl(safe_name)]
         bs = bench_stats
         bench_data = [
             bench_header,

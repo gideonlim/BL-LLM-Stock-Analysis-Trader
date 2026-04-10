@@ -275,7 +275,7 @@ def execute(
     results: list[OrderResult] = []
 
     # ── 1. Load signals ───────────────────────────────────────────
-    signals = load_latest_signals(config.signals_dir)
+    signals = load_latest_signals(config.path_for("signals"))
     if not signals:
         log.warning("No signals to process. Exiting.")
         return results
@@ -522,7 +522,7 @@ def execute(
             sm = StrategyMonitor(history_dir)
             closed_trades = [
                 t for t in _journal.load_all_trades(
-                    history_dir / "journal"
+                    journal_dir
                 )
                 if t.status == "closed"
             ]
