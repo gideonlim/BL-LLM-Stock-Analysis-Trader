@@ -94,6 +94,23 @@ def monitor_positions(
     report = MonitorReport()
     positions = portfolio.positions
 
+    # ── Journal reconciliation ──────────────────────────────
+    # Compare journal "open" entries against live broker
+    # positions.  If a journal entry is marked open but the
+    # ticker no longer exists in the portfolio, backfill exit
+    # data from the broker's filled-order history.  This catches
+    # two failure modes:
+    #   1. Deferred journal update missed (order filled after
+    #      the 30s settlement wait).
+    #   2. Position closed manually outside the bot (via broker
+    #      UI, mobile app, etc.).
+    if _JOURNAL_AVAILABLE and journal_dir:
+        _reconcile_journal(
+            broker=broker,
+            positions=positions,
+            journal_dir=journal_dir,
+        )
+
     if not positions:
         log.info("  No open positions to monitor")
         return report
@@ -966,10 +983,10 @@ def monitor_positions(
         import time
 
         log.info(
-            f"  Waiting 10s for {len(_deferred_journal)} "
+            f"  Waiting 30s for {len(_deferred_journal)} "
             f"close order(s) to settle..."
         )
-        time.sleep(10)
+        time.sleep(30)
 
         filled_count = 0
         pending_count = 0
@@ -1018,7 +1035,7 @@ def monitor_positions(
                 log.info(
                     f"  {j_entry.ticker}: order {order_id} "
                     f"status={status} — journal NOT updated "
-                    f"(will resolve on next monitor run)"
+                    f"(reconciliation will catch on next run)"
                 )
 
         log.info(
@@ -1522,3 +1539,125 @@ def write_monitor_log(
 
     log.info(f"Monitor log written to {path}")
     return path
+
+
+# ── Journal reconciliation ──────────────────────────────────────
+
+
+def _reconcile_journal(
+    broker: BrokerInterface,
+    positions: dict,
+    journal_dir: Path,
+) -> int:
+    """Backfill exit data for journal entries whose positions
+    no longer exist on the broker.
+
+    Compares every ``status == "open"`` journal entry against
+    *positions* (the broker's current holdings).  If the ticker
+    is absent from *positions*, the trade was closed — either by
+    a prior monitor action whose deferred journal update missed,
+    or by the user manually via the broker UI.
+
+    For each stale entry, queries the broker for the most recent
+    filled SELL order and uses its fill price + timestamp to close
+    the journal record.  Falls back to the last known price sample
+    when no matching sell order is found (manual close via broker
+    dashboard may not produce a standard order).
+
+    Returns:
+        Number of journal entries reconciled.
+    """
+    try:
+        open_entries = _journal.load_open_trades(journal_dir)
+    except Exception as exc:
+        log.debug(f"  Reconcile: failed to load journal: {exc}")
+        return 0
+
+    if not open_entries:
+        return 0
+
+    live_tickers = set(positions.keys())
+    reconciled = 0
+
+    for entry in open_entries:
+        if entry.ticker in live_tickers:
+            continue  # still held — nothing to reconcile
+
+        # This journal entry is "open" but the position is gone.
+        log.info(
+            f"  Reconcile: {entry.ticker} ({entry.trade_id}) "
+            f"is open in journal but absent from portfolio"
+        )
+
+        exit_price = 0.0
+        exit_reason = "reconciled"
+        exit_order_id = ""
+
+        # Try to find the actual sell order from broker history
+        try:
+            since = (
+                entry.entry_date[:10] if entry.entry_date
+                else None
+            )
+            filled_sells = broker.get_filled_orders_for_ticker(
+                entry.ticker, since_date=since
+            )
+            if filled_sells:
+                # Most recent sell is our exit
+                sell = filled_sells[0]
+                exit_price = sell.filled_avg_price or 0.0
+                exit_order_id = sell.order_id or ""
+                exit_reason = "reconciled_from_order"
+                log.info(
+                    f"  Reconcile: found sell order "
+                    f"{exit_order_id} @ ${exit_price:.2f}"
+                )
+        except Exception as exc:
+            log.debug(
+                f"  Reconcile: order lookup failed for "
+                f"{entry.ticker}: {exc}"
+            )
+
+        # Fallback: use the last price sample from the journal
+        if exit_price <= 0 and entry.price_samples:
+            last_sample = entry.price_samples[-1]
+            if isinstance(last_sample, dict):
+                exit_price = last_sample.get("price", 0.0)
+            exit_reason = "reconciled_from_price_sample"
+            log.info(
+                f"  Reconcile: no sell order found, using "
+                f"last price sample ${exit_price:.2f}"
+            )
+
+        if exit_price <= 0:
+            log.warning(
+                f"  Reconcile: cannot determine exit price "
+                f"for {entry.ticker} — skipping"
+            )
+            continue
+
+        try:
+            _journal.close_trade(
+                entry,
+                exit_price=exit_price,
+                exit_reason=exit_reason,
+                journal_dir=journal_dir,
+                exit_order_id=exit_order_id,
+            )
+            reconciled += 1
+            log.info(
+                f"  Reconcile: {entry.ticker} journal closed "
+                f"@ ${exit_price:.2f} ({exit_reason})"
+            )
+        except Exception as exc:
+            log.warning(
+                f"  Reconcile: close_trade failed for "
+                f"{entry.ticker}: {exc}"
+            )
+
+    if reconciled:
+        log.info(
+            f"  Reconcile: {reconciled} stale journal "
+            f"entry(ies) resolved"
+        )
+    return reconciled
