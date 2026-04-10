@@ -1423,7 +1423,7 @@ def _check_time_exit(
             entry = date.fromisoformat(entry_date[:10])
 
         days_held = (date.today() - entry).days
-        if days_held > max_hold_days:
+        if days_held >= max_hold_days:
             log.info(
                 f"  {ticker}: held {days_held} days "
                 f"(max {max_hold_days}) — time exit candidate"
