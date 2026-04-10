@@ -1,0 +1,96 @@
+name: "LSE: Weekly Performance Report"
+
+# Runs every Sunday morning to produce a PDF performance report
+# and CSV trade export for the LSE portfolio.  Both files are
+# committed to reports/lse/ and emailed.
+# Benchmark: FTSE 100 (^FTSE) instead of S&P 500.
+on:
+  schedule:
+    - cron: "0 8 * * 0"       # 8:00 AM London, every Sunday
+      timezone: Europe/London
+  workflow_dispatch:           # allow manual trigger
+
+permissions:
+  contents: write              # needed to commit report files
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # No branch guard — cron fires on main, but we checkout the
+    # feature branch below.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: feature/multi-market
+
+      - name: Pull latest changes
+        run: git pull --rebase origin feature/multi-market
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check journal data exists
+        run: |
+          if [ ! -d "execution_logs/lse/journal" ]; then
+            echo "::warning::No LSE journal data found — report will be empty."
+          else
+            echo "LSE journal entries found:"
+            ls execution_logs/lse/journal/*.json 2>/dev/null | wc -l
+          fi
+
+      - name: Generate PDF report
+        run: python -m trading_bot_bl --config configs/lse.json --report-pdf
+
+      - name: Generate CSV export
+        run: python -m trading_bot_bl --config configs/lse.json --report-csv
+
+      - name: Show report files
+        run: |
+          echo "Generated LSE reports:"
+          ls -lh reports/lse/performance/report_*.pdf reports/lse/trades_*.csv 2>/dev/null || echo "No report files found."
+
+      - name: Set report date
+        run: echo "REPORT_DATE=$(TZ=Europe/London date +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: Email weekly report
+        if: ${{ success() && hashFiles('reports/lse/performance/report_*.pdf', 'reports/lse/trades_*.csv') != '' }}
+        uses: dawidd6/action-send-mail@v6
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_APP_PASSWORD }}
+          subject: "Weekly LSE Report — ${{ env.REPORT_DATE }}"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: "Weekly LSE performance report and trade export attached. Benchmark: FTSE 100."
+          attachments: "reports/lse/performance/report_${{ env.REPORT_DATE }}.pdf,reports/lse/trades_${{ env.REPORT_DATE }}.csv"
+
+      - name: Upload reports as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lse-weekly-report-${{ github.run_number }}
+          path: |
+            reports/lse/performance/report_*.pdf
+            reports/lse/trades_*.csv
+          retention-days: 90
+
+      - name: Commit reports to repository
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/lse/ -f
+          git diff --cached --quiet && echo "No new reports to commit" && exit 0
+          git commit -m "chore: LSE weekly report $(date +%Y-%m-%d)"
+          git push
