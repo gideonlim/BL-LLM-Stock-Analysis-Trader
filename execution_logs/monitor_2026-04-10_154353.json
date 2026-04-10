@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-04-10T15:43:53",
+  "positions_checked": 8,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "CMS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CMS missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$75.97, TP=$87.97",
+      "current_price": 79.97,
+      "entry_price": 79.87,
+      "pnl_pct": 0.13,
+      "timestamp": "2026-04-10T15:43:47"
+    },
+    {
+      "ticker": "FDX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FDX missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$357.96, TP=$414.48",
+      "current_price": 376.8,
+      "entry_price": 377.77,
+      "pnl_pct": -0.26,
+      "timestamp": "2026-04-10T15:43:49"
+    },
+    {
+      "ticker": "SJM",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SJM missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$87.46, TP=$101.27",
+      "current_price": 92.06,
+      "entry_price": 91.78,
+      "pnl_pct": 0.31,
+      "timestamp": "2026-04-10T15:43:51"
+    },
+    {
+      "ticker": "URI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "URI missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$731.24, TP=$846.7",
+      "current_price": 769.725,
+      "entry_price": 771.92,
+      "pnl_pct": -0.28,
+      "timestamp": "2026-04-10T15:43:52"
+    }
+  ]
+}
