@@ -93,4 +93,5 @@ jobs:
           git add reports/lse/ -f
           git diff --cached --quiet && echo "No new reports to commit" && exit 0
           git commit -m "chore: LSE weekly report $(date +%Y-%m-%d)"
-          git push
+          git pull --rebase origin feature/multi-market || true
+          git push origin HEAD:feature/multi-market
