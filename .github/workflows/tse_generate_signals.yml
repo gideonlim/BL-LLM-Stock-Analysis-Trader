@@ -1,0 +1,82 @@
+name: "TSE: Generate Signals + Paper Sim"
+
+# Runs before Tokyo market open to generate fresh TSE signals,
+# then runs the paper trading simulator.
+#
+# TSE opens 9:00 AM Tokyo (JST = UTC+9).
+# 7:30 AM Tokyo gives comfortable buffer for signal generation.
+on:
+  schedule:
+    - cron: "30 22 * * 0-4"   # 7:30 AM Tokyo (22:30 UTC prev day), Sun-Thu
+      timezone: Asia/Tokyo
+  workflow_dispatch:           # allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-sim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # No branch guard — cron fires on main, but we checkout the
+    # feature branch below.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: feature/multi-market
+
+      - name: Pull latest changes
+        run: git pull --rebase origin feature/multi-market
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore prefetch cache
+        uses: actions/cache/restore@v4
+        with:
+          path: cache/
+          key: prefetch-data-tse-
+          restore-keys: |
+            prefetch-data-tse-
+
+      # ── Step 1: Generate signals ──────────────────────────────
+      - name: Generate TSE signals
+        run: python -m quant_analysis_bot --config configs/tse.json --all-stocks --top-n 100
+        # Nikkei 225 universe (scraped + snapshot fallback).
+        # Signals written to signals/tse/.
+
+      # ── Step 2: Run paper simulator ───────────────────────────
+      - name: Run paper trading simulator
+        run: python -m trading_bot_bl.paper_sim --config configs/tse.json
+
+      # ── Step 3: Save everything ───────────────────────────────
+      - name: Upload signals as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tse-signals-${{ github.run_number }}
+          path: signals/tse/
+          retention-days: 30
+
+      - name: Upload paper sim state
+        uses: actions/upload-artifact@v4
+        with:
+          name: tse-paper-sim-${{ github.run_number }}
+          path: execution_logs/tse/paper_sim_state.json
+          retention-days: 30
+
+      - name: Commit signals + sim state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add signals/tse/ execution_logs/tse/ -f
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: TSE signals + paper sim $(date +%Y-%m-%d)"
+          git push

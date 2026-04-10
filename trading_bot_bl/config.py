@@ -99,7 +99,7 @@ class IBKRConfig:
         )
 
     def __repr__(self) -> str:
-        mode = "paper" if self.port == 7497 else "live"
+        mode = "paper" if self.port in (4002, 7497) else "live"
         return (
             f"IBKRConfig(mode={mode}, "
             f"host={self.host}:{self.port}, "
@@ -816,6 +816,34 @@ class TradingConfig:
                     config.market.max_equity_allocation
                 )
 
+            # Apply market-driven defaults for features that
+            # are US-specific.  JSON-level overrides (processed
+            # below) take precedence — these are safety defaults
+            # so a non-US config that forgets to disable earnings
+            # or oil spike gets the correct behavior automatically.
+            mkt = config.market
+            if "risk" not in overrides:
+                overrides["risk"] = {}
+            risk_ovr = overrides["risk"]
+            if "earnings_blackout_enabled" not in risk_ovr:
+                config.risk.earnings_blackout_enabled = (
+                    mkt.earnings_blackout_enabled
+                )
+            if "oil_spike_enabled" not in overrides:
+                config.oil_spike_enabled = (
+                    mkt.market_id == "US"
+                )
+            if "market_sentiment_enabled" not in overrides:
+                config.market_sentiment_enabled = (
+                    mkt.regime_vol_ticker is not None
+                )
+            if "finbert_enabled" not in overrides:
+                # FinBERT is English-only; scale by market weight
+                config.finbert_enabled = (
+                    mkt.news_sentiment_weight > 0
+                    and config.finbert_enabled
+                )
+
             # ── IBKR overrides ───────────────────────────────
             if "ibkr" in overrides:
                 ib = overrides["ibkr"]
@@ -849,10 +877,8 @@ def get_broker(config: TradingConfig) -> "BrokerInterface":
         from trading_bot_bl.broker import AlpacaBroker
         return AlpacaBroker(config.alpaca)
     elif market.broker_type == "ibkr":
-        raise NotImplementedError(
-            "IBKRBroker is not yet implemented (Phase 2). "
-            f"Market '{market.market_id}' requires broker_type='ibkr'."
-        )
+        from trading_bot_bl.broker_ibkr import IBKRBroker
+        return IBKRBroker(config.ibkr, market)
     else:
         raise ValueError(
             f"Unknown broker_type '{market.broker_type}' "

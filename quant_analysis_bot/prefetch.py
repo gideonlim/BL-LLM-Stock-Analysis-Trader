@@ -264,6 +264,7 @@ def run_prefetch(config: dict, tickers: list[str]) -> None:
         config["lookback_days"],
         cache_dir,
         _skip_prefetch=True,
+        market_id=config.get("market_id", "US"),
     )
 
     # 2. Validate each ticker's parquet has a recent bar

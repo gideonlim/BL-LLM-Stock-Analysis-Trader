@@ -44,13 +44,17 @@ def _et_date_str() -> str:
 
 
 def fetch_data(
-    ticker: str, lookback_days: int, cache_dir: str
+    ticker: str,
+    lookback_days: int,
+    cache_dir: str,
+    market_id: str = "US",
 ) -> pd.DataFrame:
     """Download OHLCV data from Yahoo Finance with local caching."""
     os.makedirs(cache_dir, exist_ok=True)
     date_str = _et_date_str()
+    # Market prefix prevents cross-market cache collisions
     cache_file = os.path.join(
-        cache_dir, f"{ticker}_{date_str}.parquet"
+        cache_dir, f"{market_id}_{ticker}_{date_str}.parquet"
     )
 
     if os.path.exists(cache_file):
@@ -88,6 +92,7 @@ def batch_fetch_data(
     cache_dir: str,
     *,
     _skip_prefetch: bool = False,
+    market_id: str = "US",
 ) -> dict[str, pd.DataFrame]:
     """Batch-download OHLCV data for multiple tickers in one call.
 
@@ -107,7 +112,7 @@ def batch_fetch_data(
     # 1. Load cached tickers, collect uncached ones
     for ticker in tickers:
         cache_file = os.path.join(
-            cache_dir, f"{ticker}_{date_str}.parquet"
+            cache_dir, f"{market_id}_{ticker}_{date_str}.parquet"
         )
         if os.path.exists(cache_file):
             results[ticker] = pd.read_parquet(cache_file)
@@ -136,10 +141,19 @@ def batch_fetch_data(
                 if ticker not in valid_set:
                     still_need.append(ticker)
                     continue
+                # Try market-prefixed name first, fall back to
+                # legacy un-prefixed name for backward compat
                 prefetch_file = os.path.join(
                     cache_dir,
-                    f"{ticker}_{prev_date_str}.parquet",
+                    f"{market_id}_{ticker}_{prev_date_str}"
+                    f".parquet",
                 )
+                if not os.path.exists(prefetch_file):
+                    # Legacy fallback (pre-Phase-2 cache files)
+                    prefetch_file = os.path.join(
+                        cache_dir,
+                        f"{ticker}_{prev_date_str}.parquet",
+                    )
                 if not os.path.exists(prefetch_file):
                     still_need.append(ticker)
                     continue
@@ -233,7 +247,8 @@ def batch_fetch_data(
             df.columns = df.columns.get_level_values(0)
         if not df.empty:
             cache_file = os.path.join(
-                cache_dir, f"{ticker}_{date_str}.parquet"
+                cache_dir,
+                f"{market_id}_{ticker}_{date_str}.parquet",
             )
             df.to_parquet(cache_file)
             results[ticker] = df
@@ -258,7 +273,8 @@ def batch_fetch_data(
                     df.columns = df.columns.get_level_values(0)
 
                 cache_file = os.path.join(
-                    cache_dir, f"{ticker}_{date_str}.parquet"
+                    cache_dir,
+                    f"{market_id}_{ticker}_{date_str}.parquet",
                 )
                 df.to_parquet(cache_file)
                 results[ticker] = df

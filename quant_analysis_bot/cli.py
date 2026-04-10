@@ -78,6 +78,7 @@ def _analyze_ticker(
                 ticker,
                 config["lookback_days"],
                 config["data_cache_dir"],
+                market_id=config.get("market_id", "US"),
             )
 
         # 2. Feature enrichment
@@ -259,12 +260,14 @@ def run(config: dict) -> None:
     )
 
     # ── Batch download price data (all tickers at once) ───────────
+    market_id = config.get("market_id", "US")
     if n_tickers > 1:
         log.info("Batch downloading price data...")
         price_cache = batch_fetch_data(
             tickers,
             config["lookback_days"],
             config["data_cache_dir"],
+            market_id=market_id,
         )
     else:
         price_cache = {}
@@ -614,10 +617,14 @@ def main() -> None:
         config["workers"] = max(1, args.workers)
 
     if args.all_stocks or args.prefetch:
+        market_id = config.get("market_id", "US")
         log.info(
-            f"Fetching top {args.top_n} US stocks by market cap..."
+            f"Fetching top {args.top_n} {market_id} stocks "
+            f"by market cap..."
         )
-        config["tickers"] = fetch_top_us_stocks(
+        from quant_analysis_bot.universe import fetch_top_stocks
+        config["tickers"] = fetch_top_stocks(
+            market_id=market_id,
             n=args.top_n,
             cache_dir=config.get("data_cache_dir", "cache"),
             force_refresh=args.refresh_universe,

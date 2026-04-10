@@ -1,9 +1,10 @@
-"""Stock universe construction -- top US stocks by market cap.
+"""Stock universe construction -- top stocks by market cap.
 
-The universe is built from S&P 500/400/600 components, sorted by
-market cap.  Extra tickers (ETFs, commodities, etc.) can be added
-via the ``EXTRA_TICKERS`` env var or an ``extra_tickers.txt`` file
-so they are always included regardless of index membership.
+The universe is built from index components (S&P 500/400/600 for US,
+FTSE 100 for LSE, Nikkei 225 for TSE), sorted by market cap.
+Extra tickers (ETFs, commodities, etc.) can be added via the
+``EXTRA_TICKERS`` env var or an ``extra_tickers.txt`` file so they
+are always included regardless of index membership.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import tempfile
 import urllib.request
 from datetime import datetime, timedelta
@@ -29,6 +31,25 @@ except ImportError as exc:
 from quant_analysis_bot.progress import ProgressBar
 
 log = logging.getLogger(__name__)
+
+# Ticker validation pattern:
+#   Base: 1-6 alphanumeric chars (e.g. AAPL, 7203, BRK)
+#   Optional suffix: dot or dash + 1-4 alphanum (e.g. .L, .T, -A, .DE)
+_TICKER_PATTERN = re.compile(
+    r"^[A-Z0-9]{1,6}([.\-][A-Z0-9]{1,4})?$", re.IGNORECASE
+)
+
+
+def _is_valid_ticker(t: str) -> bool:
+    """Validate a ticker symbol.
+
+    Accepts US tickers (AAPL, BRK-A), exchange-suffixed international
+    tickers (VOD.L, 7203.T, SAP.DE, 0700.HK), and rejects garbage.
+    """
+    if not t or len(t) > 12:
+        return False
+    return bool(_TICKER_PATTERN.match(t))
+
 
 _UNIVERSE_CACHE_DIR = "cache"
 # Cache TTL: 14 days, but always expires on Monday so a fresh fetch
@@ -85,14 +106,9 @@ def _fetch_wiki_tickers(name: str, url: str) -> List[str]:
             df[ticker_col]
             .astype(str)
             .str.strip()
-            .str.replace(".", "-", regex=False)
             .tolist()
         )
-        tickers = [
-            t
-            for t in tickers
-            if t and 1 <= len(t) <= 5 and t.replace("-", "").isalpha()
-        ]
+        tickers = [t for t in tickers if _is_valid_ticker(t)]
         log.info(f"  {name}: {len(tickers)} tickers")
         return tickers
     except Exception as e:
@@ -142,8 +158,8 @@ def load_extra_tickers() -> List[str]:
     env_val = os.getenv("EXTRA_TICKERS", "").strip()
     if env_val:
         for raw in env_val.split(","):
-            ticker = raw.strip().upper().replace(".", "-")
-            if ticker and 1 <= len(ticker) <= 6:
+            ticker = raw.strip().upper()
+            if _is_valid_ticker(ticker):
                 extras.add(ticker)
         if extras:
             log.info(
@@ -167,9 +183,8 @@ def load_extra_tickers() -> List[str]:
                             line.split("#")[0]
                             .strip()
                             .upper()
-                            .replace(".", "-")
                         )
-                        if ticker and 1 <= len(ticker) <= 6:
+                        if _is_valid_ticker(ticker):
                             extras.add(ticker)
                 log.info(
                     f"  Loaded extra tickers from {resolved}"
@@ -491,3 +506,277 @@ def fetch_top_us_stocks(
 
     log.info(f"  Final universe: {len(top_n)} tickers")
     return top_n
+
+
+# ── International universe sources ───────────────────────────────
+
+_SNAPSHOT_DIR = Path(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "data",
+    "universe_snapshots",
+)
+
+
+def _fetch_with_fallback(
+    market_id: str,
+    scrape_fn,
+) -> List[str]:
+    """Scrape tickers with snapshot cache fallback.
+
+    On success, saves a dated snapshot. On failure, falls back
+    to the most recent snapshot on disk. Keeps the 10 most recent
+    snapshots per market.
+    """
+    snap_dir = _SNAPSHOT_DIR
+    snap_dir.mkdir(parents=True, exist_ok=True)
+
+    # Try live scrape
+    try:
+        tickers = scrape_fn()
+        if tickers:
+            today = datetime.now().strftime("%Y%m%d")
+            snap = {
+                "merged": tickers,
+                "counts": {"total": len(tickers)},
+                "snapshot_date": today,
+            }
+            snap_path = snap_dir / f"{market_id}_{today}.json"
+            snap_path.write_text(
+                json.dumps(snap, indent=2), encoding="utf-8"
+            )
+            log.info(
+                f"  Saved {market_id} universe snapshot: "
+                f"{len(tickers)} tickers"
+            )
+            # Prune old snapshots (keep 10)
+            existing = sorted(
+                snap_dir.glob(f"{market_id}_*.json")
+            )
+            for old in existing[:-10]:
+                old.unlink(missing_ok=True)
+            return tickers
+    except Exception as exc:
+        log.warning(
+            f"  Universe scrape failed for {market_id}: {exc}"
+        )
+
+    # Fallback to latest snapshot
+    existing = sorted(snap_dir.glob(f"{market_id}_*.json"))
+    if existing:
+        latest = existing[-1]
+        log.warning(
+            f"  Falling back to snapshot {latest.name}"
+        )
+        try:
+            data = json.loads(
+                latest.read_text(encoding="utf-8")
+            )
+            return data.get("merged", [])
+        except Exception:
+            pass
+
+    raise RuntimeError(
+        f"No universe available for {market_id}: "
+        f"scrape failed and no snapshots found"
+    )
+
+
+def _scrape_ftse100() -> List[str]:
+    """Scrape FTSE 100 components from Wikipedia."""
+    url = (
+        "https://en.wikipedia.org/wiki/"
+        "FTSE_100_Index"
+    )
+    from io import StringIO
+
+    html = _fetch_wiki_html(url)
+    tables = pd.read_html(StringIO(html))
+
+    # Find the constituents table (has "Ticker" or "EPIC" column)
+    for table in tables:
+        cols_lower = [str(c).lower() for c in table.columns]
+        for i, col_name in enumerate(cols_lower):
+            if col_name in (
+                "ticker", "epic", "ticker symbol",
+                "stock symbol",
+            ):
+                tickers = (
+                    table.iloc[:, i]
+                    .astype(str)
+                    .str.strip()
+                    .tolist()
+                )
+                # Add .L suffix for London Stock Exchange
+                result = []
+                for t in tickers:
+                    t = t.replace(".", "")  # clean dots in raw
+                    if t and _is_valid_ticker(t + ".L"):
+                        result.append(t + ".L")
+                if len(result) >= 50:
+                    log.info(
+                        f"  FTSE 100: {len(result)} tickers"
+                    )
+                    return result
+
+    log.warning("  Could not find FTSE 100 table on Wikipedia")
+    return []
+
+
+def _scrape_nikkei225() -> List[str]:
+    """Scrape Nikkei 225 components from the official Nikkei index page.
+
+    Falls back to TopForeignStocks if the official page is unavailable.
+    The Nikkei 225 Wikipedia page does not list ticker codes in a
+    parseable table, so we use alternative sources.
+    """
+    # Try official Nikkei index component page
+    sources = [
+        (
+            "https://indexes.nikkei.co.jp/en/nkave/"
+            "index/component",
+            _parse_nikkei_official,
+        ),
+        (
+            "https://topforeignstocks.com/indices/"
+            "the-components-of-the-nikkei-225-index/",
+            _parse_nikkei_topforeign,
+        ),
+    ]
+
+    for url, parser in sources:
+        try:
+            html = _fetch_wiki_html(url)
+            result = parser(html)
+            if result and len(result) >= 100:
+                log.info(
+                    f"  Nikkei 225: {len(result)} tickers "
+                    f"from {url.split('/')[2]}"
+                )
+                return result
+        except Exception as exc:
+            log.debug(f"  Nikkei source {url} failed: {exc}")
+
+    log.warning(
+        "  Could not scrape Nikkei 225 from any source. "
+        "Will use snapshot fallback."
+    )
+    return []
+
+
+def _parse_nikkei_official(html: str) -> List[str]:
+    """Parse the official Nikkei index component page."""
+    from io import StringIO
+
+    tables = pd.read_html(StringIO(html))
+    for table in tables:
+        cols_lower = [str(c).lower() for c in table.columns]
+        for i, col_name in enumerate(cols_lower):
+            if any(
+                k in col_name
+                for k in ("code", "ticker", "symbol")
+            ):
+                return _extract_tse_codes(
+                    table.iloc[:, i].astype(str).tolist()
+                )
+    return []
+
+
+def _parse_nikkei_topforeign(html: str) -> List[str]:
+    """Parse the TopForeignStocks Nikkei 225 page."""
+    from io import StringIO
+
+    tables = pd.read_html(StringIO(html))
+    for table in tables:
+        if len(table) < 50:
+            continue
+        cols_lower = [str(c).lower() for c in table.columns]
+        for i, col_name in enumerate(cols_lower):
+            if any(
+                k in col_name
+                for k in (
+                    "code", "ticker", "symbol", "stock",
+                )
+            ):
+                return _extract_tse_codes(
+                    table.iloc[:, i].astype(str).tolist()
+                )
+    return []
+
+
+def _extract_tse_codes(raw_codes: List[str]) -> List[str]:
+    """Convert raw codes to .T-suffixed TSE tickers."""
+    result = []
+    for c in raw_codes:
+        c = c.split(".")[0].strip()
+        # TSE codes are 4-digit numbers
+        if c.isdigit() and 3 <= len(c) <= 5:
+            result.append(c + ".T")
+    return result
+
+
+def fetch_top_stocks(
+    market_id: str = "US",
+    n: int = 1000,
+    cache_dir: str = _UNIVERSE_CACHE_DIR,
+    force_refresh: bool = False,
+) -> List[str]:
+    """Fetch the top stocks for any supported market.
+
+    Dispatches to the market-specific scraper:
+    - US: S&P 500/400/600 (existing ``fetch_top_us_stocks``)
+    - LSE: FTSE 100
+    - TSE: Nikkei 225
+
+    Falls back to snapshot cache on scrape failure.
+    """
+    market_id = market_id.upper()
+    if market_id == "US":
+        return fetch_top_us_stocks(
+            n=n,
+            cache_dir=cache_dir,
+            force_refresh=force_refresh,
+        )
+    elif market_id in ("LSE", "TSE"):
+        scraper = (
+            _scrape_ftse100 if market_id == "LSE"
+            else _scrape_nikkei225
+        )
+        # Check universe cache (same TTL logic as US)
+        os.makedirs(cache_dir, exist_ok=True)
+        cache_file = os.path.join(
+            cache_dir, f"universe_{market_id.lower()}_{n}.json"
+        )
+        if (
+            not force_refresh
+            and _cache_is_fresh(cache_file)
+        ):
+            try:
+                with open(cache_file, "r") as f:
+                    cached = json.load(f)
+                log.info(
+                    f"  Loaded {len(cached)} {market_id} "
+                    f"tickers from cache"
+                )
+                return cached
+            except (json.JSONDecodeError, OSError):
+                pass
+
+        tickers = _fetch_with_fallback(
+            market_id.lower(), scraper
+        )
+        # Apply n limit for consistent --top-n behavior
+        if n and len(tickers) > n:
+            tickers = tickers[:n]
+        # Write universe cache
+        try:
+            with open(cache_file, "w") as f:
+                json.dump(tickers, f)
+        except OSError:
+            pass
+        return tickers
+    else:
+        raise ValueError(
+            f"Unknown market_id '{market_id}'. "
+            f"Supported: US, LSE, TSE"
+        )

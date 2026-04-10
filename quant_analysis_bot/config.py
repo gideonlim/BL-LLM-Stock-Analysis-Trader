@@ -112,5 +112,12 @@ def load_config(config_path: Optional[str] = None) -> dict:
         with open(config_path, encoding="utf-8") as f:
             user_config = json.load(f)
         config.update(user_config)
+        # Extract market_id from nested market block for runtime use
+        if "market" in user_config:
+            market_block = user_config["market"]
+            config["market_id"] = market_block.get(
+                "market_id", "US"
+            )
+        config.setdefault("market_id", "US")
         log.info(f"Loaded config from {config_path}")
     return config
