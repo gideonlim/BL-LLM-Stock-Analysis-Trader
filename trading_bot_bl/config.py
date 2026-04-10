@@ -85,6 +85,8 @@ class IBKRConfig:
     client_id: int = 1
     account_id: str = ""      # optional — auto-detected if blank
     max_equity_allocation: float = 1.0  # fraction of total equity
+    paper_account_equity: float = 0.0   # total account equity for paper sim
+    # 0 = use DEFAULT_STARTING_EQUITY fallback in paper_sim.py
 
     @classmethod
     def from_env(cls) -> IBKRConfig:
@@ -95,6 +97,9 @@ class IBKRConfig:
             account_id=os.getenv("IBKR_ACCOUNT_ID", ""),
             max_equity_allocation=float(
                 os.getenv("IBKR_MAX_EQUITY_ALLOCATION", "1.0")
+            ),
+            paper_account_equity=float(
+                os.getenv("IBKR_PAPER_ACCOUNT_EQUITY", "0")
             ),
         )
 
@@ -867,6 +872,10 @@ class TradingConfig:
                 if "max_equity_allocation" in ib:
                     config.ibkr.max_equity_allocation = float(
                         ib["max_equity_allocation"]
+                    )
+                if "paper_account_equity" in ib:
+                    config.ibkr.paper_account_equity = float(
+                        ib["paper_account_equity"]
                     )
 
             log.info(f"Loaded trading config from {path}")

@@ -32,7 +32,8 @@
   "ibkr": {
     "port": 4002,
     "client_id": 2,
-    "max_equity_allocation": 0.5
+    "max_equity_allocation": 0.5,
+    "paper_account_equity": 100000
   },
 
   "time_in_force": "day",

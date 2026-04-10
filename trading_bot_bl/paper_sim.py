@@ -389,6 +389,28 @@ def run_paper_sim(
     if state_path.exists():
         with open(state_path, encoding="utf-8") as f:
             state = SimState.from_dict(json.load(f))
+        # Auto-reset if starting equity changed (e.g. config update)
+        if (state.starting_equity != starting_equity
+                and not state.positions
+                and not state.closed_trades):
+            log.info(
+                f"Starting equity changed "
+                f"({state.starting_equity:,.0f} → "
+                f"{starting_equity:,.0f}) with no trade history"
+                f" — resetting."
+            )
+            state = SimState(
+                starting_equity=starting_equity,
+                cash=starting_equity,
+            )
+        elif state.starting_equity != starting_equity:
+            log.warning(
+                f"Config starting equity ({starting_equity:,.0f}) "
+                f"differs from saved state "
+                f"({state.starting_equity:,.0f}). "
+                f"Keeping saved state — use --reset to start "
+                f"fresh."
+            )
         log.info(f"Loaded sim state: {len(state.positions)} positions, "
                  f"cash={state.cash:,.0f}")
     else:
@@ -630,11 +652,16 @@ def main() -> None:
     min_composite = config.risk.min_composite_score
     max_hold = config.risk.max_hold_days
 
-    # Starting equity = total equity * allocation fraction
+    # Starting equity = account equity * allocation fraction.
+    # paper_account_equity is the total IBKR paper account value;
+    # the sim gets its allocated share.  Falls back to the legacy
+    # DEFAULT_STARTING_EQUITY if not configured.
     ibkr_alloc = config.ibkr.max_equity_allocation
-    starting_eq = DEFAULT_STARTING_EQUITY * ibkr_alloc / 0.5
-    # The default 250k assumes 50% allocation of 500k.
-    # If allocation is 0.5 (50%), starting_eq = 250k.
+    account_equity = config.ibkr.paper_account_equity
+    if account_equity > 0:
+        starting_eq = account_equity * ibkr_alloc
+    else:
+        starting_eq = DEFAULT_STARTING_EQUITY
 
     log.info(f"Market: {market.market_id} ({market.currency})")
     log.info(f"Signals: {signals_dir}")
