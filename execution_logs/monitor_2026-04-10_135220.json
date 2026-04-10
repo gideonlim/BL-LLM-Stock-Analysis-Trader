@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-04-10T13:52:20",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 3,
+  "alerts": [
+    {
+      "ticker": "C",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-04-14) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 123.83,
+      "entry_price": 109.06,
+      "pnl_pct": 13.54,
+      "timestamp": "2026-04-10T13:52:15"
+    },
+    {
+      "ticker": "C",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "C up 13.5% \u2014 tightening SL from $116.95 to $117.17 (Chandelier: HH=$124.93, ATR=3.88)",
+      "action_taken": "SL tightened to $117.17",
+      "current_price": 123.83,
+      "entry_price": 109.06,
+      "pnl_pct": 13.54,
+      "timestamp": "2026-04-10T13:52:15"
+    },
+    {
+      "ticker": "C",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "C exceeded max hold period (10 days). P&L: +13.5%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 123.83,
+      "entry_price": 109.06,
+      "pnl_pct": 13.54,
+      "timestamp": "2026-04-10T13:52:15"
+    },
+    {
+      "ticker": "FLG",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "FLG exceeded max hold period (10 days). P&L: +6.8%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 14.02,
+      "entry_price": 13.13,
+      "pnl_pct": 6.78,
+      "timestamp": "2026-04-10T13:52:17"
+    },
+    {
+      "ticker": "NI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "NI exceeded max hold period (10 days). P&L: +3.3%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 48.18,
+      "entry_price": 46.65,
+      "pnl_pct": 3.28,
+      "timestamp": "2026-04-10T13:52:19"
+    }
+  ]
+}
