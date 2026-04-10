@@ -53,6 +53,11 @@ class SimPosition:
     strategy: str
     composite_score: float
     holding_days: int = 0
+    confidence: str = ""
+    confidence_score: int = 0
+    # MFE/MAE tracking (updated daily)
+    max_price: float = 0.0   # highest price seen since entry
+    min_price: float = 0.0   # lowest price seen since entry
 
 
 @dataclass
@@ -177,11 +182,42 @@ def _write_journal_entry(
         else 0.0
     )
     risk_per_share = abs(pos.entry_price - pos.stop_loss)
+    risk_dollars = round(risk_per_share * pos.qty, 2)
+    reward_per_share = abs(pos.take_profit - pos.entry_price)
+    reward_dollars = round(reward_per_share * pos.qty, 2)
     r_mult = (
-        (exit_price - pos.entry_price) / risk_per_share
-        if risk_per_share > 0
+        pnl / risk_dollars
+        if risk_dollars > 0
         else 0.0
     )
+    rr_ratio = (
+        reward_dollars / risk_dollars
+        if risk_dollars > 0
+        else 0.0
+    )
+
+    # MFE / MAE from daily price tracking
+    fill = pos.entry_price
+    mfe_pct = 0.0
+    mae_pct = 0.0
+    etd = 0.0
+    etd_pct = 0.0
+    edge_ratio = 0.0
+    if fill > 0:
+        if pos.max_price > fill:
+            mfe_pct = round(
+                (pos.max_price - fill) / fill * 100, 2
+            )
+        if pos.min_price < fill and pos.min_price > 0:
+            mae_pct = round(
+                (fill - pos.min_price) / fill * 100, 2
+            )
+        # ETD = how much profit was given back from MFE
+        if pos.max_price > 0:
+            etd = round(pos.max_price - exit_price, 2)
+            etd_pct = round(etd / fill * 100, 2)
+        if mae_pct > 0:
+            edge_ratio = round(mfe_pct / mae_pct, 2)
 
     entry = JournalEntry(
         trade_id=f"{pos.ticker}_sim_{uuid.uuid4().hex[:8]}",
@@ -195,9 +231,22 @@ def _write_journal_entry(
         entry_qty=pos.qty,
         entry_date=pos.entry_date,
         entry_composite_score=pos.composite_score,
+        entry_confidence=pos.confidence,
+        entry_confidence_score=pos.confidence_score,
         original_sl_price=pos.stop_loss,
         original_tp_price=pos.take_profit,
         initial_risk_per_share=round(risk_per_share, 4),
+        initial_risk_dollars=risk_dollars,
+        initial_reward_dollars=reward_dollars,
+        planned_rr_ratio=round(rr_ratio, 2),
+        # MFE / MAE (daily-resolution approximation)
+        max_favorable_excursion=round(pos.max_price, 4),
+        max_adverse_excursion=round(pos.min_price, 4),
+        mfe_pct=mfe_pct,
+        mae_pct=mae_pct,
+        etd=etd,
+        etd_pct=etd_pct,
+        edge_ratio=edge_ratio,
         exit_price=exit_price,
         exit_fill_price=exit_price,
         exit_date=today,
@@ -367,6 +416,16 @@ def run_paper_sim(
             log.warning(f"  No price for {pos.ticker} — keeping position")
             continue
 
+        # Track MFE / MAE from daily close prices
+        if pos.max_price == 0.0:
+            pos.max_price = pos.entry_price
+        if pos.min_price == 0.0:
+            pos.min_price = pos.entry_price
+        if price > pos.max_price:
+            pos.max_price = price
+        if price < pos.min_price:
+            pos.min_price = price
+
         if price <= pos.stop_loss:
             to_close.append((pos, pos.stop_loss, "stop_loss"))
         elif price >= pos.take_profit:
@@ -446,6 +505,10 @@ def run_paper_sim(
                         take_profit=round(sig.take_profit_price, 4),
                         strategy=sig.strategy,
                         composite_score=sig.composite_score,
+                        confidence=sig.confidence,
+                        confidence_score=sig.confidence_score,
+                        max_price=round(entry_price, 4),
+                        min_price=round(entry_price, 4),
                     )
                 )
                 state.cash -= notional
