@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -156,6 +157,117 @@ def _fetch_latest_prices(
     return prices
 
 
+# ── Report-compatible writers ────────────────────────────────────
+
+
+def _write_journal_entry(
+    pos: SimPosition,
+    exit_price: float,
+    exit_reason: str,
+    today: str,
+    journal_dir: Path,
+) -> None:
+    """Write a JournalEntry-compatible JSON for the report."""
+    from trading_bot_bl.models import JournalEntry
+
+    pnl = (exit_price - pos.entry_price) * pos.qty
+    pnl_pct = (
+        (exit_price / pos.entry_price - 1) * 100
+        if pos.entry_price != 0
+        else 0.0
+    )
+    risk_per_share = abs(pos.entry_price - pos.stop_loss)
+    r_mult = (
+        (exit_price - pos.entry_price) / risk_per_share
+        if risk_per_share > 0
+        else 0.0
+    )
+
+    entry = JournalEntry(
+        trade_id=f"{pos.ticker}_sim_{uuid.uuid4().hex[:8]}",
+        ticker=pos.ticker,
+        strategy=pos.strategy,
+        side="long",
+        entry_order_id=f"sim_{uuid.uuid4().hex[:8]}",
+        entry_signal_price=pos.entry_price,
+        entry_fill_price=pos.entry_price,
+        entry_notional=pos.notional,
+        entry_qty=pos.qty,
+        entry_date=pos.entry_date,
+        entry_composite_score=pos.composite_score,
+        original_sl_price=pos.stop_loss,
+        original_tp_price=pos.take_profit,
+        initial_risk_per_share=round(risk_per_share, 4),
+        exit_price=exit_price,
+        exit_fill_price=exit_price,
+        exit_date=today,
+        exit_reason=exit_reason,
+        realized_pnl=round(pnl, 2),
+        realized_pnl_pct=round(pnl_pct, 2),
+        r_multiple=round(r_mult, 2),
+        holding_days=pos.holding_days,
+        status="closed",
+        opened_at=f"{pos.entry_date}T09:00:00",
+        closed_at=f"{today}T16:00:00",
+        tags=["paper_sim"],
+    )
+
+    journal_dir.mkdir(parents=True, exist_ok=True)
+    path = journal_dir / f"{entry.trade_id}.json"
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(asdict(entry), f, indent=2)
+
+
+def _write_equity_snapshot(
+    equity: float,
+    cash: float,
+    market_value: float,
+    num_positions: int,
+    log_dir: Path,
+) -> None:
+    """Append an EquitySnapshot-compatible line to equity_curve.jsonl."""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    path = log_dir / "equity_curve.jsonl"
+
+    # Read previous HWM
+    hwm = equity
+    if path.exists():
+        for line in reversed(path.read_text().strip().splitlines()):
+            if line.strip():
+                try:
+                    prev = json.loads(line)
+                    hwm = max(equity, prev.get("high_water_mark", equity))
+                except Exception:
+                    pass
+                break
+
+    drawdown_pct = 0.0
+    if hwm > 0:
+        drawdown_pct = round((hwm - equity) / hwm * 100, 4)
+
+    exposure_pct = 0.0
+    if equity > 0:
+        exposure_pct = round(market_value / equity * 100, 2)
+
+    snap = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "equity": round(equity, 2),
+        "cash": round(cash, 2),
+        "market_value": round(market_value, 2),
+        "num_positions": num_positions,
+        "realized_pnl_today": 0.0,
+        "unrealized_pnl": round(equity - cash - market_value, 2),
+        "day_pnl": 0.0,
+        "day_pnl_pct": 0.0,
+        "drawdown_pct": drawdown_pct,
+        "high_water_mark": round(hwm, 2),
+        "exposure_pct": exposure_pct,
+    }
+
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(snap) + "\n")
+
+
 # ── Core simulation logic ────────────────────────────────────────
 
 
@@ -165,6 +277,7 @@ def _close_position(
     exit_price: float,
     exit_reason: str,
     today: str,
+    journal_dir: Path | None = None,
 ) -> None:
     """Move a position to closed_trades and return cash."""
     pnl = (exit_price - pos.entry_price) * pos.qty
@@ -188,6 +301,13 @@ def _close_position(
         )
     )
     state.cash += pos.notional + pnl
+
+    # Write report-compatible journal entry
+    if journal_dir:
+        _write_journal_entry(
+            pos, exit_price, exit_reason, today, journal_dir,
+        )
+
     log.info(
         f"  CLOSED {pos.ticker}: {exit_reason} @ {exit_price:.2f} "
         f"(entry {pos.entry_price:.2f}, P&L {pnl:+.2f} / "
@@ -198,6 +318,7 @@ def _close_position(
 def run_paper_sim(
     signals_dir: Path,
     state_path: Path,
+    log_dir: Path,
     max_positions: int = DEFAULT_MAX_POSITIONS,
     min_composite: float = DEFAULT_MIN_COMPOSITE_SCORE,
     max_hold_days: int = 10,
@@ -209,9 +330,10 @@ def run_paper_sim(
     2. Fetch latest prices for open positions.
     3. Check stop-loss / take-profit / max-hold exits.
     4. Load today's signals and enter new BUY positions.
-    5. Record equity snapshot.
+    5. Record equity snapshot (report-compatible).
     6. Save state.
     """
+    journal_dir = log_dir / "journal"
     today = datetime.now().strftime("%Y-%m-%d")
 
     # ── Load or initialise state ─────────────────────────────────
@@ -253,7 +375,9 @@ def run_paper_sim(
             to_close.append((pos, price, "max_hold"))
 
     for pos, exit_price, reason in to_close:
-        _close_position(state, pos, exit_price, reason, today)
+        _close_position(
+            state, pos, exit_price, reason, today, journal_dir,
+        )
         state.positions.remove(pos)
 
     # ── Load today's signals ─────────────────────────────────────
@@ -274,7 +398,9 @@ def run_paper_sim(
         if sig.ticker in held_map:
             pos = held_map[sig.ticker]
             price = prices.get(sig.ticker, sig.current_price)
-            _close_position(state, pos, price, "exit_signal", today)
+            _close_position(
+                state, pos, price, "exit_signal", today, journal_dir,
+            )
             state.positions.remove(pos)
 
     # ── Enter new BUY positions ──────────────────────────────────
@@ -363,6 +489,15 @@ def run_paper_sim(
     )
     state.last_run_date = today
 
+    # ── Write report-compatible equity snapshot ──────────────────
+    _write_equity_snapshot(
+        equity=equity,
+        cash=state.cash,
+        market_value=market_value,
+        num_positions=len(state.positions),
+        log_dir=log_dir,
+    )
+
     # ── Save state ───────────────────────────────────────────────
     state_path.parent.mkdir(parents=True, exist_ok=True)
     with open(state_path, "w", encoding="utf-8") as f:
@@ -445,6 +580,7 @@ def main() -> None:
     run_paper_sim(
         signals_dir=signals_dir,
         state_path=state_path,
+        log_dir=state_dir,
         max_positions=max_positions,
         min_composite=min_composite,
         max_hold_days=max_hold,
