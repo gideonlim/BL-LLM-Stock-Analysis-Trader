@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-14T20:03:27",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "CUBE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "CUBE up 5.5% \u2014 tightening SL from $37.55 to $37.98 (Chandelier: HH=$39.62, ATR=0.82)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 39.62,
+      "entry_price": 37.55,
+      "pnl_pct": 5.51,
+      "timestamp": "2026-04-14T20:03:26"
+    },
+    {
+      "ticker": "PK",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "PK up 7.2% \u2014 tightening SL from $10.80 to $10.82 (Chandelier: HH=$11.49, ATR=0.34)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 11.49,
+      "entry_price": 10.72,
+      "pnl_pct": 7.18,
+      "timestamp": "2026-04-14T20:03:27"
+    }
+  ]
+}
