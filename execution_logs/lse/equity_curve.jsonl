@@ -1,1 +1,2 @@
 {"timestamp": "2026-04-13T07:28:22", "equity": 50000.29, "cash": 416.67, "market_value": 49583.63, "num_positions": 6, "realized_pnl_today": 0.0, "unrealized_pnl": 0.0, "day_pnl": 0.0, "day_pnl_pct": 0.0, "drawdown_pct": 0.0, "high_water_mark": 50000.29, "exposure_pct": 99.17}
+{"timestamp": "2026-04-14T07:08:58", "equity": 49811.51, "cash": 416.67, "market_value": 49394.84, "num_positions": 6, "realized_pnl_today": 0.0, "unrealized_pnl": 0.0, "day_pnl": 0.0, "day_pnl_pct": 0.0, "drawdown_pct": 0.3776, "high_water_mark": 50000.29, "exposure_pct": 99.16}
