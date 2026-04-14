@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-14T16:03:21",
+  "positions_checked": 7,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ARW",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ARW missing stop loss leg. P&L: -0.5%",
+      "action_taken": "Reattached OCO: SL=$167.48, TP=$193.92",
+      "current_price": 176.29,
+      "entry_price": 177.16,
+      "pnl_pct": -0.49,
+      "timestamp": "2026-04-14T16:03:18"
+    }
+  ]
+}
