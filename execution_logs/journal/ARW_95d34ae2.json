@@ -34,11 +34,11 @@
   "r_multiple": 0.0,
   "holding_days": 0,
   "max_favorable_excursion": 177.16,
-  "max_adverse_excursion": 173.6,
+  "max_adverse_excursion": 170.22,
   "mfe_pct": 0.0,
-  "mae_pct": 2.01,
+  "mae_pct": 3.92,
   "mfe_date": "",
-  "mae_date": "2026-04-14",
+  "mae_date": "2026-04-15",
   "etd": 0.0,
   "etd_pct": 0.0,
   "edge_ratio": 0.0,
@@ -47,6 +47,10 @@
     {
       "date": "2026-04-14",
       "price": 176.29
+    },
+    {
+      "date": "2026-04-15",
+      "price": 170.22
     }
   ],
   "status": "open",

@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-15T14:54:16",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "PK",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "PK up 5.7% \u2014 tightening SL from $10.80 to $10.82 (Chandelier: HH=$11.49, ATR=0.34)",
+      "action_taken": "SL tightened to $10.82",
+      "current_price": 11.335,
+      "entry_price": 10.72,
+      "pnl_pct": 5.74,
+      "timestamp": "2026-04-15T14:54:13"
+    }
+  ]
+}
