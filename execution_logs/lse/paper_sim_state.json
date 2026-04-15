@@ -12,11 +12,11 @@
       "take_profit": 1472.98,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 45.27,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1340.6,
-      "min_price": 1319.800048828125
+      "min_price": 1309.199951171875
     },
     {
       "ticker": "EDV.L",
@@ -28,10 +28,10 @@
       "take_profit": 5664.85,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 43.14,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 4833.0,
+      "max_price": 4920.0,
       "min_price": 4810.0
     },
     {
@@ -44,10 +44,10 @@
       "take_profit": 552.59,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 42.02,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 435.0,
+      "max_price": 442.95001220703125,
       "min_price": 434.3
     },
     {
@@ -60,11 +60,11 @@
       "take_profit": 646.95,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.83,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 567.1,
-      "min_price": 564.0999755859375
+      "min_price": 562.5999755859375
     },
     {
       "ticker": "SHEL.L",
@@ -76,11 +76,11 @@
       "take_profit": 3862.73,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.12,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 3471.0,
-      "min_price": 3466.5
+      "min_price": 3375.5
     },
     {
       "ticker": "BEZ.L",
@@ -92,10 +92,10 @@
       "take_profit": 1330.28,
       "strategy": "52-Week High Momentum",
       "composite_score": 31.39,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1273.0,
+      "max_price": 1273.5,
       "min_price": 1273.0
     }
   ],
@@ -116,7 +116,15 @@
       "num_positions": 6,
       "total_pnl": -188.49,
       "total_pnl_pct": -0.38
+    },
+    {
+      "date": "2026-04-15",
+      "equity": 49839.32,
+      "cash": 416.67,
+      "num_positions": 6,
+      "total_pnl": -160.68,
+      "total_pnl_pct": -0.32
     }
   ],
-  "last_run_date": "2026-04-14"
+  "last_run_date": "2026-04-15"
 }
