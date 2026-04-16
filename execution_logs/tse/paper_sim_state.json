@@ -1,23 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 417.1045026933334,
+  "cash": 16800.512601795555,
   "positions": [
-    {
-      "ticker": "7741.T",
-      "entry_date": "2026-04-12",
-      "entry_price": 29490.0,
-      "qty": 0.2826,
-      "notional": 8333.33,
-      "stop_loss": 28092.17,
-      "take_profit": 33683.48,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 37.31,
-      "holding_days": 3,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 30030.0,
-      "min_price": 29170.0
-    },
     {
       "ticker": "5801.T",
       "entry_date": "2026-04-13",
@@ -28,7 +12,7 @@
       "take_profit": 64340.2,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.14,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 46880.0,
@@ -44,7 +28,7 @@
       "take_profit": 8091.16,
       "strategy": "PEAD Earnings Drift",
       "composite_score": 30.7,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 5935.0,
@@ -60,43 +44,27 @@
       "take_profit": 4530.59,
       "strategy": "VWAP Trend",
       "composite_score": 27.29,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": 4431.0,
       "min_price": 4345.0
     },
     {
-      "ticker": "1925.T",
-      "entry_date": "2026-04-14",
-      "entry_price": 4899.0,
-      "qty": 1.7028,
-      "notional": 8342.09,
-      "stop_loss": 4807.39,
-      "take_profit": 5082.22,
-      "strategy": "VWAP Trend",
-      "composite_score": 18.61,
-      "holding_days": 1,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": 4917.0,
-      "min_price": 4899.0
-    },
-    {
-      "ticker": "6857.T",
-      "entry_date": "2026-04-15",
-      "entry_price": 27585.0,
-      "qty": 0.2873,
-      "notional": 7924.99,
-      "stop_loss": 24818.22,
-      "take_profit": 37267.33,
+      "ticker": "6361.T",
+      "entry_date": "2026-04-16",
+      "entry_price": NaN,
+      "qty": NaN,
+      "notional": 8400.26,
+      "stop_loss": NaN,
+      "take_profit": NaN,
       "strategy": "ADX Trend Following",
-      "composite_score": 46.53,
+      "composite_score": 53.44,
       "holding_days": 0,
       "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 27585.0,
-      "min_price": 27585.0
+      "confidence_score": 6,
+      "max_price": NaN,
+      "min_price": NaN
     }
   ],
   "closed_trades": [
@@ -171,6 +139,42 @@
       "pnl": -88.44,
       "pnl_pct": -1.05,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "7741.T",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-04-12",
+      "exit_date": "2026-04-16",
+      "entry_price": 29490.0,
+      "exit_price": 30030.0,
+      "qty": 0.2826,
+      "pnl": 152.6,
+      "pnl_pct": 1.83,
+      "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "6857.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-04-15",
+      "exit_date": "2026-04-16",
+      "entry_price": 27585.0,
+      "exit_price": 27585.0,
+      "qty": 0.2873,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "1925.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-04-14",
+      "exit_date": "2026-04-16",
+      "entry_price": 4899.0,
+      "exit_price": 4917.0,
+      "qty": 1.7028,
+      "pnl": 30.65,
+      "pnl_pct": 0.37,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -205,7 +209,15 @@
       "num_positions": 6,
       "total_pnl": 250.04,
       "total_pnl_pct": 0.5
+    },
+    {
+      "date": "2026-04-16",
+      "equity": NaN,
+      "cash": 16800.51,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-04-15"
+  "last_run_date": "2026-04-16"
 }
