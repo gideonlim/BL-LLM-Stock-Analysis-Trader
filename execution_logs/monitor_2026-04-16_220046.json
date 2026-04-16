@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-16T22:00:46",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 79.395,
+      "entry_price": 79.345882,
+      "pnl_pct": 0.06,
+      "timestamp": "2026-04-16T22:00:44"
+    }
+  ]
+}
