@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-04-17T16:42:11",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FAF",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 66.25,
+      "entry_price": 62.7,
+      "pnl_pct": 5.66,
+      "timestamp": "2026-04-17T16:42:05"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 82.28,
+      "entry_price": 79.345882,
+      "pnl_pct": 3.7,
+      "timestamp": "2026-04-17T16:42:06"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "IBKR up 3.7% \u2014 moving SL to breakeven $79.35 (was $73.38)",
+      "action_taken": "SL moved to breakeven $79.35",
+      "current_price": 82.28,
+      "entry_price": 79.345882,
+      "pnl_pct": 3.7,
+      "timestamp": "2026-04-17T16:42:06"
+    },
+    {
+      "ticker": "URI",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 807.42,
+      "entry_price": 771.92,
+      "pnl_pct": 4.6,
+      "timestamp": "2026-04-17T16:42:11"
+    }
+  ]
+}
