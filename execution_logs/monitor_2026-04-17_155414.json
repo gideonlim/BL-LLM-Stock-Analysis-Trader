@@ -1,0 +1,76 @@
+{
+  "monitored_at": "2026-04-17T15:54:14",
+  "positions_checked": 8,
+  "orphaned": 2,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "CHRW",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CHRW missing stop loss leg. P&L: +0.8%",
+      "action_taken": "Reattached OCO: SL=$176.87, TP=$204.8",
+      "current_price": 186.18,
+      "entry_price": 184.64,
+      "pnl_pct": 0.83,
+      "timestamp": "2026-04-17T15:53:57"
+    },
+    {
+      "ticker": "FAF",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 66.34,
+      "entry_price": 62.7,
+      "pnl_pct": 5.81,
+      "timestamp": "2026-04-17T15:54:04"
+    },
+    {
+      "ticker": "FAF",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "FAF up 5.8% \u2014 tightening SL from $62.85 to $63.25 (Chandelier: HH=$66.34, ATR=1.55)",
+      "action_taken": "SL tightened to $63.25",
+      "current_price": 66.34,
+      "entry_price": 62.7,
+      "pnl_pct": 5.81,
+      "timestamp": "2026-04-17T15:54:04"
+    },
+    {
+      "ticker": "GME",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GME missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$23.72, TP=$27.46",
+      "current_price": 24.965,
+      "entry_price": 24.95,
+      "pnl_pct": 0.06,
+      "timestamp": "2026-04-17T15:54:08"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 82.1,
+      "entry_price": 79.345882,
+      "pnl_pct": 3.47,
+      "timestamp": "2026-04-17T15:54:14"
+    },
+    {
+      "ticker": "URI",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 805.2,
+      "entry_price": 771.92,
+      "pnl_pct": 4.31,
+      "timestamp": "2026-04-17T15:54:14"
+    }
+  ]
+}
