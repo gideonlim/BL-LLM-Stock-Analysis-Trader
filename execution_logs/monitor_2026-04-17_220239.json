@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-04-17T22:02:39",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FAF",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 66.01,
+      "entry_price": 62.7,
+      "pnl_pct": 5.28,
+      "timestamp": "2026-04-17T22:02:38"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 81.72,
+      "entry_price": 79.345882,
+      "pnl_pct": 2.99,
+      "timestamp": "2026-04-17T22:02:38"
+    },
+    {
+      "ticker": "URI",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 795.88,
+      "entry_price": 771.92,
+      "pnl_pct": 3.1,
+      "timestamp": "2026-04-17T22:02:39"
+    }
+  ]
+}
