@@ -12,7 +12,7 @@
       "take_profit": 5664.85,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 43.14,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 4920.0,
@@ -28,7 +28,7 @@
       "take_profit": 552.59,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 42.02,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 442.95001220703125,
@@ -44,7 +44,7 @@
       "take_profit": 646.95,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.83,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 567.1,
@@ -60,7 +60,7 @@
       "take_profit": 3862.73,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.12,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 3471.0,
@@ -76,7 +76,7 @@
       "take_profit": 1330.28,
       "strategy": "52-Week High Momentum",
       "composite_score": 31.39,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1273.5,
@@ -92,10 +92,10 @@
       "take_profit": 4759.6,
       "strategy": "VWAP Trend",
       "composite_score": 98.82,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 6,
-      "max_price": 4363.0,
+      "max_price": 4755.0,
       "min_price": 4363.0
     }
   ],
@@ -145,7 +145,15 @@
       "num_positions": 6,
       "total_pnl": -539.18,
       "total_pnl_pct": -1.08
+    },
+    {
+      "date": "2026-04-17",
+      "equity": 50205.18,
+      "cash": 425.43,
+      "num_positions": 6,
+      "total_pnl": 205.18,
+      "total_pnl_pct": 0.41
     }
   ],
-  "last_run_date": "2026-04-16"
+  "last_run_date": "2026-04-17"
 }
