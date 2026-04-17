@@ -49,6 +49,13 @@
       "new_sl": 62.7,
       "reason": "breakeven",
       "price_at_modification": 65.94
+    },
+    {
+      "date": "2026-04-17T14:46:35",
+      "old_sl": 62.7,
+      "new_sl": 62.85,
+      "reason": "trailing",
+      "price_at_modification": 65.94
     }
   ],
   "price_samples": [
