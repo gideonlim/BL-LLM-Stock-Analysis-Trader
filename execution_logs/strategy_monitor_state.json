@@ -31,15 +31,15 @@
     "strategy": "MACD Crossover",
     "state": "ACTIVE",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": 0.0,
-    "rolling_win_rate": 0.0,
+    "rolling_sharpe": 0.2761,
+    "rolling_win_rate": 0.5,
     "baseline_win_rate": 0.0,
-    "consec_losses": 1,
-    "mean_r": -0.53,
+    "consec_losses": 0,
+    "mean_r": 0.655,
     "strategy_drawdown_pct": 2.99,
-    "closed_trades": 1,
+    "closed_trades": 2,
     "last_transition": "",
-    "note": "Insufficient trade history (1/5)"
+    "note": "Insufficient trade history (2/5)"
   },
   "Stochastic Oscillator": {
     "strategy": "Stochastic Oscillator",
@@ -51,6 +51,20 @@
     "consec_losses": 1,
     "mean_r": 0.0,
     "strategy_drawdown_pct": 5.03,
+    "closed_trades": 1,
+    "last_transition": "",
+    "note": "Insufficient trade history (1/5)"
+  },
+  "ADX Trend Following": {
+    "strategy": "ADX Trend Following",
+    "state": "ACTIVE",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": 0.0,
+    "rolling_win_rate": 0.0,
+    "baseline_win_rate": 0.0,
+    "consec_losses": 1,
+    "mean_r": -0.02,
+    "strategy_drawdown_pct": 0.07,
     "closed_trades": 1,
     "last_transition": "",
     "note": "Insufficient trade history (1/5)"
