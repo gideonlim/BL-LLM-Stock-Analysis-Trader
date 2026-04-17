@@ -1,0 +1,109 @@
+{
+  "monitored_at": "2026-04-17T14:42:22",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 3,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "CUBE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "CUBE up 6.8% \u2014 tightening SL from $37.55 to $38.51 (Chandelier: HH=$40.10, ATR=0.80)",
+      "action_taken": "SL tightened to $38.51",
+      "current_price": 40.1,
+      "entry_price": 37.55,
+      "pnl_pct": 6.79,
+      "timestamp": "2026-04-17T14:42:18"
+    },
+    {
+      "ticker": "CUBE",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "CUBE exceeded max hold period (10 days). P&L: +6.8%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 40.1,
+      "entry_price": 37.55,
+      "pnl_pct": 6.79,
+      "timestamp": "2026-04-17T14:42:18"
+    },
+    {
+      "ticker": "FAF",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 65.94,
+      "entry_price": 62.7,
+      "pnl_pct": 5.17,
+      "timestamp": "2026-04-17T14:42:19"
+    },
+    {
+      "ticker": "FAF",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "FAF up 5.2% \u2014 moving SL to breakeven $62.70 (was $58.26)",
+      "action_taken": "SL moved to breakeven $62.70",
+      "current_price": 65.94,
+      "entry_price": 62.7,
+      "pnl_pct": 5.17,
+      "timestamp": "2026-04-17T14:42:19"
+    },
+    {
+      "ticker": "FAF",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "FAF up 5.2% \u2014 tightening SL from $62.70 to $62.85 (Chandelier: HH=$65.94, ATR=1.55)",
+      "action_taken": "Failed to replace SL",
+      "current_price": 65.94,
+      "entry_price": 62.7,
+      "pnl_pct": 5.17,
+      "timestamp": "2026-04-17T14:42:20"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 81.77,
+      "entry_price": 79.345882,
+      "pnl_pct": 3.06,
+      "timestamp": "2026-04-17T14:42:20"
+    },
+    {
+      "ticker": "PK",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "PK up 6.4% \u2014 tightening SL from $10.82 to $10.83 (Chandelier: HH=$11.49, ATR=0.33)",
+      "action_taken": "SL tightened to $10.83",
+      "current_price": 11.405,
+      "entry_price": 10.72,
+      "pnl_pct": 6.39,
+      "timestamp": "2026-04-17T14:42:21"
+    },
+    {
+      "ticker": "URI",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 802.36,
+      "entry_price": 771.92,
+      "pnl_pct": 3.94,
+      "timestamp": "2026-04-17T14:42:22"
+    },
+    {
+      "ticker": "URI",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "URI up 3.9% \u2014 moving SL to breakeven $771.92 (was $733.29)",
+      "action_taken": "SL moved to breakeven $771.92",
+      "current_price": 802.36,
+      "entry_price": 771.92,
+      "pnl_pct": 3.94,
+      "timestamp": "2026-04-17T14:42:22"
+    }
+  ]
+}
