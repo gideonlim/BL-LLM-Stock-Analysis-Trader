@@ -1,0 +1,2 @@
+trade_id,ticker,strategy,side,entry_signal_price,entry_fill_price,exit_price,exit_reason,realized_pnl,r_multiple,holding_days,mfe,mae,edge_ratio,etd,entry_vix,entry_market_regime,sl_price,tp_price,entry_slippage,exit_slippage,status
+NG.L_sim_a1b6f643,NG.L,Momentum (Rate of Change),long,1340.6,1340.6,1301.75,stop_loss,-241.5,-1.0,3,,,0.0,38.85,0.0,,,,0.0,0.0,closed
