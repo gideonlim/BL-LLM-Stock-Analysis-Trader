@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-04-20T16:02:37",
+  "positions_checked": 8,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ACGL missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$92.92, TP=$107.59",
+      "current_price": 97.81,
+      "entry_price": 98.07,
+      "pnl_pct": -0.27,
+      "timestamp": "2026-04-20T16:02:32"
+    },
+    {
+      "ticker": "EOG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EOG missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$122.59, TP=$141.94",
+      "current_price": 129.04,
+      "entry_price": 128.97,
+      "pnl_pct": 0.05,
+      "timestamp": "2026-04-20T16:02:34"
+    },
+    {
+      "ticker": "FDX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FDX missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$374.2, TP=$433.28",
+      "current_price": 393.895,
+      "entry_price": 394.08,
+      "pnl_pct": -0.05,
+      "timestamp": "2026-04-20T16:02:35"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 81.56,
+      "entry_price": 79.345882,
+      "pnl_pct": 2.79,
+      "timestamp": "2026-04-20T16:02:36"
+    },
+    {
+      "ticker": "MPC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MPC missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$204.16, TP=$236.4",
+      "current_price": 214.905,
+      "entry_price": 214.71,
+      "pnl_pct": 0.09,
+      "timestamp": "2026-04-20T16:02:37"
+    }
+  ]
+}
