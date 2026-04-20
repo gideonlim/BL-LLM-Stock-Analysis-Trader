@@ -1,0 +1,120 @@
+{
+  "monitored_at": "2026-04-20T15:04:40",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 4,
+  "alerts": [
+    {
+      "ticker": "CMS",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "CMS exceeded max hold period (10 days). P&L: -2.1%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 78.18,
+      "entry_price": 79.87,
+      "pnl_pct": -2.12,
+      "timestamp": "2026-04-20T15:04:09"
+    },
+    {
+      "ticker": "FAF",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 66.625,
+      "entry_price": 62.7,
+      "pnl_pct": 6.26,
+      "timestamp": "2026-04-20T15:04:16"
+    },
+    {
+      "ticker": "FAF",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "FAF up 6.3% \u2014 tightening SL from $63.25 to $63.34 (Chandelier: HH=$66.62, ATR=1.64)",
+      "action_taken": "SL tightened to $63.34",
+      "current_price": 66.625,
+      "entry_price": 62.7,
+      "pnl_pct": 6.26,
+      "timestamp": "2026-04-20T15:04:16"
+    },
+    {
+      "ticker": "FAF",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "FAF exceeded max hold period (10 days). P&L: +6.3%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 66.625,
+      "entry_price": 62.7,
+      "pnl_pct": 6.26,
+      "timestamp": "2026-04-20T15:04:20"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 81.09,
+      "entry_price": 79.345882,
+      "pnl_pct": 2.2,
+      "timestamp": "2026-04-20T15:04:26"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_stop_tighten",
+      "severity": "warning",
+      "message": "IBKR earnings in 1d (2026-04-21) \u2014 tightening SL from $79.35 to $80.22 to lock in gains (+2.2%)",
+      "action_taken": "SL tightened to $80.22",
+      "current_price": 81.09,
+      "entry_price": 79.345882,
+      "pnl_pct": 2.2,
+      "timestamp": "2026-04-20T15:04:26"
+    },
+    {
+      "ticker": "PK",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "PK up 6.9% \u2014 tightening SL from $10.83 to $10.84 (Chandelier: HH=$11.49, ATR=0.33)",
+      "action_taken": "SL tightened to $10.84",
+      "current_price": 11.455,
+      "entry_price": 10.72,
+      "pnl_pct": 6.86,
+      "timestamp": "2026-04-20T15:04:29"
+    },
+    {
+      "ticker": "PK",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "PK exceeded max hold period (10 days). P&L: +6.9%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 11.455,
+      "entry_price": 10.72,
+      "pnl_pct": 6.86,
+      "timestamp": "2026-04-20T15:04:32"
+    },
+    {
+      "ticker": "URI",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-04-22) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 814.8,
+      "entry_price": 771.92,
+      "pnl_pct": 5.55,
+      "timestamp": "2026-04-20T15:04:36"
+    },
+    {
+      "ticker": "URI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "URI exceeded max hold period (10 days). P&L: +5.6%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 814.8,
+      "entry_price": 771.92,
+      "pnl_pct": 5.55,
+      "timestamp": "2026-04-20T15:04:36"
+    }
+  ]
+}
