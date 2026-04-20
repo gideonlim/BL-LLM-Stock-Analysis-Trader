@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 420.01281504488907,
+  "cash": 8400.252815044889,
   "positions": [
     {
       "ticker": "5801.T",
@@ -12,7 +12,7 @@
       "take_profit": 64340.2,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.14,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 46880.0,
@@ -28,7 +28,7 @@
       "take_profit": 8091.16,
       "strategy": "PEAD Earnings Drift",
       "composite_score": 30.7,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 5935.0,
@@ -44,7 +44,7 @@
       "take_profit": 4530.59,
       "strategy": "VWAP Trend",
       "composite_score": 27.29,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": 4485.0,
@@ -60,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 53.44,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 6,
       "max_price": NaN,
@@ -76,27 +76,11 @@
       "take_profit": 3090.54,
       "strategy": "VWAP Trend",
       "composite_score": 62.99,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2743.0,
       "min_price": 2743.0
-    },
-    {
-      "ticker": "6305.T",
-      "entry_date": "2026-04-19",
-      "entry_price": 5365.0,
-      "qty": 1.4875,
-      "notional": 7980.24,
-      "stop_loss": 5017.35,
-      "take_profit": 6407.96,
-      "strategy": "VWAP Trend",
-      "composite_score": 53.05,
-      "holding_days": 0,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 5365.0,
-      "min_price": 5365.0
     }
   ],
   "closed_trades": [
@@ -207,6 +191,18 @@
       "pnl": 30.65,
       "pnl_pct": 0.37,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "6305.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-04-19",
+      "exit_date": "2026-04-20",
+      "entry_price": 5365.0,
+      "exit_price": 5365.0,
+      "qty": 1.4875,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -257,7 +253,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-04-20",
+      "equity": NaN,
+      "cash": 8400.25,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-04-19"
+  "last_run_date": "2026-04-20"
 }
