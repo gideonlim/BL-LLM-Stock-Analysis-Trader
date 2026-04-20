@@ -23,16 +23,16 @@
   "initial_risk_dollars": 386.3,
   "initial_reward_dollars": 517.9,
   "planned_rr_ratio": 1.34,
-  "exit_price": 0.0,
-  "exit_date": "",
-  "exit_reason": "",
+  "exit_price": 814.8,
+  "exit_date": "2026-04-20T15:07:39",
+  "exit_reason": "market_close",
   "exit_order_id": "",
-  "exit_fill_price": 0.0,
+  "exit_fill_price": 814.8,
   "exit_slippage": 0.0,
-  "realized_pnl": 0.0,
-  "realized_pnl_pct": 0.0,
-  "r_multiple": 0.0,
-  "holding_days": 0,
+  "realized_pnl": 428.8,
+  "realized_pnl_pct": 5.55,
+  "r_multiple": 1.11,
+  "holding_days": 10,
   "max_favorable_excursion": 814.8,
   "max_adverse_excursion": 761.49,
   "mfe_pct": 5.55,
@@ -41,7 +41,7 @@
   "mae_date": "2026-04-15",
   "etd": 0.0,
   "etd_pct": 0.0,
-  "edge_ratio": 0.0,
+  "edge_ratio": 4.11,
   "sl_modifications": [
     {
       "date": "2026-04-17T14:42:22",
@@ -81,9 +81,9 @@
       "price": 814.8
     }
   ],
-  "status": "open",
+  "status": "closed",
   "opened_at": "2026-04-10T15:07:26",
-  "closed_at": "",
+  "closed_at": "2026-04-20T15:07:39",
   "tags": [],
   "notes": ""
 }
