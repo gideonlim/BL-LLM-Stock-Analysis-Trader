@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-20T15:44:13",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "IBKR",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 81.59,
+      "entry_price": 79.345882,
+      "pnl_pct": 2.83,
+      "timestamp": "2026-04-20T15:44:13"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "earnings_stop_tighten",
+      "severity": "warning",
+      "message": "IBKR earnings in 1d (2026-04-21) \u2014 tightening SL from $80.22 to $80.47 to lock in gains (+2.8%)",
+      "action_taken": "SL tightened to $80.47",
+      "current_price": 81.59,
+      "entry_price": 79.345882,
+      "pnl_pct": 2.83,
+      "timestamp": "2026-04-20T15:44:13"
+    }
+  ]
+}
