@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 430.0995064770841,
+  "cash": 437.8758603238548,
   "positions": [
     {
       "ticker": "EDV.L",
@@ -12,7 +12,7 @@
       "take_profit": 5664.85,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 43.14,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 4987.0,
@@ -28,7 +28,7 @@
       "take_profit": 552.59,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 42.02,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 452.8500061035156,
@@ -44,7 +44,7 @@
       "take_profit": 646.95,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.83,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 567.1,
@@ -60,10 +60,10 @@
       "take_profit": 1330.28,
       "strategy": "52-Week High Momentum",
       "composite_score": 31.39,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1274.0,
+      "max_price": 1274.5,
       "min_price": 1273.0
     },
     {
@@ -76,27 +76,27 @@
       "take_profit": 986.02,
       "strategy": "ADX Trend Following",
       "composite_score": 73.42,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 921.0,
-      "min_price": 921.0
+      "min_price": 896.5999755859375
     },
     {
-      "ticker": "SSE.L",
-      "entry_date": "2026-04-20",
-      "entry_price": 2469.5,
-      "qty": 3.3091,
-      "notional": 8171.89,
-      "stop_loss": 2352.94,
-      "take_profit": 2819.18,
-      "strategy": "ADX Trend Following",
-      "composite_score": 72.13,
+      "ticker": "IMI.L",
+      "entry_date": "2026-04-21",
+      "entry_price": 2888.0,
+      "qty": 2.8808,
+      "notional": 8319.64,
+      "stop_loss": 2770.17,
+      "take_profit": 3300.41,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 41.51,
       "holding_days": 0,
       "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 2469.5,
-      "min_price": 2469.5
+      "confidence_score": 4,
+      "max_price": 2888.0,
+      "min_price": 2888.0
     }
   ],
   "closed_trades": [
@@ -135,6 +135,18 @@
       "pnl": 734.74,
       "pnl_pct": 9.09,
       "exit_reason": "take_profit"
+    },
+    {
+      "ticker": "SSE.L",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-04-20",
+      "exit_date": "2026-04-21",
+      "entry_price": 2469.5,
+      "exit_price": 2516.5,
+      "qty": 3.3091,
+      "pnl": 155.53,
+      "pnl_pct": 1.9,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -185,7 +197,15 @@
       "num_positions": 6,
       "total_pnl": 454.54,
       "total_pnl_pct": 0.91
+    },
+    {
+      "date": "2026-04-21",
+      "equity": 50149.79,
+      "cash": 437.88,
+      "num_positions": 6,
+      "total_pnl": 149.79,
+      "total_pnl_pct": 0.3
     }
   ],
-  "last_run_date": "2026-04-20"
+  "last_run_date": "2026-04-21"
 }
