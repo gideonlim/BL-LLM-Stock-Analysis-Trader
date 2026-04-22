@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-22T16:05:09",
+  "positions_checked": 6,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FN missing stop loss leg. P&L: +0.2%",
+      "action_taken": "Reattached OCO: SL=$666.14, TP=$771.32",
+      "current_price": 701.2,
+      "entry_price": 699.96,
+      "pnl_pct": 0.18,
+      "timestamp": "2026-04-22T16:05:07"
+    },
+    {
+      "ticker": "IBKR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "IBKR missing stop loss leg. P&L: -1.8%",
+      "action_taken": "Reattached OCO: SL=$73.86, TP=$85.53",
+      "current_price": 77.75,
+      "entry_price": 79.14,
+      "pnl_pct": -1.76,
+      "timestamp": "2026-04-22T16:05:08"
+    }
+  ]
+}
