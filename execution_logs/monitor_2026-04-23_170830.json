@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-04-23T17:08:30",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 97.57,
+      "entry_price": 98.07,
+      "pnl_pct": -0.51,
+      "timestamp": "2026-04-23T17:08:27"
+    },
+    {
+      "ticker": "ARW",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "ARW up 6.5% \u2014 tightening SL from $177.23 to $177.89 (Chandelier: HH=$188.66, ATR=5.38)",
+      "action_taken": "SL tightened to $177.89",
+      "current_price": 188.66,
+      "entry_price": 177.16,
+      "pnl_pct": 6.49,
+      "timestamp": "2026-04-23T17:08:27"
+    },
+    {
+      "ticker": "EXE",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 95.61,
+      "entry_price": 95.68,
+      "pnl_pct": -0.07,
+      "timestamp": "2026-04-23T17:08:28"
+    }
+  ]
+}
