@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-04-23T16:26:09",
+  "positions_checked": 7,
+  "orphaned": 2,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 97.54,
+      "entry_price": 98.07,
+      "pnl_pct": -0.54,
+      "timestamp": "2026-04-23T16:26:05"
+    },
+    {
+      "ticker": "ARW",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "ARW up 6.1% \u2014 tightening SL from $177.16 to $177.23 (Chandelier: HH=$188.00, ATR=5.38)",
+      "action_taken": "SL tightened to $177.23",
+      "current_price": 188.0,
+      "entry_price": 177.16,
+      "pnl_pct": 6.12,
+      "timestamp": "2026-04-23T16:26:05"
+    },
+    {
+      "ticker": "EXE",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 95.64,
+      "entry_price": 95.68,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-04-23T16:26:06"
+    },
+    {
+      "ticker": "EXE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EXE missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$90.86, TP=$105.2",
+      "current_price": 95.64,
+      "entry_price": 95.68,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-04-23T16:26:06"
+    },
+    {
+      "ticker": "POR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "POR missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$48.73, TP=$56.42",
+      "current_price": 51.29,
+      "entry_price": 51.31,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-04-23T16:26:08"
+    }
+  ]
+}
