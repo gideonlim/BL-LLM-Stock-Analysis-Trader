@@ -1,0 +1,5 @@
+trade_id,ticker,strategy,side,entry_signal_price,entry_fill_price,exit_price,exit_reason,realized_pnl,r_multiple,holding_days,mfe,mae,edge_ratio,etd,entry_vix,entry_market_regime,sl_price,tp_price,entry_slippage,exit_slippage,status
+ITRK.L_sim_d9b210d8,ITRK.L,VWAP Trend,long,4363.0,4363.0,4759.6,take_profit,734.74,1.5,2,,,0.0,209.4,0.0,,,,0.0,0.0,closed
+NG.L_sim_a1b6f643,NG.L,Momentum (Rate of Change),long,1340.6,1340.6,1301.75,stop_loss,-241.5,-1.0,3,,,0.0,38.85,0.0,,,,0.0,0.0,closed
+SHEL.L_sim_12c32a8a,SHEL.L,52-Week High Momentum,long,3466.5,3466.5,3311.51,stop_loss,-372.6,-1.0,5,,,0.02,159.49,0.0,,,,0.0,0.0,closed
+SSE.L_sim_09acb9fc,SSE.L,ADX Trend Following,long,2469.5,2469.5,2516.5,exit_signal,155.53,0.4,1,,,0.0,0.0,0.0,,,,0.0,0.0,closed
