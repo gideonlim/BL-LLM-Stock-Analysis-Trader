@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-23T22:03:52",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 98.065,
+      "entry_price": 98.07,
+      "pnl_pct": -0.01,
+      "timestamp": "2026-04-23T22:03:50"
+    },
+    {
+      "ticker": "EXE",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 96.26,
+      "entry_price": 95.68,
+      "pnl_pct": 0.61,
+      "timestamp": "2026-04-23T22:03:50"
+    }
+  ]
+}
