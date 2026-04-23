@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-23T15:26:51",
+  "positions_checked": 6,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 97.495,
+      "entry_price": 98.07,
+      "pnl_pct": -0.59,
+      "timestamp": "2026-04-23T15:26:49"
+    },
+    {
+      "ticker": "ARW",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "ARW up 5.9% \u2014 moving SL to breakeven $177.16 (was $165.46)",
+      "action_taken": "SL moved to breakeven $177.16",
+      "current_price": 187.69,
+      "entry_price": 177.16,
+      "pnl_pct": 5.94,
+      "timestamp": "2026-04-23T15:26:49"
+    }
+  ]
+}
