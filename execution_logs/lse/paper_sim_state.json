@@ -12,11 +12,11 @@
       "take_profit": 5664.85,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 43.14,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 4987.0,
-      "min_price": 4737.0
+      "min_price": 4540.0
     },
     {
       "ticker": "BARC.L",
@@ -28,11 +28,11 @@
       "take_profit": 552.59,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 42.02,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 452.8500061035156,
-      "min_price": 434.25
+      "min_price": 423.7749938964844
     },
     {
       "ticker": "GLEN.L",
@@ -44,7 +44,7 @@
       "take_profit": 646.95,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.83,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 567.1,
@@ -60,7 +60,7 @@
       "take_profit": 1330.28,
       "strategy": "52-Week High Momentum",
       "composite_score": 31.39,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1276.0,
@@ -76,7 +76,7 @@
       "take_profit": 986.02,
       "strategy": "ADX Trend Following",
       "composite_score": 73.42,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 924.2000122070312,
@@ -92,7 +92,7 @@
       "take_profit": 3300.41,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 41.51,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2888.0,
@@ -221,7 +221,15 @@
       "num_positions": 6,
       "total_pnl": -104.34,
       "total_pnl_pct": -0.21
+    },
+    {
+      "date": "2026-04-24",
+      "equity": 49061.97,
+      "cash": 437.88,
+      "num_positions": 6,
+      "total_pnl": -938.03,
+      "total_pnl_pct": -1.88
     }
   ],
-  "last_run_date": "2026-04-23"
+  "last_run_date": "2026-04-24"
 }
