@@ -1,0 +1,27 @@
+trade_id,ticker,strategy,side,entry_signal_price,entry_fill_price,exit_price,exit_reason,realized_pnl,r_multiple,holding_days,mfe,mae,edge_ratio,etd,entry_vix,entry_market_regime,sl_price,tp_price,entry_slippage,exit_slippage,status
+ARW_95d34ae2,ARW,VWAP Trend,long,174.9,177.16,187.57,market_close,416.4,0.89,10,,,1.38,1.25,18.229999542236328,NEUTRAL,,,2.26,0.0,closed
+BGC_120cfa1e,BGC,MACD Crossover,long,9.84,9.69,9.4,time_exit,-313.49,-0.53,12,,,0.36,0.39,23.450000762939453,FEAR,,,-0.15,0.0,closed
+CHRW_c34d8407,CHRW,VWAP Trend,long,181.61,184.64,183.4,market_close,-49.6,-0.1,5,,,0.38,2.78,17.5,NEUTRAL,,,3.03,0.0,closed
+CI_migrated,CI,Z-Score Mean Reversion,long,268.43,268.43,262.246364,take_profit,-272.08,0.0,16,,,0.47,9.41,23.450000762939453,FEAR,,,0.0,-0.3064,closed
+CMS_84230915,CMS,ADX Trend Following,long,79.94,79.87,78.18,market_close,-229.84,-1.01,10,,,0.03,1.79,19.15999984741211,FEAR,,,-0.07,0.0,closed
+CUBE_f1496571,CUBE,MACD Crossover,long,37.2,37.55,40.11,market_close,655.36,1.84,10,,,9.05,-0.01,26.75,FEAR,,,0.35,0.0,closed
+CVS_4fc834e1,CVS,VWAP Trend,long,78.22,78.16,78.93,market_close,86.24,0.25,1,,,0.0,0.01,21.280000686645508,FEAR,,,-0.06,0.0,closed
+C_37be8dbc,C,VWAP Trend,long,107.38,109.06,123.86,time_exit,1465.2,2.82,11,,,7.54,1.07,29.90999984741211,FEAR,,,1.68,0.0,closed
+EOG_339067ec,EOG,VWAP Trend,long,128.43,128.97,130.58,market_close,106.26,0.2,1,,,0.0,0.2,19.3700008392334,FEAR,,,0.54,0.0,closed
+FAF_4e39121d,FAF,ADX Trend Following,long,60.84,62.7,66.46,market_close,522.64,0.85,12,,,12.27,0.17,21.280000686645508,FEAR,,,1.86,0.0,closed
+FLG_23dc7804,FLG,VWAP Trend,long,13.05,13.13,14.01,time_exit,726.0,1.35,11,,,4.19,0.21,29.90999984741211,FEAR,,,0.08,0.0,closed
+FN_bd481803,FN,52-Week High Momentum,long,695.52,699.96,700.86,market_close,8.1,0.01,1,,,1.12,9.97,19.280000686645508,FEAR,,,4.44,0.0,closed
+INTC_538232b3,INTC,VWAP Trend,long,52.91,57.41,63.7,take_profit,956.08,1.01,5,,,0.0,-0.51,21.280000686645508,FEAR,,,4.5,-0.09,closed
+MPC_7ff36fa5,MPC,VWAP Trend,long,213.69,214.71,215.93,market_close,43.92,0.06,1,,,3.88,0.77,19.3700008392334,FEAR,,,1.02,0.0,closed
+MS_migrated,MS,VWAP Trend,long,156.86,156.86,158.38,time_exit,115.52,,14,,,0.0,5.97,23.450000762939453,FEAR,,,0.0,,closed
+NI_d6955750,NI,VWAP Trend,long,45.97,46.65,48.17,time_exit,352.64,1.35,11,,,5.48,0.55,29.90999984741211,FEAR,,,0.68,0.0,closed
+PK_93a036d1,PK,VWAP Trend,long,10.27,10.72,11.45,market_close,607.36,1.49,12,,,0.0,0.04,21.280000686645508,FEAR,,,0.45,0.0,closed
+POR_3cd65cf4,POR,VWAP Trend,long,50.34,51.31,51.07,market_close,-51.36,-0.21,1,,,0.66,0.38,19.219999313354492,FEAR,,,0.97,0.0,closed
+REG_34392fa5,REG,VWAP Trend,long,76.98,76.942353,77.24,market_close,40.48,0.19,1,,,0.91,0.01,23.8700008392334,FEAR,,,-0.0376,0.0,closed
+SBUX_migrated,SBUX,VWAP Trend,long,99.27,99.27,92.928,stop_loss,-761.04,0.0,3,,,0.0,6.34,23.450000762939453,FEAR,,,0.0,0.012,closed
+SJM_c266ba81,SJM,VWAP Trend,long,92.47,91.78,90.92,market_close,-101.48,-0.32,4,,,0.08,1.14,19.15999984741211,FEAR,,,-0.69,0.0,closed
+SLB_migrated,SLB,VWAP Trend,long,44.83,44.83,49.47,take_profit,1238.88,0.0,8,,,0.0,-1.64,23.450000762939453,FEAR,,,0.0,0.0,closed
+SPG_migrated,SPG,Z-Score Mean Reversion,long,190.02,190.02,179.956191,stop_loss,-422.68,0.0,8,,,0.0,0.0,23.450000762939453,FEAR,,,0.0,-0.0962,closed
+SYK_migrated,SYK,Stochastic Oscillator,long,346.48,346.48,329.05,stop_loss,-592.62,0.0,8,,,0.0,17.44,23.450000762939453,FEAR,,,0.0,2.67,closed
+URI_6e64d9c0,URI,VWAP Trend,long,767.36,771.92,814.8,market_close,428.8,1.11,10,,,4.11,0.0,19.15999984741211,FEAR,,,4.56,0.0,closed
+VRSN_c37009b5,VRSN,VWAP Trend,long,251.7,252.63,259.09,market_close,277.78,0.72,7,,,1.36,0.45,26.790000915527344,FEAR,,,0.93,0.0,closed
