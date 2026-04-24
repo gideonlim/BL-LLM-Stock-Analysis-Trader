@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-04-24T16:00:45",
+  "positions_checked": 7,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AAON",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "AAON missing stop loss leg. P&L: +1.6%",
+      "action_taken": "Reattached OCO: SL=$96.04, TP=$111.2",
+      "current_price": 101.09,
+      "entry_price": 99.52,
+      "pnl_pct": 1.58,
+      "timestamp": "2026-04-24T16:00:40"
+    },
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 96.875,
+      "entry_price": 98.07,
+      "pnl_pct": -1.22,
+      "timestamp": "2026-04-24T16:00:41"
+    },
+    {
+      "ticker": "EXE",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 95.16,
+      "entry_price": 95.68,
+      "pnl_pct": -0.54,
+      "timestamp": "2026-04-24T16:00:42"
+    },
+    {
+      "ticker": "WAB",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "WAB missing stop loss leg. P&L: +0.5%",
+      "action_taken": "Reattached OCO: SL=$255.82, TP=$296.21",
+      "current_price": 269.28,
+      "entry_price": 267.93,
+      "pnl_pct": 0.5,
+      "timestamp": "2026-04-24T16:00:44"
+    }
+  ]
+}
