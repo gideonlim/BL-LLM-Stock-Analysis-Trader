@@ -173,7 +173,7 @@ class TradingConfig:
     signals_dir: Path = Path("signals")
 
     # Order defaults
-    time_in_force: str = "day"  # "day" or "gtc"
+    time_in_force: str = "gtc"  # "day" or "gtc"
     order_type: str = "market"  # "market" or "limit"
 
     # Max % above signal price willing to pay on entry.
