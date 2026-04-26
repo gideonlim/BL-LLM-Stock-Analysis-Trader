@@ -228,7 +228,8 @@ def _run_monitor_only(
                 log.debug(f"Journal resolve failed: {exc}")
             try:
                 _journal.detect_closed_trades(
-                    portfolio.positions, journal_dir, broker
+                    portfolio.positions, journal_dir, broker,
+                    max_hold_days=config.risk.max_hold_days,
                 )
             except Exception as exc:
                 log.debug(

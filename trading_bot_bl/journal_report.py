@@ -1302,6 +1302,12 @@ def generate_pdf_report(
         color = GREEN if v > 0 else (RED if v < 0 else NEUTRAL)
         return f'<font color="{color}">${v:+,.2f}</font>'
 
+    def _fmt_pf(v: float) -> str:
+        """Format profit factor, handling infinity."""
+        if v == float("inf") or v > 99:
+            return "∞"  # ∞ symbol
+        return f"{v:.2f}"
+
     def _fmt_pct(v):
         color = GREEN if v > 0 else (RED if v < 0 else NEUTRAL)
         return f'<font color="{color}">{v:+.1f}%</font>'
@@ -1327,7 +1333,7 @@ def generate_pdf_report(
     metrics_data = [
         [_lbl("Win Rate"), _val(f"{o.win_rate:.1%}"),
          _lbl("Profit Factor"),
-         _cvt(f"{o.profit_factor:.2f}", o.profit_factor, 1.0)],
+         _cvt(_fmt_pf(o.profit_factor), o.profit_factor, 1.0)],
         [_lbl("Closed P&amp;L"),
          Paragraph(_fmt_pnl(o.total_pnl), styles["CellValue"]),
          _lbl("Expectancy"),
@@ -1666,7 +1672,7 @@ def generate_pdf_report(
                 _cell(str(s.trade_count)),
                 _cvt(f"{s.win_rate:.0%}", s.win_rate, 0.50,
                      "CellSmall"),
-                _cvt(f"{s.profit_factor:.2f}", s.profit_factor, 1.0,
+                _cvt(_fmt_pf(s.profit_factor), s.profit_factor, 1.0,
                      "CellSmall"),
                 _cv(f"{s.avg_r:+.2f}", s.avg_r, "CellSmall"),
                 Paragraph(
@@ -1691,7 +1697,7 @@ def generate_pdf_report(
                 _cell(str(r.trade_count)),
                 _cvt(f"{r.win_rate:.0%}", r.win_rate, 0.50,
                      "CellSmall"),
-                _cvt(f"{r.profit_factor:.2f}", r.profit_factor, 1.0,
+                _cvt(_fmt_pf(r.profit_factor), r.profit_factor, 1.0,
                      "CellSmall"),
                 _cv(f"{r.avg_r:+.2f}", r.avg_r, "CellSmall"),
                 Paragraph(

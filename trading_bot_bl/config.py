@@ -182,6 +182,15 @@ class TradingConfig:
     # stock gaps up more than 1.5% from the signal price).
     max_entry_slippage_pct: float = 1.0
 
+    # Max % drift between signal price and live price before
+    # rejecting the order entirely. Signals are generated
+    # pre-market; by execution time the price may have moved
+    # significantly. If live_price is more than this % above
+    # signal_price (for buys), the trade is skipped.
+    # 0 = no drift check (disabled).
+    # 3.0 = reject if live price drifted > 3% from signal.
+    max_signal_drift_pct: float = 3.0
+
     # Dry run mode: log what would be done without submitting
     dry_run: bool = False
 
@@ -404,6 +413,9 @@ class TradingConfig:
             max_entry_slippage_pct=float(
                 os.getenv("MAX_ENTRY_SLIPPAGE_PCT", "1.0")
             ),
+            max_signal_drift_pct=float(
+                os.getenv("MAX_SIGNAL_DRIFT_PCT", "3.0")
+            ),
             dry_run=os.getenv("DRY_RUN", "false").lower()
             in ("true", "1", "yes"),
             history_lookback_days=int(
@@ -567,6 +579,10 @@ class TradingConfig:
             if "max_entry_slippage_pct" in overrides:
                 config.max_entry_slippage_pct = float(
                     overrides["max_entry_slippage_pct"]
+                )
+            if "max_signal_drift_pct" in overrides:
+                config.max_signal_drift_pct = float(
+                    overrides["max_signal_drift_pct"]
                 )
             if "history_lookback_days" in overrides:
                 config.history_lookback_days = int(

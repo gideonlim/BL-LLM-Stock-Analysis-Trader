@@ -376,7 +376,8 @@ def execute(
             log.debug(f"Journal resolve failed: {exc}")
         try:
             _journal.detect_closed_trades(
-                portfolio.positions, journal_dir, broker
+                portfolio.positions, journal_dir, broker,
+                max_hold_days=config.risk.max_hold_days,
             )
         except Exception as exc:
             log.debug(f"Journal detect_closed failed: {exc}")
@@ -840,6 +841,35 @@ def execute(
                     (live_price - signal_price)
                     / signal_price * 100
                 )
+
+                # Reject if live price has drifted too far
+                # from signal price. Signals are generated
+                # pre-market; a large gap-up means the entry
+                # thesis may no longer hold and we'd be
+                # chasing.
+                max_drift = config.max_signal_drift_pct
+                if max_drift > 0 and abs(drift_pct) > max_drift:
+                    log.warning(
+                        f"  {approved_order.ticker}: SKIPPED — "
+                        f"live ${live_price:.2f} vs signal "
+                        f"${signal_price:.2f} "
+                        f"({drift_pct:+.1f}% drift exceeds "
+                        f"max {max_drift}%)"
+                    )
+                    result = OrderResult(
+                        ticker=approved_order.ticker,
+                        status="rejected",
+                        order_id="",
+                        side=intent.side,
+                        notional=0.0,
+                        error=(
+                            f"Signal drift {drift_pct:+.1f}% "
+                            f"exceeds max {max_drift}%"
+                        ),
+                    )
+                    result.strategy = strategy_name
+                    results.append(result)
+                    continue
 
                 # Recalculate SL/TP relative to live price
                 # so the dollar distance stays proportional

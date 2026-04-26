@@ -503,6 +503,7 @@ def detect_closed_trades(
     current_positions: dict[str, dict],
     journal_dir: Path,
     broker: object | None = None,
+    max_hold_days: int = 10,
 ) -> list[JournalEntry]:
     """Detect trades that closed since the last run.
 
@@ -546,7 +547,8 @@ def detect_closed_trades(
 
             if broker is not None:
                 ep, er, exp = _query_exit_details(
-                    broker, entry
+                    broker, entry,
+                    max_hold_days=max_hold_days,
                 )
                 if ep > 0:
                     exit_price = ep
@@ -763,9 +765,67 @@ def _resolve_fill(
         return (0.0, "", 0.0)
 
 
+def _infer_exit_reason(
+    entry: JournalEntry,
+    fill_price: float,
+    filled_at: str = "",
+    max_hold_days: int = 10,
+) -> str:
+    """Infer exit reason when the sell order has no stop/limit
+    metadata (e.g. bracket expired, manual close, monitor action).
+
+    Checks the fill price against the journal's SL/TP levels and
+    the holding period against *max_hold_days* to classify the exit.
+
+    Args:
+        entry: The journal entry for this trade.
+        fill_price: The actual exit fill price.
+        filled_at: ISO timestamp of the fill (from broker order).
+            Falls back to today if empty.
+        max_hold_days: Runtime max holding period from config.
+    """
+    sl = entry.original_sl_price or 0.0
+    tp = entry.original_tp_price or 0.0
+
+    # Use the latest SL if it was modified (trailing/breakeven)
+    if entry.sl_modifications:
+        last_mod = entry.sl_modifications[-1]
+        if isinstance(last_mod, dict):
+            sl = last_mod.get("new_sl", sl)
+
+    # Check if fill hit TP level (within 0.5% tolerance)
+    if tp > 0 and fill_price >= tp * 0.995:
+        return "take_profit"
+
+    # Check if fill hit SL level (within 0.5% tolerance)
+    if sl > 0 and fill_price <= sl * 1.005:
+        return "stop_loss"
+
+    # Check holding period — time exit.
+    # Use the actual fill timestamp when available so that
+    # delayed reconciliation doesn't inflate holding days.
+    if entry.entry_date:
+        try:
+            entry_d = _parse_date(entry.entry_date)
+            if filled_at:
+                exit_d = _parse_date(filled_at)
+            else:
+                exit_d = date.today()
+            days_held = (exit_d - entry_d).days
+            if days_held >= max_hold_days:
+                return "time_exit"
+        except (ValueError, TypeError):
+            pass
+
+    # Fallback — genuinely a market order close (manual or
+    # orphan cleanup)
+    return "manual_close"
+
+
 def _query_exit_details(
     broker: object,
     entry: JournalEntry,
+    max_hold_days: int = 10,
 ) -> tuple[float, str, float]:
     """Query Alpaca for exit details of a closed position.
 
@@ -818,7 +878,16 @@ def _query_exit_details(
                     float(limit_px),
                 )
             else:
-                return (fill_price, "market_close", 0.0)
+                # No stop/limit on the order — infer reason
+                # from the journal's SL/TP levels and holding
+                # period.
+                filled_at_str = str(filled_at) if filled_at else ""
+                reason = _infer_exit_reason(
+                    entry, fill_price,
+                    filled_at=filled_at_str,
+                    max_hold_days=max_hold_days,
+                )
+                return (fill_price, reason, 0.0)
 
     except Exception as exc:
         log.debug(

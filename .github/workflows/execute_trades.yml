@@ -58,6 +58,7 @@ jobs:
           MIN_COMPOSITE_SCORE: ${{ vars.MIN_COMPOSITE_SCORE || '20.0' }}
           MIN_CONFIDENCE_SCORE: ${{ vars.MIN_CONFIDENCE_SCORE || '2' }}
           MAX_ENTRY_SLIPPAGE_PCT: ${{ vars.MAX_ENTRY_SLIPPAGE_PCT || '1.5' }}
+          MAX_SIGNAL_DRIFT_PCT: ${{ vars.MAX_SIGNAL_DRIFT_PCT || '3.0' }}
           USE_BLACK_LITTERMAN: ${{ vars.USE_BLACK_LITTERMAN || 'true' }}
           BL_TAU: ${{ vars.BL_TAU || '0.05' }}
           # SPY trend regime (bear market filter)

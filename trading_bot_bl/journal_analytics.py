@@ -866,7 +866,7 @@ def format_metrics_text(metrics: JournalMetrics) -> str:
         f"Ratio: {o.win_loss_ratio:.2f}",
         f"Expectancy: ${o.expectancy:+,.2f}/trade  "
         f"({o.expectancy_r:+.2f}R/trade)",
-        f"Profit Factor: {o.profit_factor:.2f}",
+        f"Profit Factor: {'∞' if o.profit_factor == float('inf') else f'{o.profit_factor:.2f}'}",
         f"Total P&L: ${o.total_pnl:+,.2f}",
         "",
         f"R-Distribution: "
@@ -946,7 +946,7 @@ def format_metrics_text(metrics: JournalMetrics) -> str:
             lines.append(
                 f"  {name}: {b.trade_count} trades, "
                 f"WR={b.win_rate:.0%}, "
-                f"PF={b.profit_factor:.2f}, "
+                f"PF={'∞' if b.profit_factor == float('inf') else f'{b.profit_factor:.2f}'}, "
                 f"avgR={b.avg_r:+.2f}, "
                 f"P&L=${b.total_pnl:+,.0f}"
             )

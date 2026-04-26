@@ -74,16 +74,16 @@ DEFAULT_CONFIG: dict = {
     # "capped+strategy" : capped + mean-reversion strategy family clamped
     #                     to max RR 1.5
     # See quant_analysis_bot/tp_logic.py and research/tp_experiment.py.
-    "tp_mode": "current",
+    "tp_mode": "capped+strategy",
     # Multiplier on the 1σ expected max move for the reachability cap.
     # 1.0 = strict (only ~16% of moves exceed it),
     # 1.5 = moderate (default),
     # 2.0 = loose (only caps clearly unreachable TPs).
-    "tp_cap_multiplier": 1.5,
+    "tp_cap_multiplier": 1.25,
     # Fallback holding window for the cap formula when a strategy
     # has no measured avg_holding_days (e.g. zero trades in a window).
     # The normal path uses result.avg_holding_days per strategy/window.
-    "tp_cap_holding_days": 20.0,
+    "tp_cap_holding_days": 10.0,
 }
 
 RISK_PROFILES: dict = {
