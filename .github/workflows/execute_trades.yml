@@ -53,7 +53,7 @@ jobs:
           ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
           MAX_EXPOSURE_PCT: ${{ vars.MAX_EXPOSURE_PCT || '80.0' }}
           MAX_POSITION_PCT: ${{ vars.MAX_POSITION_PCT || '12.0' }}
-          MAX_POSITIONS: ${{ vars.MAX_POSITIONS || '8' }}
+          MAX_POSITIONS: ${{ vars.MAX_POSITIONS || '10' }}
           DAILY_LOSS_LIMIT_PCT: ${{ vars.DAILY_LOSS_LIMIT_PCT || '3.0' }}
           MIN_COMPOSITE_SCORE: ${{ vars.MIN_COMPOSITE_SCORE || '20.0' }}
           MIN_CONFIDENCE_SCORE: ${{ vars.MIN_CONFIDENCE_SCORE || '2' }}
@@ -67,8 +67,17 @@ jobs:
           SPY_BEAR_MAX_POSITIONS: ${{ vars.SPY_BEAR_MAX_POSITIONS || '5' }}
           SPY_BEAR_MIN_COMPOSITE_SCORE: ${{ vars.SPY_BEAR_MIN_COMPOSITE_SCORE || '30.0' }}
           SPY_SEVERE_DRAWDOWN_PCT: ${{ vars.SPY_SEVERE_DRAWDOWN_PCT || '15.0' }}
-          # LLM views (optional — leave ANTHROPIC_API_KEY empty to disable)
-          LLM_VIEWS_ENABLED: ${{ vars.LLM_VIEWS_ENABLED || 'false' }}
+          # FinBERT news sentiment
+          FINBERT_ENABLED: ${{ vars.FINBERT_ENABLED || 'true' }}
+          FINBERT_SCORE_WEIGHT: ${{ vars.FINBERT_SCORE_WEIGHT || '5.0' }}
+          FINBERT_MAX_HEADLINES: ${{ vars.FINBERT_MAX_HEADLINES || '5' }}
+          # LLM views (scenario-conditioned return predictions)
+          LLM_VIEWS_ENABLED: ${{ vars.LLM_VIEWS_ENABLED || 'true' }}
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'anthropic' }}
+          LLM_MODEL: ${{ vars.LLM_MODEL || 'claude-haiku-4-5-20251001' }}
+          LLM_NUM_SAMPLES: ${{ vars.LLM_NUM_SAMPLES || '5' }}
+          LLM_MAX_TICKERS: ${{ vars.LLM_MAX_TICKERS || '10' }}
+          LLM_WEIGHT: ${{ vars.LLM_WEIGHT || '0.3' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python -m trading_bot_bl
 

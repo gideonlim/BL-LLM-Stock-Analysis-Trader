@@ -102,10 +102,14 @@ class StrategyRecord:
     skipped_by_quality: int = 0       # strategy's own weakness
     total_notional: float = 0.0
     tickers: set = field(default_factory=set)
-    # Populated when broker P&L data is available
+    # Populated from journal closed trades
     realized_pnl: float = 0.0
     win_count: int = 0
     loss_count: int = 0
+    closed_trades: int = 0
+    # Populated from broker open positions (point-in-time snapshot)
+    unrealized_pnl: float = 0.0
+    open_positions: int = 0
 
     @property
     def strategy_relevant_total(self) -> int:
@@ -478,13 +482,15 @@ def reconcile_with_journal(
 def enrich_history_with_pnl(
     history: TradeHistory,
     positions: dict,
+    journal_dir: Path | None = None,
 ) -> None:
     """
-    Update strategy records with realized P&L from broker positions.
+    Update strategy records with P&L from two sources:
 
-    For each position currently held, if we know which strategy
-    placed it (from ticker history), we attribute the unrealized
-    P&L to that strategy.
+    1. **Realized P&L** from journal closed trades (accurate,
+       reflects actual trade outcomes).
+    2. **Unrealized P&L** from broker open positions (snapshot,
+       stored separately so it doesn't contaminate realized stats).
 
     Safe to call only once per history object.  The ``_pnl_enriched``
     flag prevents accidental double-counting if called again.
@@ -492,12 +498,42 @@ def enrich_history_with_pnl(
     Args:
         history: The trade history to enrich.
         positions: portfolio.positions dict from the broker.
+        journal_dir: Path to journal directory.  If provided,
+            closed trades are loaded and their realized P&L is
+            aggregated by strategy.
     """
     if getattr(history, "_pnl_enriched", False):
         log.debug("enrich_history_with_pnl already called — skipping")
         return
     history._pnl_enriched = True  # type: ignore[attr-defined]
 
+    # ── 1. Realized P&L from journal closed trades ────────────
+    if journal_dir and journal_dir.exists():
+        try:
+            from trading_bot_bl.journal import load_all_trades
+
+            closed = [
+                t for t in load_all_trades(
+                    journal_dir,
+                    lookback_days=history.lookback_days
+                    if hasattr(history, "lookback_days") else 90,
+                )
+                if t.status == "closed"
+            ]
+            for t in closed:
+                sr = history.by_strategy.get(t.strategy)
+                if sr:
+                    pnl = t.realized_pnl or 0.0
+                    sr.realized_pnl += pnl
+                    sr.closed_trades += 1
+                    if pnl > 0:
+                        sr.win_count += 1
+                    elif pnl < 0:
+                        sr.loss_count += 1
+        except Exception as exc:
+            log.warning(f"Journal P&L enrichment failed: {exc}")
+
+    # ── 2. Unrealized P&L from open positions (separate field) ─
     for ticker, pos in positions.items():
         pnl = pos.get("unrealized_pnl", 0.0)
         th = history.by_ticker.get(ticker)
@@ -505,11 +541,8 @@ def enrich_history_with_pnl(
             strategy = th.last_buy_strategy
             sr = history.by_strategy.get(strategy)
             if sr:
-                sr.realized_pnl += pnl
-                if pnl >= 0:
-                    sr.win_count += 1
-                else:
-                    sr.loss_count += 1
+                sr.unrealized_pnl += pnl
+                sr.open_positions += 1
 
 
 def _extract_strategy(order: dict) -> str:

@@ -431,8 +431,12 @@ def execute(
             )
             return results
 
-    # ── 7. Enrich history with live P&L ────────────────────────────
-    enrich_history_with_pnl(history, portfolio.positions)
+    # ── 7. Enrich history with P&L ──────────────────────────────────
+    #    Realized P&L from journal closed trades (accurate).
+    #    Unrealized P&L from broker open positions (snapshot).
+    enrich_history_with_pnl(
+        history, portfolio.positions, journal_dir=journal_dir,
+    )
 
     # Log strategy performance summary
     if history.by_strategy:
@@ -442,9 +446,20 @@ def execute(
             history.by_strategy.items(),
             key=lambda x: -x[1].submitted,
         )[:10]:
+            pnl_parts: list[str] = []
+            if sr.realized_pnl != 0:
+                pnl_parts.append(
+                    f"realized=${sr.realized_pnl:+,.0f}"
+                    f"({sr.closed_trades}t)"
+                )
+            if sr.unrealized_pnl != 0:
+                pnl_parts.append(
+                    f"open=${sr.unrealized_pnl:+,.0f}"
+                    f"({sr.open_positions}p)"
+                )
             pnl_str = (
-                f"  P&L=${sr.realized_pnl:+,.0f}"
-                if sr.realized_pnl != 0 else ""
+                "  " + " ".join(pnl_parts)
+                if pnl_parts else ""
             )
             infra_skips = (
                 sr.rejected_by_broker + sr.skipped_by_risk

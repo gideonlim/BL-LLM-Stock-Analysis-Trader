@@ -89,7 +89,7 @@ class RiskLimits:
     min_confidence_score: int = 2
 
     # Max number of concurrent positions (existing + new)
-    max_positions: int = 8
+    max_positions: int = 10
 
     # Minimum position size as % of equity.  Orders below this
     # threshold are skipped — too small to be worth the bracket
@@ -223,13 +223,19 @@ class TradingConfig:
     # to modify position sizing.  Set to False to disable.
     market_sentiment_enabled: bool = True
 
-    # VIX thresholds for fear / greed regime classification
-    sentiment_fear_vix: float = 25.0
+    # VIX thresholds for fear / greed regime classification.
+    # 30 = genuine market stress (industry standard).
+    # 15 = complacent / greedy territory.
+    sentiment_fear_vix: float = 30.0
     sentiment_greed_vix: float = 15.0
 
-    # Put/call ratio thresholds
-    sentiment_fear_pc: float = 0.95
-    sentiment_greed_pc: float = 0.65
+    # Put/call ratio thresholds.
+    # 1.2 = excessive bearishness (top ~5% of trading days).
+    # 0.6 = excessive bullishness.
+    # Note: total PCR normally sits 0.8-1.0 due to routine
+    # institutional hedging; 1.0 is NOT extreme.
+    sentiment_fear_pc: float = 1.2
+    sentiment_greed_pc: float = 0.6
 
     # Position-size multiplier during extreme fear (contrarian)
     sentiment_fear_size_mult: float = 1.10
@@ -319,8 +325,8 @@ class TradingConfig:
     # LLM model to use
     llm_model: str = "claude-haiku-4-5-20251001"
 
-    # Number of repeated samples for uncertainty estimation
-    llm_num_samples: int = 10
+    # Number of scenario samples (one per scenario framing)
+    llm_num_samples: int = 5
 
     # Max tickers to query LLM for (only top-N by confidence)
     llm_max_tickers: int = 10
@@ -352,7 +358,7 @@ class TradingConfig:
                 os.getenv("MIN_CONFIDENCE_SCORE", "2")
             ),
             max_positions=int(
-                os.getenv("MAX_POSITIONS", "8")
+                os.getenv("MAX_POSITIONS", "10")
             ),
             min_position_pct=float(
                 os.getenv("MIN_POSITION_PCT", "2.0")
@@ -438,16 +444,16 @@ class TradingConfig:
                 "MARKET_SENTIMENT_ENABLED", "true"
             ).lower() in ("true", "1", "yes"),
             sentiment_fear_vix=float(
-                os.getenv("SENTIMENT_FEAR_VIX", "25.0")
+                os.getenv("SENTIMENT_FEAR_VIX", "30.0")
             ),
             sentiment_greed_vix=float(
                 os.getenv("SENTIMENT_GREED_VIX", "15.0")
             ),
             sentiment_fear_pc=float(
-                os.getenv("SENTIMENT_FEAR_PC", "0.95")
+                os.getenv("SENTIMENT_FEAR_PC", "1.2")
             ),
             sentiment_greed_pc=float(
-                os.getenv("SENTIMENT_GREED_PC", "0.65")
+                os.getenv("SENTIMENT_GREED_PC", "0.6")
             ),
             sentiment_fear_size_mult=float(
                 os.getenv("SENTIMENT_FEAR_SIZE_MULT", "1.10")
@@ -523,7 +529,7 @@ class TradingConfig:
                 "LLM_MODEL", "claude-haiku-4-5-20251001"
             ),
             llm_num_samples=int(
-                os.getenv("LLM_NUM_SAMPLES", "10")
+                os.getenv("LLM_NUM_SAMPLES", "5")
             ),
             llm_max_tickers=int(
                 os.getenv("LLM_MAX_TICKERS", "10")

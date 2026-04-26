@@ -121,10 +121,10 @@ def fetch_market_sentiment(
     *,
     fear_vix: float = 30.0,
     greed_vix: float = 15.0,
-    fear_pc: float = 1.0,
+    fear_pc: float = 1.2,
     greed_pc: float = 0.6,
-    fear_size_mult: float = 1.15,
-    greed_size_mult: float = 0.85,
+    fear_size_mult: float = 1.10,
+    greed_size_mult: float = 0.90,
     spy_bear_confirmation_days: int = 3,
     spy_severe_drawdown_pct: float = 15.0,
 ) -> MarketSentiment:
@@ -402,38 +402,45 @@ def _classify_regime(
 ) -> tuple[str, float]:
     """Map raw indicators to a regime label and size multiplier.
 
-    Uses a two-tier check:
-    1. **VIX alone** can trigger FEAR (>30) or GREED (<15).
-    2. **Put/call** *confirms* the VIX signal.  If both agree the
-       confidence is higher and the multiplier is applied fully.
-       If only one triggers, a milder adjustment is used.
+    Requires **both** VIX and put/call ratio to confirm before
+    labeling FEAR or GREED.  A single indicator triggering alone
+    is not enough — routine institutional hedging can push PCR
+    above 1.0 during normal markets, and VIX can spike briefly
+    on event vol without genuine regime change.
+
+    Research-aligned thresholds (callers configure via params):
+    - VIX ≥ 30 = genuine market stress (industry standard)
+    - PCR ≥ 1.2 = excessive bearishness (top ~5% of days)
+    - VIX ≤ 15 = complacent / greedy
+    - PCR ≤ 0.6 = excessive bullishness
     """
-    fear_signals = 0
-    greed_signals = 0
+    fear_vix_hit = vix >= fear_vix
+    fear_pcr_hit = pcr >= fear_pc and pcr > 0
+    greed_vix_hit = vix <= greed_vix and vix > 0
+    greed_pcr_hit = pcr <= greed_pc and pcr > 0
 
-    if vix >= fear_vix:
-        fear_signals += 1
-    if vix <= greed_vix and vix > 0:
-        greed_signals += 1
-
-    if pcr >= fear_pc and pcr > 0:
-        fear_signals += 1
-    if pcr <= greed_pc and pcr > 0:
-        greed_signals += 1
-
-    if fear_signals >= 2:
-        # Both VIX and P/C confirm fear → full contrarian boost
+    if fear_vix_hit and fear_pcr_hit:
+        # Both confirm fear → full contrarian boost
         return "FEAR", fear_size_mult
-    elif fear_signals == 1:
-        # Mild fear → half the adjustment
-        mild = 1.0 + (fear_size_mult - 1.0) * 0.5
-        return "FEAR", round(mild, 4)
-    elif greed_signals >= 2:
+    elif greed_vix_hit and greed_pcr_hit:
         # Both confirm greed → full defensive cut
         return "GREED", greed_size_mult
-    elif greed_signals == 1:
-        # Mild greed → half the adjustment
-        mild = 1.0 + (greed_size_mult - 1.0) * 0.5
-        return "GREED", round(mild, 4)
+
+    # Single signal is not enough for a regime change.
+    # Log it for visibility but stay NEUTRAL.
+    if fear_vix_hit or fear_pcr_hit:
+        which = "VIX" if fear_vix_hit else "PCR"
+        log.info(
+            f"Sentiment: {which} alone signals fear "
+            f"(VIX={vix:.1f}, PCR={pcr:.2f}) — "
+            f"staying NEUTRAL (need both to confirm)"
+        )
+    elif greed_vix_hit or greed_pcr_hit:
+        which = "VIX" if greed_vix_hit else "PCR"
+        log.info(
+            f"Sentiment: {which} alone signals greed "
+            f"(VIX={vix:.1f}, PCR={pcr:.2f}) — "
+            f"staying NEUTRAL (need both to confirm)"
+        )
 
     return "NEUTRAL", 1.0

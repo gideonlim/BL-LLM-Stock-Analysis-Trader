@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 # ── Configuration ─────────────────────────────────────────────────
 
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
-DEFAULT_SAMPLES = 5        # one per scenario (bull/bear/base/stress/momentum)
+DEFAULT_SAMPLES = 5  # one per scenario (bull/bear/base/stress/momentum)
 DEFAULT_TEMPERATURE = 0.7  # some randomness on top of scenario conditioning
 DEFAULT_MAX_TOKENS = 512
 DEFAULT_MAX_TICKERS = 10   # only query LLM for top-N highest confidence signals
