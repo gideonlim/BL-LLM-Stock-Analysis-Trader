@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-04-27T15:26:09",
+  "positions_checked": 6,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 97.11,
+      "entry_price": 98.07,
+      "pnl_pct": -0.98,
+      "timestamp": "2026-04-27T15:26:06"
+    },
+    {
+      "ticker": "EXE",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 97.115,
+      "entry_price": 95.68,
+      "pnl_pct": 1.5,
+      "timestamp": "2026-04-27T15:26:06"
+    },
+    {
+      "ticker": "EXE",
+      "type": "earnings_stop_tighten",
+      "severity": "warning",
+      "message": "EXE earnings in 1d (2026-04-28) \u2014 tightening SL from $91.79 to $96.40 to lock in gains (+1.5%)",
+      "action_taken": "SL tightened to $96.40",
+      "current_price": 97.115,
+      "entry_price": 95.68,
+      "pnl_pct": 1.5,
+      "timestamp": "2026-04-27T15:26:06"
+    },
+    {
+      "ticker": "GME",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "GME exceeded max hold period (10 days). P&L: +2.3%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 25.52,
+      "entry_price": 24.95,
+      "pnl_pct": 2.28,
+      "timestamp": "2026-04-27T15:26:07"
+    }
+  ]
+}
