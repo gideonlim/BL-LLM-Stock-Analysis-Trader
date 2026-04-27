@@ -34,7 +34,7 @@
   "r_multiple": 0.0,
   "holding_days": 0,
   "max_favorable_excursion": 500.66,
-  "max_adverse_excursion": 498.165,
+  "max_adverse_excursion": 498.15,
   "mfe_pct": 0.3,
   "mae_pct": 0.2,
   "mfe_date": "2026-04-27",
