@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-27T16:22:44",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 97.175,
+      "entry_price": 98.07,
+      "pnl_pct": -0.91,
+      "timestamp": "2026-04-27T16:22:41"
+    }
+  ]
+}
