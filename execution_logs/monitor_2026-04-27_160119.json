@@ -1,0 +1,87 @@
+{
+  "monitored_at": "2026-04-27T16:01:19",
+  "positions_checked": 10,
+  "orphaned": 5,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACGL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 97.26,
+      "entry_price": 98.07,
+      "pnl_pct": -0.83,
+      "timestamp": "2026-04-27T16:01:12"
+    },
+    {
+      "ticker": "EXE",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-04-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 96.56,
+      "entry_price": 95.68,
+      "pnl_pct": 0.92,
+      "timestamp": "2026-04-27T16:01:12"
+    },
+    {
+      "ticker": "FLG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FLG missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$13.26, TP=$15.36",
+      "current_price": 13.96,
+      "entry_price": 13.97,
+      "pnl_pct": -0.07,
+      "timestamp": "2026-04-27T16:01:13"
+    },
+    {
+      "ticker": "MCO",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MCO missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$436.81, TP=$505.78",
+      "current_price": 459.8,
+      "entry_price": 460.61,
+      "pnl_pct": -0.18,
+      "timestamp": "2026-04-27T16:01:15"
+    },
+    {
+      "ticker": "NVST",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NVST missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$25.48, TP=$29.5",
+      "current_price": 26.82,
+      "entry_price": 26.8,
+      "pnl_pct": 0.07,
+      "timestamp": "2026-04-27T16:01:16"
+    },
+    {
+      "ticker": "SNPS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SNPS missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$474.36, TP=$549.26",
+      "current_price": 499.33,
+      "entry_price": 499.16,
+      "pnl_pct": 0.03,
+      "timestamp": "2026-04-27T16:01:17"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "VRSN missing stop loss leg. P&L: +0.4%",
+      "action_taken": "Reattached OCO: SL=$254.43, TP=$294.61",
+      "current_price": 267.825,
+      "entry_price": 266.85,
+      "pnl_pct": 0.37,
+      "timestamp": "2026-04-27T16:01:18"
+    }
+  ]
+}
