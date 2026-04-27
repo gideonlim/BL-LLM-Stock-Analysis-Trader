@@ -9,8 +9,8 @@ CUBE_f1496571,CUBE,MACD Crossover,long,37.2,37.55,40.11,market_close,655.36,1.84
 CVS_4fc834e1,CVS,VWAP Trend,long,78.22,78.16,78.93,market_close,86.24,0.25,1,,,0.0,0.01,21.280000686645508,FEAR,,,-0.06,0.0,closed
 C_37be8dbc,C,VWAP Trend,long,107.38,109.06,123.86,time_exit,1465.2,2.82,11,,,7.54,1.07,29.90999984741211,FEAR,,,1.68,0.0,closed
 EOG_339067ec,EOG,VWAP Trend,long,128.43,128.97,130.58,market_close,106.26,0.2,1,,,0.0,0.2,19.3700008392334,FEAR,,,0.54,0.0,closed
+EXE_9904427a,EXE,VWAP Trend,long,96.36,95.68,96.390106,stop_loss,66.75,0.18,4,,,2.78,0.72,19.219999313354492,FEAR,,,-0.68,0.0099,closed
 FAF_4e39121d,FAF,ADX Trend Following,long,60.84,62.7,66.46,market_close,522.64,0.85,12,,,12.27,0.17,21.280000686645508,FEAR,,,1.86,0.0,closed
-FLG_23dc7804,FLG,VWAP Trend,long,13.05,13.13,14.01,time_exit,726.0,1.35,11,,,4.19,0.21,29.90999984741211,FEAR,,,0.08,0.0,closed
 FN_bd481803,FN,52-Week High Momentum,long,695.52,699.96,700.86,market_close,8.1,0.01,1,,,1.12,9.97,19.280000686645508,FEAR,,,4.44,0.0,closed
 GME_b10849fa,GME,ADX Trend Following,long,25.18,24.95,25.48,time_exit,176.49,0.47,10,,,0.89,0.21,17.5,NEUTRAL,,,-0.23,0.0,closed
 INTC_538232b3,INTC,VWAP Trend,long,52.91,57.41,63.7,take_profit,956.08,1.01,5,,,0.0,-0.51,21.280000686645508,FEAR,,,4.5,-0.09,closed
@@ -26,4 +26,3 @@ SLB_migrated,SLB,VWAP Trend,long,44.83,44.83,49.47,take_profit,1238.88,0.0,8,,,0
 SPG_migrated,SPG,Z-Score Mean Reversion,long,190.02,190.02,179.956191,stop_loss,-422.68,0.0,8,,,0.0,0.0,23.450000762939453,FEAR,,,0.0,-0.0962,closed
 SYK_migrated,SYK,Stochastic Oscillator,long,346.48,346.48,329.05,stop_loss,-592.62,0.0,8,,,0.0,17.44,23.450000762939453,FEAR,,,0.0,2.67,closed
 URI_6e64d9c0,URI,VWAP Trend,long,767.36,771.92,814.8,market_close,428.8,1.11,10,,,4.11,0.0,19.15999984741211,FEAR,,,4.56,0.0,closed
-VRSN_c37009b5,VRSN,VWAP Trend,long,251.7,252.63,259.09,market_close,277.78,0.72,7,,,1.36,0.45,26.790000915527344,FEAR,,,0.93,0.0,closed
