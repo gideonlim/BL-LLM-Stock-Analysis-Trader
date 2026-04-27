@@ -3,38 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "5803.T",
-      "entry_date": "2026-04-13",
-      "entry_price": 5698.0,
-      "qty": 1.4718,
-      "notional": 8386.31,
-      "stop_loss": 5014.24,
-      "take_profit": 8091.16,
-      "strategy": "PEAD Earnings Drift",
-      "composite_score": 30.7,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 6037.0,
-      "min_price": 5683.0
-    },
-    {
-      "ticker": "6857.T",
-      "entry_date": "2026-04-21",
-      "entry_price": 27200.0,
-      "qty": 0.2934,
-      "notional": 7980.24,
-      "stop_loss": 24765.6,
-      "take_profit": 35719.04,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 36.89,
-      "holding_days": 3,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 29440.0,
-      "min_price": 27200.0
-    },
-    {
       "ticker": "3086.T",
       "entry_date": "2026-04-23",
       "entry_price": NaN,
@@ -44,27 +12,11 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 32.09,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": NaN,
       "min_price": NaN
-    },
-    {
-      "ticker": "4519.T",
-      "entry_date": "2026-04-26",
-      "entry_price": 8845.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 8433.71,
-      "take_profit": 10078.88,
-      "strategy": "VWAP Trend",
-      "composite_score": 89.48,
-      "holding_days": 0,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 8845.0,
-      "min_price": 8845.0
     },
     {
       "ticker": "9202.T",
@@ -76,27 +28,43 @@
       "take_profit": 2947.82,
       "strategy": "VWAP Trend",
       "composite_score": 55.75,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 6,
       "max_price": 2697.0,
       "min_price": 2697.0
     },
     {
-      "ticker": "2802.T",
-      "entry_date": "2026-04-26",
-      "entry_price": 4758.0,
+      "ticker": "2503.T",
+      "entry_date": "2026-04-27",
+      "entry_price": 2506.5,
       "qty": NaN,
       "notional": NaN,
-      "stop_loss": 4580.53,
-      "take_profit": 5290.42,
-      "strategy": "VWAP Trend",
-      "composite_score": 43.94,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "ADX Trend Following",
+      "composite_score": 64.51,
       "holding_days": 0,
       "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 4758.0,
-      "min_price": 4758.0
+      "confidence_score": 4,
+      "max_price": 2506.5,
+      "min_price": 2506.5
+    },
+    {
+      "ticker": "8304.T",
+      "entry_date": "2026-04-27",
+      "entry_price": 2625.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "ADX Trend Following",
+      "composite_score": 54.24,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 6,
+      "max_price": 2625.0,
+      "min_price": 2625.0
     }
   ],
   "closed_trades": [
@@ -279,6 +247,54 @@
       "pnl": -304.1,
       "pnl_pct": -3.62,
       "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "5803.T",
+      "strategy": "PEAD Earnings Drift",
+      "entry_date": "2026-04-13",
+      "exit_date": "2026-04-27",
+      "entry_price": 5698.0,
+      "exit_price": 6037.0,
+      "qty": 1.4718,
+      "pnl": 498.94,
+      "pnl_pct": 5.95,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "4519.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-04-26",
+      "exit_date": "2026-04-27",
+      "entry_price": 8845.0,
+      "exit_price": 8845.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 0.0,
+      "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "6857.T",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-04-21",
+      "exit_date": "2026-04-27",
+      "entry_price": 27200.0,
+      "exit_price": 29440.0,
+      "qty": 0.2934,
+      "pnl": 657.22,
+      "pnl_pct": 8.24,
+      "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "2802.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-04-26",
+      "exit_date": "2026-04-27",
+      "entry_price": 4758.0,
+      "exit_price": 4758.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 0.0,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -369,7 +385,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-04-27",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-04-26"
+  "last_run_date": "2026-04-27"
 }
