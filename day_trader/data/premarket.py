@@ -350,13 +350,15 @@ class AlpacaPremarketFetcher(PremarketDataFetcher):
                 return list(response.data.get(ticker, []))
             if hasattr(response, "df"):
                 # Some versions return a DataFrame; iterate rows
+                from types import SimpleNamespace
                 df = response.df
                 if df is None or df.empty:
                     return []
-                # Convert to a list of namespace-like objects; use
-                # dicts for simplicity.
                 return [
-                    type("BarRow", (), row.to_dict())()
+                    SimpleNamespace(**{
+                        k: v.item() if hasattr(v, "item") else v
+                        for k, v in row.to_dict().items()
+                    })
                     for _, row in df.iterrows()
                 ]
             return list(response or [])
@@ -443,6 +445,13 @@ class AlpacaPremarketFetcher(PremarketDataFetcher):
                         collected += 1
                 d -= timedelta(days=1)
             if not volumes:
+                return None
+            if len(volumes) < lookback_days * 0.5:
+                log.warning(
+                    "Avg premkt volume for %s: only %d of %d expected "
+                    "sessions returned data — treating as insufficient",
+                    ticker, len(volumes), lookback_days,
+                )
                 return None
             return sum(volumes) / len(volumes)
         except Exception as exc:

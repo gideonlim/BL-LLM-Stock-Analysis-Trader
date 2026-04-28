@@ -29,10 +29,24 @@ from __future__ import annotations
 
 import csv
 import logging
+import re
 from pathlib import Path
 from typing import Iterable, Optional
 
 log = logging.getLogger(__name__)
+
+# Valid ticker shape — same rules as order_tags.py.
+_TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.]*$")
+
+# Common CSV header-row values that ALSO match _TICKER_RE.
+# "TICKER" is a valid ticker shape (all uppercase letters) but is
+# obviously a header, not a symbol. This set catches the most common
+# column-name overlaps so the shape-based auto-detection doesn't
+# misfire.
+_COMMON_HEADERS = frozenset({
+    "TICKER", "TICKERS", "SYMBOL", "SYMBOLS",
+    "STOCK", "STOCKS", "NAME", "COMPANY", "INSTRUMENT",
+})
 
 
 # ── Default v1 universe (~60 symbols) ─────────────────────────────
@@ -109,17 +123,30 @@ def load_universe(
     exclude_set = set(_normalize_symbols(excluded_symbols or []))
 
     seen: set[str] = set()
+    skipped: list[str] = []
     out: list[str] = []
     for s in base:
         u = s.strip().upper()
         if not u or u in seen or u in exclude_set:
             continue
+        if not _TICKER_RE.match(u):
+            skipped.append(u)
+            continue
         seen.add(u)
         out.append(u)
     for s in extra_set:
         if s and s not in seen and s not in exclude_set:
+            if not _TICKER_RE.match(s):
+                skipped.append(s)
+                continue
             seen.add(s)
             out.append(s)
+    if skipped:
+        log.warning(
+            "Universe: skipped %d invalid ticker(s): %s",
+            len(skipped),
+            ", ".join(skipped[:10]) + ("…" if len(skipped) > 10 else ""),
+        )
     return sorted(out)
 
 
@@ -128,8 +155,15 @@ def _load_csv(path: Path) -> list[str]:
 
     Tolerant: skips blank lines, comment lines (start with #),
     and any column beyond the first. Strips whitespace.
+
+    Header detection: if the first non-blank, non-comment cell does
+    NOT look like a valid ticker (uppercase alpha + digits/dots), we
+    treat it as a header and skip it. This handles arbitrary header
+    names (``ticker``, ``Symbol``, ``stock_id``, etc.) without
+    maintaining a hardcoded allowlist.
     """
     out: list[str] = []
+    first_data_line = True
     with open(path, encoding="utf-8") as f:
         reader = csv.reader(f)
         for row in reader:
@@ -138,11 +172,15 @@ def _load_csv(path: Path) -> list[str]:
             cell = row[0].strip()
             if not cell or cell.startswith("#"):
                 continue
-            # Skip header rows (heuristic: any non-uppercase chars
-            # other than . and digits suggest a header)
-            if cell.lower() in ("ticker", "symbol", "tickers", "symbols"):
-                continue
-            out.append(cell.upper())
+            upper = cell.upper()
+            if first_data_line:
+                first_data_line = False
+                # If the first data cell doesn't match ticker shape
+                # OR is a known column-header word (e.g. "TICKER"),
+                # treat as header and skip.
+                if not _TICKER_RE.match(upper) or upper in _COMMON_HEADERS:
+                    continue
+            out.append(upper)
     return out
 
 

@@ -74,6 +74,37 @@ class TestConversions(unittest.TestCase):
         bar = alpaca_bar_to_model(ab)
         self.assertEqual(bar.ticker, "AAPL")
 
+    def test_bar_conversion_positive_utc_offset_string(self):
+        ab = SimpleNamespace(
+            symbol="AAPL", timestamp="2026-04-28T09:30:00+04:00",
+            open=100, high=101, low=99, close=100, volume=100,
+        )
+        bar = alpaca_bar_to_model(ab)
+        # +04:00 → UTC is 4 hours earlier
+        self.assertEqual(bar.timestamp.hour, 5)
+        self.assertEqual(bar.timestamp.minute, 30)
+        self.assertEqual(bar.timestamp.tzinfo, timezone.utc)
+
+    def test_bar_conversion_negative_utc_offset_string(self):
+        ab = SimpleNamespace(
+            symbol="AAPL", timestamp="2026-04-28T09:30:00-04:00",
+            open=100, high=101, low=99, close=100, volume=100,
+        )
+        bar = alpaca_bar_to_model(ab)
+        # -04:00 (ET) → UTC is 4 hours later
+        self.assertEqual(bar.timestamp.hour, 13)
+        self.assertEqual(bar.timestamp.minute, 30)
+
+    def test_bar_conversion_malformed_string_falls_back(self):
+        ab = SimpleNamespace(
+            symbol="AAPL", timestamp="not-a-date",
+            open=100, high=101, low=99, close=100, volume=100,
+        )
+        # Must not crash; falls back to now(UTC)
+        bar = alpaca_bar_to_model(ab)
+        self.assertIsNotNone(bar.timestamp)
+        self.assertEqual(bar.timestamp.tzinfo, timezone.utc)
+
     def test_bar_conversion_missing_optional_fields(self):
         # No vwap or trade_count
         ab = SimpleNamespace(

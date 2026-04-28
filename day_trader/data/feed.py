@@ -57,7 +57,16 @@ OnTrade = Callable[[Trade], Awaitable[None]]
 
 def _to_utc(ts) -> datetime:
     """Coerce Alpaca timestamp (which may be naive UTC, ISO string,
-    or pandas Timestamp) into a tz-aware UTC datetime."""
+    or pandas Timestamp) into a tz-aware UTC datetime.
+
+    Handles:
+    - ``None`` → now(UTC)
+    - tz-aware ``datetime`` → ``.astimezone(UTC)``
+    - naive ``datetime`` → assumed UTC
+    - ISO-format strings: ``"Z"``, ``"+00:00"``, ``"-04:00"``
+    - pandas ``Timestamp`` → ``.to_pydatetime()`` then recurse
+    - Anything else or malformed → now(UTC) with a warning
+    """
     if ts is None:
         return datetime.now(tz=timezone.utc)
     if isinstance(ts, datetime):
@@ -66,15 +75,27 @@ def _to_utc(ts) -> datetime:
         return ts.astimezone(timezone.utc)
     if isinstance(ts, str):
         try:
+            # Python 3.11+ fromisoformat handles "Z", "+HH:MM",
+            # "-HH:MM" natively after we normalise the Z suffix.
             dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
-            return dt
-        except ValueError:
-            pass
+            # Always convert to UTC — the input may carry a non-UTC
+            # offset (e.g. "-04:00" for ET) that needs normalising.
+            return dt.astimezone(timezone.utc)
+        except (ValueError, TypeError):
+            log.warning(
+                "feed._to_utc: unparseable timestamp string %r "
+                "— falling back to now(UTC)", ts,
+            )
+            return datetime.now(tz=timezone.utc)
     # pandas Timestamp
     if hasattr(ts, "to_pydatetime"):
         return _to_utc(ts.to_pydatetime())
+    log.warning(
+        "feed._to_utc: unexpected timestamp type %s: %r "
+        "— falling back to now(UTC)", type(ts).__name__, ts,
+    )
     return datetime.now(tz=timezone.utc)
 
 
@@ -272,7 +293,8 @@ class MarketDataFeed:
         have arrived for >2 min during market hours, something is
         wrong (network partition, Alpaca outage, our handler hung).
         """
-        return self._last_bar_at
+        with self._lock:
+            return self._last_bar_at
 
     # ── Subscription internals ───────────────────────────────────
 
@@ -371,7 +393,8 @@ class MarketDataFeed:
                 "MarketDataFeed: bar conversion failed: %r", alpaca_bar,
             )
             return
-        self._last_bar_at = datetime.now(tz=timezone.utc)
+        with self._lock:
+            self._last_bar_at = datetime.now(tz=timezone.utc)
         try:
             await self._on_bar(bar)
         except Exception:
