@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 16214.845634341613,
+  "cash": 8107.422817170806,
   "positions": [
     {
       "ticker": "SGE.L",
@@ -12,7 +12,7 @@
       "take_profit": 986.02,
       "strategy": "ADX Trend Following",
       "composite_score": 73.42,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 924.2000122070312,
@@ -28,7 +28,7 @@
       "take_profit": 3300.41,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 41.51,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2890.0,
@@ -44,10 +44,10 @@
       "take_profit": 671.0,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.05,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 608.68,
+      "max_price": 609.39990234375,
       "min_price": 608.68
     },
     {
@@ -60,11 +60,27 @@
       "take_profit": 273.84,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.58,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 252.65,
-      "min_price": 252.65
+      "min_price": 251.5500030517578
+    },
+    {
+      "ticker": "IMB.L",
+      "entry_date": "2026-04-28",
+      "entry_price": 2753.0,
+      "qty": 2.9449,
+      "notional": 8107.42,
+      "stop_loss": 2644.81,
+      "take_profit": 2915.43,
+      "strategy": "VWAP Trend",
+      "composite_score": 38.74,
+      "holding_days": 0,
+      "confidence": "LOW",
+      "confidence_score": 1,
+      "max_price": 2753.0,
+      "min_price": 2753.0
     }
   ],
   "closed_trades": [
@@ -253,7 +269,15 @@
       "num_positions": 4,
       "total_pnl": -827.77,
       "total_pnl_pct": -1.66
+    },
+    {
+      "date": "2026-04-28",
+      "equity": 49067.8,
+      "cash": 8107.42,
+      "num_positions": 5,
+      "total_pnl": -932.2,
+      "total_pnl_pct": -1.86
     }
   ],
-  "last_run_date": "2026-04-27"
+  "last_run_date": "2026-04-28"
 }
