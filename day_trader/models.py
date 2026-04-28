@@ -165,6 +165,29 @@ class DayRiskVerdict:
     adjusted_notional: float = 0.0
 
 
+# ── Per-ticker premarket context ─────────────────────────────────
+
+
+@dataclass
+class TickerContext:
+    """Per-ticker data accumulated by the premarket scanner.
+
+    The data layer's ``PremarketScanner`` populates one of these per
+    ticker on the day's watchlist. Strategies read it during scan
+    to access premarket RVOL / gap / catalyst signals without
+    re-fetching.
+    """
+
+    ticker: str
+    premkt_rvol: float = 0.0           # premarket vol / 30d avg premkt vol
+    premkt_gap_pct: float = 0.0        # (premkt_open - prev_close) / prev_close
+    avg_daily_volume: float = 0.0      # 30-day avg shares
+    avg_dollar_volume: float = 0.0     # 30-day avg $ volume
+    prev_close: float = 0.0
+    catalyst_label: str = ""           # NEWS_HIGH | NEWS_LOW | NO_NEWS | ""
+    captured_at: str = ""
+
+
 # ── Filter pipeline types ─────────────────────────────────────────
 
 
