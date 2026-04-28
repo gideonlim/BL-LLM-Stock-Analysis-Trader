@@ -1,0 +1,18 @@
+[Unit]
+Description=EOD flatten watchdog timer (fires every minute 12:30-16:30 ET weekdays)
+
+[Timer]
+# systemd OnCalendar is static — can't follow NYSE half-days.
+# So we fire broadly (12:30-16:30 ET covers both regular closes
+# at 16:00 and half-day closes at 13:00). The script consults
+# day_trader.calendar and no-ops when outside the flatten window.
+#
+# ET = America/New_York; systemd timers use UTC by default, so
+# the window in UTC is approximately 16:30-20:30 (EST) or
+# 15:30-19:30 (EDT). We use the local timezone approach instead
+# to avoid DST issues.
+OnCalendar=Mon..Fri *-*-* 12:30..16:30:00 America/New_York
+Persistent=false
+
+[Install]
+WantedBy=timers.target
