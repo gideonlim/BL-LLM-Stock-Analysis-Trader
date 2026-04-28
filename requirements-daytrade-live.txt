@@ -1,0 +1,26 @@
+# Minimal runtime deps for the day-trader daemon on the cloud VM.
+# Excludes heavy research stacks (torch, transformers, vectorbt,
+# matplotlib) that bloat a 1 GB droplet and aren't needed at runtime.
+#
+# Used by deploy/scripts/deploy.sh on the DigitalOcean droplet.
+# Local dev / backtest installs the full requirements.txt.
+
+# ── Broker + data ─────────────────────────────────
+alpaca-py>=0.21.0
+python-dotenv>=1.0
+
+# ── Tabular + analytics ───────────────────────────
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0          # parquet for BarCache disk snapshots
+
+# ── NYSE calendar (holidays, half-days, DST) ─────
+pandas-market-calendars>=4.4
+
+# ── Async data feed + heartbeat ──────────────────
+aiohttp>=3.9
+websockets>=12
+
+# ── Optional yfinance fallback (used only by some
+# legacy data paths; keep for now, drop later)
+yfinance>=0.2.30
