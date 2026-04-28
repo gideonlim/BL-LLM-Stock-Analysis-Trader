@@ -19,6 +19,7 @@ import numpy as np
 
 from trading_bot_bl.journal_analytics import (
     JournalMetrics,
+    breakdown_by_trade_type,
     compute_journal_metrics,
 )
 from trading_bot_bl.models import EquitySnapshot, JournalEntry
@@ -1661,6 +1662,63 @@ def generate_pdf_report(
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ])
 
+    # ── Trade type breakdown (swing vs day) ─────────────────────
+    # Surface day-trade vs swing performance separately so the
+    # 25% sub-portfolio can be evaluated independently from the
+    # main long-horizon book.
+    type_breakdown = breakdown_by_trade_type(trades)
+    # Only render when there is more than one type present —
+    # for swing-only history (the common case until the day-trader
+    # ships) this section would be redundant with Key Metrics.
+    if len(type_breakdown) > 1:
+        header = [
+            _hdr("Trade Type"), _hdr("Trades"), _hdr("Win Rate"),
+            _hdr("PF"), _hdr("Avg R"), _hdr("Total P&amp;L"),
+        ]
+        rows = [header]
+        # Stable ordering: swing first, then daytrade, then any
+        # future types alphabetically.
+        ordered = sorted(
+            type_breakdown.items(),
+            key=lambda kv: (
+                0 if kv[0] == "swing"
+                else 1 if kv[0] == "daytrade"
+                else 2,
+                kv[0],
+            ),
+        )
+        for trade_type, m in ordered:
+            o = m.overall
+            r = m.r_distribution
+            rows.append([
+                _cell(trade_type),
+                _cell(str(o.total_trades)),
+                _cvt(f"{o.win_rate:.0%}", o.win_rate, 0.50,
+                     "CellSmall"),
+                _cvt(_fmt_pf(o.profit_factor), o.profit_factor, 1.0,
+                     "CellSmall"),
+                _cv(f"{r.mean_r:+.2f}", r.mean_r, "CellSmall"),
+                Paragraph(
+                    _fmt_pnl(o.total_pnl), styles["CellSmall"],
+                ),
+            ])
+        t = Table(rows, colWidths=breakdown_widths)
+        t.setStyle(breakdown_style)
+        story.append(KeepTogether([
+            Paragraph(
+                "Performance by Trade Type",
+                styles["SectionHead"],
+            ),
+            t,
+            Paragraph(
+                "Trade-level metrics only. Sharpe/Sortino/Drawdown "
+                "remain account-wide because the equity curve is "
+                "not split by trade type.",
+                styles["SubText"],
+            ),
+            Spacer(1, 12),
+        ]))
+
     # ── Strategy breakdown table ────────────────────────────────
     if metrics.by_strategy:
         header = [_hdr("Strategy"), _hdr("Trades"), _hdr("Win Rate"),
@@ -1719,7 +1777,8 @@ def generate_pdf_report(
     story.append(Paragraph("Trade Log", styles["SectionHead"]))
 
     log_hdr = [
-        _hdr("Ticker"), _hdr("Strategy"), _hdr("Entry"), _hdr("Exit"),
+        _hdr("Ticker"), _hdr("Strategy"), _hdr("Type"),
+        _hdr("Entry"), _hdr("Exit"),
         _hdr("P&amp;L"), _hdr("R"), _hdr("Days"), _hdr("Exit Reason"),
     ]
     rows = [log_hdr]
@@ -1728,9 +1787,15 @@ def generate_pdf_report(
     ):
         _pnl = t_entry.realized_pnl or 0.0
         pnl_color = GREEN if _pnl > 0 else (RED if _pnl < 0 else NEUTRAL)
+        # Compact label: "day" stands out from the default "swing".
+        type_label = (
+            "day" if t_entry.trade_type == "daytrade"
+            else (t_entry.trade_type or "swing")
+        )
         rows.append([
             _cell(t_entry.ticker),
             _cell(t_entry.strategy[:16]),
+            _cell(type_label),
             _cell(f"${t_entry.entry_fill_price:.2f}"
                   if t_entry.entry_fill_price else "-"),
             _cell(f"${t_entry.exit_price:.2f}"
@@ -1749,7 +1814,8 @@ def generate_pdf_report(
             _cell(t_entry.exit_reason or "-"),
         ])
 
-    col_widths = [width * 0.09, width * 0.15, width * 0.10, width * 0.10,
+    col_widths = [width * 0.09, width * 0.13, width * 0.07,
+                  width * 0.10, width * 0.10,
                   width * 0.11, width * 0.06, width * 0.08, width * 0.24]
     t = Table(rows, colWidths=col_widths, repeatRows=1)
     t.setStyle(TableStyle([
