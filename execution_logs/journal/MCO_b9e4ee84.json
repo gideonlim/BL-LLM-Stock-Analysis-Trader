@@ -33,11 +33,11 @@
   "realized_pnl_pct": 0.0,
   "r_multiple": 0.0,
   "holding_days": 0,
-  "max_favorable_excursion": 461.42,
+  "max_favorable_excursion": 462.99,
   "max_adverse_excursion": 459.8,
-  "mfe_pct": 0.18,
+  "mfe_pct": 0.52,
   "mae_pct": 0.18,
-  "mfe_date": "2026-04-27",
+  "mfe_date": "2026-04-28",
   "mae_date": "2026-04-27",
   "etd": 0.0,
   "etd_pct": 0.0,
@@ -47,11 +47,16 @@
     {
       "date": "2026-04-27",
       "price": 459.8
+    },
+    {
+      "date": "2026-04-28",
+      "price": 462.99
     }
   ],
   "status": "open",
   "opened_at": "2026-04-27T15:46:01",
   "closed_at": "",
   "tags": [],
-  "notes": ""
+  "notes": "",
+  "trade_type": "swing"
 }

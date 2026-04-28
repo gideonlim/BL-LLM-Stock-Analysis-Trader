@@ -59,11 +59,16 @@
     {
       "date": "2026-04-27",
       "price": 77.02
+    },
+    {
+      "date": "2026-04-28",
+      "price": 77.5
     }
   ],
   "status": "open",
   "opened_at": "2026-04-22T15:41:14",
   "closed_at": "",
   "tags": [],
-  "notes": ""
+  "notes": "",
+  "trade_type": "swing"
 }
