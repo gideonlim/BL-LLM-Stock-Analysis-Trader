@@ -25,3 +25,10 @@ torch>=2.0.0           # PyTorch inference backend
 # PDF reports (optional — only needed with --report-pdf):
 reportlab>=4.0         # PDF generation
 matplotlib>=3.7        # chart rendering for PDF reports
+
+# ── Day-Trader Module ────────────────────────────
+# NYSE session math (holidays, half-days, DST). Used by
+# day_trader/calendar.py and the EOD watchdog. See
+# requirements-daytrade-live.txt for the minimal subset
+# the cloud daemon installs (no torch/transformers).
+pandas-market-calendars>=4.4
