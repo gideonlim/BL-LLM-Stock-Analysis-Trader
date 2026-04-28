@@ -111,6 +111,38 @@ class TestLoadUniverse(unittest.TestCase):
             u = load_universe(csv_path=csv_path)
         self.assertEqual(u, ["AAPL", "MSFT"])
 
+    def test_csv_arbitrary_header_auto_detected(self):
+        # Header "Stock_ID" doesn't match ticker shape → skipped
+        with TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "u.csv"
+            csv_path.write_text(
+                "Stock_ID\n"
+                "AAPL\n"
+                "MSFT\n"
+            )
+            u = load_universe(csv_path=csv_path)
+        self.assertEqual(u, ["AAPL", "MSFT"])
+
+    def test_invalid_ticker_shapes_skipped(self):
+        # Tickers with spaces, slashes, numbers-only are rejected
+        with TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "u.csv"
+            csv_path.write_text(
+                "AAPL\n"
+                "BRK B\n"
+                "123\n"
+                "AAPL/X\n"
+                "MSFT\n"
+            )
+            u = load_universe(csv_path=csv_path)
+        self.assertEqual(u, ["AAPL", "MSFT"])
+
+    def test_extra_symbols_validated(self):
+        u = load_universe(extra_symbols=["VALID", "bad ticker", "123"])
+        self.assertIn("VALID", u)
+        self.assertNotIn("bad ticker", u)
+        self.assertNotIn("123", u)
+
 
 if __name__ == "__main__":
     unittest.main()

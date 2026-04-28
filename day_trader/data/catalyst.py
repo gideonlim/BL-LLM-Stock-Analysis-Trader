@@ -72,7 +72,14 @@ class CatalystClassifier:
 
         Always returns a valid label string. On lookup error, returns
         ``NO_NEWS`` (fail-open) — the same convention used by other
-        wrappers around yfinance which can be flaky."""
+        wrappers around yfinance which can be flaky.
+
+        **Performance warning:** this method calls
+        ``check_earnings_blackout`` which may hit yfinance synchronously.
+        Do NOT call it from a hot scan loop — use
+        :meth:`classify_many` at session start and read labels from
+        :class:`TickerContext` during scans.
+        """
         try:
             info = check_earnings_blackout(
                 ticker,
