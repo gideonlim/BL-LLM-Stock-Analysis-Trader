@@ -1,0 +1,22 @@
+[Unit]
+Description=EOD flatten watchdog for day-trader (independent of daemon)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=daytrader
+Group=daytrader
+WorkingDirectory=/opt/day-trader/repo
+EnvironmentFile=/etc/day-trader/env
+
+ExecStart=/opt/day-trader/repo/.venv/bin/python deploy/scripts/eod_flatten.py
+
+# Tight timeout — this should finish in under 30s
+TimeoutStartSec=60
+
+# Security hardening (same as the main daemon)
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/day-trader /etc/day-trader
+PrivateTmp=yes

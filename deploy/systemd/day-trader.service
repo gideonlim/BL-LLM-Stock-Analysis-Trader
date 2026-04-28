@@ -1,0 +1,41 @@
+[Unit]
+Description=Day-trader daemon (25%% sub-portfolio intraday trading)
+Documentation=file:///opt/day-trader/repo/.claude/plans/i-want-to-allocate-bubbly-knuth.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=daytrader
+Group=daytrader
+WorkingDirectory=/opt/day-trader/repo
+EnvironmentFile=/etc/day-trader/env
+
+# The daemon runs one session per invocation and exits cleanly.
+# systemd restarts it; the daemon checks if today is a trading day
+# and stands down if not.
+ExecStart=/opt/day-trader/repo/.venv/bin/python -m day_trader live
+
+# Restart after 30s — the next invocation checks the NYSE calendar
+# and either runs the session or exits immediately (weekends etc.)
+Restart=on-failure
+RestartSec=30
+
+# Kill the whole process tree on stop (bracket cancel + journal flush
+# happen in the daemon's finally block during SIGTERM handling).
+KillMode=control-group
+TimeoutStopSec=60
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=80%
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/day-trader /etc/day-trader
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
