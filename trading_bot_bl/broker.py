@@ -10,6 +10,19 @@ from trading_bot_bl.models import OrderResult, PortfolioSnapshot
 
 log = logging.getLogger(__name__)
 
+
+def _resolve_client_order_id(order, fallback: str) -> str:
+    """Resolve which client_order_id to record on an OrderResult.
+
+    Real Alpaca always echoes the id we sent, or server-generates one
+    if we sent none — either way the broker response is authoritative.
+    The ``fallback`` (what the caller passed) is only used if
+    alpaca-py ever omits the attribute on its order response.
+    """
+    broker_echo = getattr(order, "client_order_id", "") or ""
+    return str(broker_echo or fallback)
+
+
 try:
     from alpaca.trading.client import TradingClient
     from alpaca.trading.requests import (
@@ -359,6 +372,7 @@ class AlpacaBroker:
         current_price: float,
         time_in_force: str = "day",
         max_entry_slippage_pct: float = 0.0,
+        client_order_id: str = "",
     ) -> OrderResult:
         """
         Submit a bracket order (entry + stop loss + take profit).
@@ -382,6 +396,11 @@ class AlpacaBroker:
             time_in_force: "day" or "gtc"
             max_entry_slippage_pct: Max % above current price
                 willing to pay (0 = market order). Default: 0.
+            client_order_id: Optional broker-side correlation tag
+                (e.g. "dt:20260428:0007:AAPL" for day-trade orders).
+                Forwarded to Alpaca; echoed in OrderResult so the
+                journal and force-close paths can find this order
+                by tag rather than by ticker.
 
         Returns:
             OrderResult with order ID and status.
@@ -417,6 +436,22 @@ class AlpacaBroker:
 
             use_limit = max_entry_slippage_pct > 0
 
+            common_kwargs: dict = {
+                "symbol": ticker,
+                "qty": qty,
+                "side": order_side,
+                "time_in_force": tif,
+                "order_class": OrderClass.BRACKET,
+                "take_profit": TakeProfitRequest(
+                    limit_price=round(take_profit_price, 2)
+                ),
+                "stop_loss": StopLossRequest(
+                    stop_price=round(stop_loss_price, 2)
+                ),
+            }
+            if client_order_id:
+                common_kwargs["client_order_id"] = client_order_id
+
             if use_limit:
                 # Limit order: won't fill above this price
                 limit_price = round(
@@ -425,34 +460,12 @@ class AlpacaBroker:
                     2,
                 )
                 request = LimitOrderRequest(
-                    symbol=ticker,
-                    qty=qty,
-                    side=order_side,
-                    time_in_force=tif,
                     limit_price=limit_price,
-                    order_class=OrderClass.BRACKET,
-                    take_profit=TakeProfitRequest(
-                        limit_price=round(take_profit_price, 2)
-                    ),
-                    stop_loss=StopLossRequest(
-                        stop_price=round(stop_loss_price, 2)
-                    ),
+                    **common_kwargs,
                 )
             else:
                 # Market order: fills immediately at best price
-                request = MarketOrderRequest(
-                    symbol=ticker,
-                    qty=qty,
-                    side=order_side,
-                    time_in_force=tif,
-                    order_class=OrderClass.BRACKET,
-                    take_profit=TakeProfitRequest(
-                        limit_price=round(take_profit_price, 2)
-                    ),
-                    stop_loss=StopLossRequest(
-                        stop_price=round(stop_loss_price, 2)
-                    ),
-                )
+                request = MarketOrderRequest(**common_kwargs)
 
             order = self._client.submit_order(request)
 
@@ -468,6 +481,9 @@ class AlpacaBroker:
             return OrderResult(
                 ticker=ticker,
                 order_id=str(order.id),
+                client_order_id=_resolve_client_order_id(
+                    order, client_order_id
+                ),
                 status="submitted",
                 side=side,
                 notional=actual_notional,
@@ -481,6 +497,7 @@ class AlpacaBroker:
             )
             return OrderResult(
                 ticker=ticker,
+                client_order_id=client_order_id,
                 status="rejected",
                 side=side,
                 notional=notional,
@@ -494,8 +511,15 @@ class AlpacaBroker:
         notional: Optional[float] = None,
         qty: Optional[float] = None,
         time_in_force: str = "day",
+        client_order_id: str = "",
     ) -> OrderResult:
-        """Submit a simple market order (no bracket)."""
+        """Submit a simple market order (no bracket).
+
+        client_order_id is the broker-side correlation tag (e.g.
+        "dt:20260428:0007:AAPL:exit"). Forwarded to Alpaca and
+        echoed in OrderResult; used by the day-trader to find
+        and reconcile its orders.
+        """
         try:
             order_side = (
                 OrderSide.BUY
@@ -521,6 +545,8 @@ class AlpacaBroker:
                 raise ValueError(
                     "Either notional or qty must be provided"
                 )
+            if client_order_id:
+                kwargs["client_order_id"] = client_order_id
 
             request = MarketOrderRequest(**kwargs)
             order = self._client.submit_order(request)
@@ -533,6 +559,9 @@ class AlpacaBroker:
             return OrderResult(
                 ticker=ticker,
                 order_id=str(order.id),
+                client_order_id=_resolve_client_order_id(
+                    order, client_order_id
+                ),
                 status="submitted",
                 side=side,
                 notional=notional or 0.0,
@@ -542,6 +571,7 @@ class AlpacaBroker:
             log.error(f"Market order failed for {ticker}: {e}")
             return OrderResult(
                 ticker=ticker,
+                client_order_id=client_order_id,
                 status="rejected",
                 side=side,
                 error=str(e),

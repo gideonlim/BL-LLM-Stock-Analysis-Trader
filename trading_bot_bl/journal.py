@@ -119,12 +119,18 @@ def create_trade(
     vix: float = 0.0,
     market_regime: str = "",
     spy_price: float = 0.0,
+    trade_type: str = "swing",
     journal_dir: Path | None = None,
 ) -> JournalEntry | None:
     """Create a new pending trade journal entry.
 
     Called from executor.py after a bracket order is submitted.
     Returns the entry on success, None on failure.
+
+    ``trade_type`` defaults to ``"swing"`` so the existing swing
+    executor needs no change. Day-trader code MUST pass
+    ``trade_type="daytrade"`` for analytics, EOD-flatten and
+    recovery to find the right entries.
     """
     try:
         trade_id = f"{ticker}_{order_id[:8]}"
@@ -148,6 +154,7 @@ def create_trade(
             entry_spy_price=spy_price,
             status="pending",
             opened_at=now_iso,
+            trade_type=trade_type,
         )
 
         if journal_dir:

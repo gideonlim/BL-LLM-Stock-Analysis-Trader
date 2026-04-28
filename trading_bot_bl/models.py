@@ -59,6 +59,7 @@ class OrderResult:
 
     ticker: str
     order_id: str = ""
+    client_order_id: str = ""  # echoed from broker; journal correlation key
     status: str = ""      # "submitted", "rejected", "skipped"
     side: str = ""
     notional: float = 0.0
@@ -196,6 +197,10 @@ class JournalEntry:
     # ── Metadata ──────────────────────────────────────────
     tags: list = field(default_factory=list)
     notes: str = ""
+    # "swing" (default, all existing entries) or "daytrade".
+    # Drives breakdown_by_trade_type() in journal_analytics and
+    # the day-trade section in journal_report.
+    trade_type: str = "swing"
 
 
 @dataclass

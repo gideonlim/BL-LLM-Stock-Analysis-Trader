@@ -1029,6 +1029,7 @@ def write_execution_log(
                 "take_profit_price": r.take_profit_price,
                 "strategy": r.strategy,
                 "order_id": r.order_id,
+                "client_order_id": r.client_order_id,
                 "error": r.error,
                 "timestamp": r.timestamp,
             }

@@ -813,6 +813,48 @@ def _compute_by_strategy(
     return result
 
 
+def breakdown_by_trade_type(
+    trades: list[JournalEntry],
+    *,
+    group_by_strategy: bool = True,
+    group_by_regime: bool = True,
+) -> dict[str, JournalMetrics]:
+    """Compute full per-trade-type performance metrics.
+
+    Partitions ``trades`` by ``JournalEntry.trade_type`` (typically
+    "swing" and "daytrade") and computes a complete ``JournalMetrics``
+    for each. Returns ``{trade_type: JournalMetrics}`` containing only
+    the types that have at least one trade.
+
+    Note: ``risk_adjusted``, ``drawdown``, and ``confidence`` fields
+    are NOT populated here — those derive from the equity curve, which
+    is account-wide (not split by trade type). The returned metrics
+    cover trade-level performance: win rate, expectancy, R-multiples,
+    excursion, holding period, streaks, per-strategy and per-regime
+    breakdowns.
+
+    Used by the weekly PDF report to surface day-trade vs swing
+    performance separately.
+    """
+    groups: dict[str, list[JournalEntry]] = defaultdict(list)
+    for t in trades:
+        # Default to "swing" so legacy entries (pre-day-trader) and
+        # any malformed entries with empty trade_type are bucketed
+        # consistently.
+        key = t.trade_type or "swing"
+        groups[key].append(t)
+
+    result: dict[str, JournalMetrics] = {}
+    for trade_type, subset in groups.items():
+        result[trade_type] = compute_journal_metrics(
+            subset,
+            equity_snapshots=None,
+            group_by_strategy=group_by_strategy,
+            group_by_regime=group_by_regime,
+        )
+    return result
+
+
 def _compute_by_regime(
     closed: list[JournalEntry],
 ) -> dict[str, RegimeBreakdown]:
@@ -951,6 +993,47 @@ def format_metrics_text(metrics: JournalMetrics) -> str:
                 f"P&L=${b.total_pnl:+,.0f}"
             )
 
+    return "\n".join(lines)
+
+
+def format_trade_type_breakdown(
+    breakdown: dict[str, JournalMetrics],
+) -> str:
+    """Human-readable per-trade-type summary for logs.
+
+    Pairs with ``breakdown_by_trade_type``. Shows side-by-side
+    win rate, profit factor, expectancy, and total P&L per type
+    so operators can see swing vs day-trade performance at a
+    glance in the daily/weekly text digest.
+    """
+    if not breakdown:
+        return ""
+    lines = ["", "--- Performance by Trade Type ---"]
+    # Stable ordering: swing first, then daytrade, then others
+    # alphabetically.
+    ordered = sorted(
+        breakdown.items(),
+        key=lambda kv: (
+            0 if kv[0] == "swing"
+            else 1 if kv[0] == "daytrade"
+            else 2,
+            kv[0],
+        ),
+    )
+    for trade_type, metrics in ordered:
+        o = metrics.overall
+        pf_str = (
+            "∞"
+            if o.profit_factor == float("inf")
+            else f"{o.profit_factor:.2f}"
+        )
+        lines.append(
+            f"  {trade_type}: {o.total_trades} trades, "
+            f"WR={o.win_rate:.0%}, "
+            f"PF={pf_str}, "
+            f"E=${o.expectancy:+,.2f}/trade, "
+            f"P&L=${o.total_pnl:+,.0f}"
+        )
     return "\n".join(lines)
 
 
