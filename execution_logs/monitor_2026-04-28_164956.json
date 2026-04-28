@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-28T16:49:56",
+  "positions_checked": 10,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "TECH",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "TECH missing stop loss leg. P&L: -0.6%",
+      "action_taken": "Reattached OCO: SL=$50.45, TP=$58.41",
+      "current_price": 53.1,
+      "entry_price": 53.44,
+      "pnl_pct": -0.64,
+      "timestamp": "2026-04-28T16:49:55"
+    }
+  ]
+}
