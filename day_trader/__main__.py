@@ -204,10 +204,17 @@ async def _run_daemon(args: argparse.Namespace) -> int:
         })(),
     )
 
+    # Data feed is tied to the API account, NOT the paper/live mode.
+    # Default "sip" assumes Algo Trader Plus or Unlimited subscription
+    # (per the plan's locked decision). Override via DAYTRADE_DATA_FEED
+    # env var to "iex" only if downgrading the subscription — note
+    # IEX-only data renders the Stocks-in-Play RVOL gating useless
+    # (~3-5% of consolidated volume), so most v1 strategies will fail
+    # to find tradeable setups.
     feed = MarketDataFeed(
         alpaca_config.api_key,
         alpaca_config.api_secret,
-        feed="sip" if not alpaca_config.paper else "iex",
+        feed=config.data_feed,
     )
 
     daemon = DayTraderDaemon(

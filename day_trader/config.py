@@ -98,6 +98,17 @@ class DayTradeConfig:
     universe_path: Path | None = None  # CSV override
     max_watchlist_size: int = 150
 
+    # ── Market data feed ──────────────────────────────────────
+    # Alpaca data plan tied to the API account (NOT paper/live):
+    #   "sip"  — Algo Trader Plus or Unlimited subscription.
+    #            Full consolidated tape (~100% of volume). Required
+    #            for Stocks-in-Play RVOL calculations.
+    #   "iex"  — Free Basic tier. IEX-only (~3-5% of volume) —
+    #            insufficient for the day-trader's RVOL gating.
+    # Default "sip" matches the plan's locked decision (user has
+    # Algo Trader Plus). Override only if downgrading subscription.
+    data_feed: str = "sip"
+
     # ── Schedule offsets (minutes) ─────────────────────────────
     # Resolved via day_trader/calendar.py against the live NYSE
     # session — never hard-coded against wall-clock 09:30/16:00.
@@ -166,6 +177,7 @@ class DayTradeConfig:
             max_watchlist_size=int(
                 os.getenv("DAYTRADE_MAX_WATCHLIST", "150")
             ),
+            data_feed=os.getenv("DAYTRADE_DATA_FEED", "sip").lower(),
             telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
             telegram_chat_id=os.getenv("TELEGRAM_CHAT_ID", ""),
         )

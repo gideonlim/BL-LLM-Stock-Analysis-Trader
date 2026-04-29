@@ -117,6 +117,26 @@ class TestDayTradeConfigFromEnv(unittest.TestCase):
         self.assertEqual(cfg.risk.per_trade_risk_pct, 0.5)
         self.assertTrue(cfg.dry_run)
 
+    def test_data_feed_defaults_to_sip(self):
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("DAYTRADE_DATA_FEED", None)
+            cfg = DayTradeConfig.from_env()
+        self.assertEqual(cfg.data_feed, "sip")
+
+    def test_data_feed_override(self):
+        with mock.patch.dict(os.environ, {
+            "DAYTRADE_DATA_FEED": "iex",
+        }, clear=False):
+            cfg = DayTradeConfig.from_env()
+        self.assertEqual(cfg.data_feed, "iex")
+
+    def test_data_feed_normalized_to_lowercase(self):
+        with mock.patch.dict(os.environ, {
+            "DAYTRADE_DATA_FEED": "SIP",
+        }, clear=False):
+            cfg = DayTradeConfig.from_env()
+        self.assertEqual(cfg.data_feed, "sip")
+
     def test_repr_does_not_leak_secrets(self):
         with mock.patch.dict(os.environ, {
             "TELEGRAM_BOT_TOKEN": "real-secret-token-xyz",
