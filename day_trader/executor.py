@@ -103,6 +103,14 @@ class DayTraderDaemon:
         self._exit_only = False
         self._session: Optional[NyseSession] = None
 
+        # Heartbeat + alerts — both safe with default values
+        # (heartbeat writes to /var/run/day-trader; alerts no-op
+        # without TELEGRAM_BOT_TOKEN set).
+        from day_trader.alerts import get_default_alerter
+        from day_trader.heartbeat import Heartbeat
+        self.heartbeat = Heartbeat()
+        self.alerter = get_default_alerter()
+
     # ── Main entry point ──────────────────────────────────────────
 
     async def run(self) -> None:
@@ -121,8 +129,16 @@ class DayTraderDaemon:
         try:
             await self._pre_session(session)
             await self._run_session(session)
-        except Exception:
+        except Exception as exc:
             log.exception("Executor: fatal error during session")
+            self.alerter.crit(
+                "Day-trader CRASHED mid-session",
+                context={
+                    "error_type": type(exc).__name__,
+                    "error": str(exc)[:300],
+                    "action": "check journalctl -u day-trader",
+                },
+            )
             raise
         finally:
             await self._post_session()
@@ -173,6 +189,14 @@ class DayTraderDaemon:
             )
             self.risk.trip_kill_switch(
                 f"recovery_incident: {recon.summary()[:200]}"
+            )
+            self.alerter.crit(
+                "Day-trader recovery: INCIDENT MODE",
+                context={
+                    "summary": recon.summary(),
+                    "incidents": len(recon.incidents),
+                    "action": "manual triage required",
+                },
             )
         else:
             log.info("Recovery: %s", recon.summary())
@@ -242,10 +266,17 @@ class DayTraderDaemon:
 
     async def _run_session(self, session: NyseSession) -> None:
         """Poll scheduler and dispatch events until session closes."""
+        # Initial heartbeat — confirms the daemon reached the loop
+        self.heartbeat.beat(session_active=True)
+
         while True:
             current = now_et()
             if current >= session.close_et:
                 break
+
+            # Tick the heartbeat each loop iteration so the watchdog
+            # can detect a stalled scheduler / hung asyncio task.
+            self.heartbeat.beat(session_active=True)
 
             events = self.scheduler.due_events(current)
             for event in events:
@@ -471,6 +502,7 @@ class DayTraderDaemon:
             if pos.side == "short":
                 pnl = -pnl
 
+            kill_was_tripped = self.risk.is_kill_switch_tripped()
             self.risk.record_close(
                 ticker=ticker,
                 strategy=pos.strategy,
@@ -480,29 +512,58 @@ class DayTraderDaemon:
             log.info(
                 "Closed %s: reason=%s P&L=$%.2f", ticker, reason, pnl,
             )
+            # Alert if record_close just tripped the kill switch
+            if (
+                not kill_was_tripped
+                and self.risk.is_kill_switch_tripped()
+            ):
+                self.alerter.crit(
+                    "Day-trader KILL SWITCH tripped — daily loss limit reached",
+                    context={
+                        "reason": self.risk.kill_switch_reason,
+                        "daily_pnl": f"${self.risk.daily_realized_pnl:.2f}",
+                        "loss_pct": f"{self.risk.daily_loss_pct():.2f}%",
+                        "action": "no further entries today; positions managed normally",
+                    },
+                )
         else:
             log.error(
                 "Failed to close %s: %s", ticker, result.error,
+            )
+            self.alerter.warn(
+                f"Day-trader: close FAILED for {ticker}",
+                context={
+                    "qty": pos.qty,
+                    "reason": reason,
+                    "error": result.error[:200],
+                    "action": "may require manual close before EOD",
+                },
             )
 
     # ── Regime snapshot ───────────────────────────────────────────
 
     async def _snapshot_regime(self) -> None:
-        """Fetch SPY/VIX for the market-state snapshot."""
+        """Fetch SPY/VIX/regime for the market-state snapshot.
+
+        Delegates to :mod:`day_trader.data.market_state` which uses
+        yfinance for SPY 200-SMA, 52-wk high, and VIX. Cheap
+        (~2 REST calls) and runs once per session pre-open.
+        Wrapped in ``asyncio.to_thread`` so yfinance's blocking
+        IO doesn't stall the executor's event loop.
+        """
         try:
-            spy_bar = self.bar_cache.latest("SPY")
-            spy_price = spy_bar.close if spy_bar else 0.0
-            # VIX would need a separate fetch — for v1, use 0 as
-            # placeholder (the filter will not trip since
-            # halt_above_vix defaults to 35, and 0 < 35)
-            self.market_state = MarketState(
-                spy_price=spy_price,
-                vix=0.0,
-                spy_trend_regime="BULL",
-                captured_at=now_et().isoformat(timespec="seconds"),
+            from day_trader.data.market_state import fetch_market_state
+            self.market_state = await asyncio.to_thread(
+                fetch_market_state,
+            )
+            # Propagate SEVERE_BEAR to the risk manager — the filter
+            # chain ALSO blocks on this, but two layers of defence
+            # is intentional.
+            self.risk.set_spy_severe_bear(
+                self.market_state.is_severe_bear
             )
         except Exception:
-            log.exception("Regime snapshot failed")
+            log.exception("Regime snapshot failed — keeping prior state")
 
     # ── Post-session ──────────────────────────────────────────────
 
@@ -521,4 +582,37 @@ class DayTraderDaemon:
             self.risk.kill_switch_tripped,
             self.pipeline.stats,
         )
+
+        # Daily summary alert (INFO unless something notable)
+        if self.risk.kill_switch_tripped or self.risk.daily_realized_pnl < 0:
+            severity = self.alerter.warn
+        else:
+            severity = self.alerter.info
+        severity(
+            f"Day-trader session complete",
+            context={
+                "trades": self.risk.trades_today,
+                "pnl": f"${self.risk.daily_realized_pnl:+.2f}",
+                "loss_pct": f"{self.risk.daily_loss_pct():+.2f}%",
+                "kill_switch": self.risk.kill_switch_tripped,
+                "rejection_top": self._top_filter_reasons(3),
+            },
+        )
+
         self.pipeline.reset_stats()
+        # Final heartbeat marks session as inactive — the watchdog
+        # then ignores staleness until tomorrow's session starts.
+        self.heartbeat.beat(session_active=False)
+
+    def _top_filter_reasons(self, n: int) -> dict:
+        """Top N filter rejection reasons for the daily summary."""
+        # Filter for keys with the per-reason format
+        # ``rejected_by_<filter>:<reason>``
+        per_reason = {
+            k: v for k, v in self.pipeline.stats.items()
+            if ":" in k and k.startswith("rejected_by_")
+        }
+        sorted_items = sorted(
+            per_reason.items(), key=lambda kv: kv[1], reverse=True,
+        )
+        return dict(sorted_items[:n])

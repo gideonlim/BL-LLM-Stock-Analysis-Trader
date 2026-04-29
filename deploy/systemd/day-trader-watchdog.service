@@ -1,0 +1,22 @@
+[Unit]
+Description=Day-trader heartbeat watchdog
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=daytrader
+Group=daytrader
+WorkingDirectory=/opt/day-trader/repo
+EnvironmentFile=/etc/day-trader/env
+
+ExecStart=/opt/day-trader/repo/.venv/bin/python deploy/scripts/healthcheck.py
+
+# Quick — should finish in under 10s
+TimeoutStartSec=30
+
+# Same hardening as the main daemon
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/day-trader /etc/day-trader /var/run/day-trader
+PrivateTmp=yes
