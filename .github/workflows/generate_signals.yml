@@ -65,4 +65,5 @@ jobs:
           git add signals/ -f
           git diff --cached --quiet && echo "No new signals" && exit 0
           git commit -m "chore: generate signals $(date +%Y-%m-%d)"
+          git pull --rebase origin main
           git push
