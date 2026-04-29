@@ -34,7 +34,7 @@ CPUQuota=80%
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=/opt/day-trader /etc/day-trader
+ReadWritePaths=/opt/day-trader /etc/day-trader /var/run/day-trader
 PrivateTmp=yes
 
 [Install]

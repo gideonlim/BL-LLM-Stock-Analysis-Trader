@@ -25,6 +25,7 @@ Usage::
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
@@ -134,3 +135,108 @@ def run_all_strategies(
             config=config, market_state=market_state,
         ),
     }
+
+
+# ── In-sample / Out-of-sample split ──────────────────────────────
+
+
+def split_dates_is_oos(
+    bars_by_date: dict[date, dict[str, list[Bar]]],
+    *,
+    oos_pct: float = 0.25,
+) -> tuple[dict[date, dict[str, list[Bar]]], dict[date, dict[str, list[Bar]]]]:
+    """Split bars chronologically into in-sample and out-of-sample.
+
+    Splits BY TIME — never random — to prevent look-ahead bias.
+    Default 75/25 split (oos_pct=0.25) per the plan.
+
+    Returns ``(in_sample, out_of_sample)``.
+    """
+    if not (0 < oos_pct < 1):
+        raise ValueError(f"oos_pct must be in (0, 1), got {oos_pct!r}")
+    sorted_dates = sorted(bars_by_date.keys())
+    if len(sorted_dates) < 2:
+        return bars_by_date, {}
+    split_idx = int(len(sorted_dates) * (1 - oos_pct))
+    is_dates = sorted_dates[:split_idx]
+    oos_dates = sorted_dates[split_idx:]
+    return (
+        {d: bars_by_date[d] for d in is_dates},
+        {d: bars_by_date[d] for d in oos_dates},
+    )
+
+
+@dataclass
+class IsOosResult:
+    """Paired in-sample / out-of-sample result with passes-OOS check."""
+
+    strategy_name: str
+    in_sample: BacktestResult
+    out_of_sample: BacktestResult
+
+    @property
+    def oos_passes_plan(self) -> bool:
+        """Plan's pass criteria measured ONLY on out-of-sample.
+
+        The IS metrics are informational — they tell us how well the
+        strategy fits training data. OOS is what determines whether
+        the strategy ships to paper. Anything failing OOS is dead.
+        """
+        criteria = self.out_of_sample.passes_plan_criteria
+        return all(criteria.values())
+
+    def summary(self) -> str:
+        is_summary = (
+            f"IS (Sharpe={self.in_sample.sharpe_ratio:.2f}, "
+            f"PF={self.in_sample.profit_factor:.2f}, "
+            f"DD={self.in_sample.max_drawdown_pct:.1f}%, "
+            f"trades={self.in_sample.total_trades})"
+        )
+        oos_summary = (
+            f"OOS (Sharpe={self.out_of_sample.sharpe_ratio:.2f}, "
+            f"PF={self.out_of_sample.profit_factor:.2f}, "
+            f"DD={self.out_of_sample.max_drawdown_pct:.1f}%, "
+            f"trades={self.out_of_sample.total_trades})"
+        )
+        verdict = "PASS" if self.oos_passes_plan else "FAIL"
+        return (
+            f"=== {self.strategy_name}: {verdict} ===\n"
+            f"  {is_summary}\n  {oos_summary}\n"
+            f"  OOS criteria: {self.out_of_sample.passes_plan_criteria}\n"
+        )
+
+
+def run_orb_backtest_is_oos(
+    bars_by_date: dict[date, dict[str, list[Bar]]],
+    ticker_contexts: dict[str, TickerContext],
+    *,
+    oos_pct: float = 0.25,
+    **kwargs,
+) -> IsOosResult:
+    """ORB backtest with IS/OOS split for the plan's Stage 2 validation."""
+    is_bars, oos_bars = split_dates_is_oos(bars_by_date, oos_pct=oos_pct)
+    return IsOosResult(
+        strategy_name="orb_vwap",
+        in_sample=run_orb_backtest(is_bars, ticker_contexts, **kwargs),
+        out_of_sample=run_orb_backtest(oos_bars, ticker_contexts, **kwargs),
+    )
+
+
+def run_vwap_pullback_backtest_is_oos(
+    bars_by_date: dict[date, dict[str, list[Bar]]],
+    ticker_contexts: dict[str, TickerContext],
+    *,
+    oos_pct: float = 0.25,
+    **kwargs,
+) -> IsOosResult:
+    """VWAP-pullback backtest with IS/OOS split."""
+    is_bars, oos_bars = split_dates_is_oos(bars_by_date, oos_pct=oos_pct)
+    return IsOosResult(
+        strategy_name="vwap_pullback",
+        in_sample=run_vwap_pullback_backtest(
+            is_bars, ticker_contexts, **kwargs,
+        ),
+        out_of_sample=run_vwap_pullback_backtest(
+            oos_bars, ticker_contexts, **kwargs,
+        ),
+    )

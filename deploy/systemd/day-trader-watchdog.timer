@@ -1,0 +1,12 @@
+[Unit]
+Description=Day-trader heartbeat watchdog timer (every minute during market hours)
+
+[Timer]
+# Slightly broader than 09:30-16:00 ET to catch pre-/post-session
+# issues. The healthcheck script gates on is_market_open() internally
+# so out-of-session ticks are silent no-ops.
+OnCalendar=Mon..Fri *-*-* 09:25..16:05:00 America/New_York
+Persistent=false
+
+[Install]
+WantedBy=timers.target
