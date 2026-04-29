@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-29T16:25:50",
+  "positions_checked": 9,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KDP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KDP missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$27.36, TP=$31.69",
+      "current_price": 28.805,
+      "entry_price": 28.764621,
+      "pnl_pct": 0.14,
+      "timestamp": "2026-04-29T16:25:47"
+    },
+    {
+      "ticker": "OVV",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OVV missing stop loss leg. P&L: +0.4%",
+      "action_taken": "Reattached OCO: SL=$57.33, TP=$66.39",
+      "current_price": 60.35,
+      "entry_price": 60.08,
+      "pnl_pct": 0.45,
+      "timestamp": "2026-04-29T16:25:48"
+    }
+  ]
+}
