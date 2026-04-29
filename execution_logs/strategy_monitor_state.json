@@ -17,15 +17,29 @@
     "strategy": "VWAP Trend",
     "state": "CAUTION",
     "prev_state": "CAUTION",
-    "rolling_sharpe": 0.6089,
-    "rolling_win_rate": 0.7647,
+    "rolling_sharpe": 0.3684,
+    "rolling_win_rate": 0.65,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 0,
-    "mean_r": 0.6371,
-    "strategy_drawdown_pct": 6.39,
-    "closed_trades": 17,
+    "consec_losses": 3,
+    "mean_r": 0.2865,
+    "strategy_drawdown_pct": 12.82,
+    "closed_trades": 20,
     "last_transition": "2026-04-08T15:44:08",
-    "note": "CAUTION"
+    "note": "rolling Sharpe 0.37 < 0.5; win rate dropped 18.3pp from baseline; 3 consecutive losses"
+  },
+  "Z-Score Mean Reversion": {
+    "strategy": "Z-Score Mean Reversion",
+    "state": "ACTIVE",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": -1.7913,
+    "rolling_win_rate": 0.0,
+    "baseline_win_rate": 0.0,
+    "consec_losses": 2,
+    "mean_r": 0.0,
+    "strategy_drawdown_pct": 7.6,
+    "closed_trades": 2,
+    "last_transition": "",
+    "note": "Insufficient trade history (2/5)"
   },
   "MACD Crossover": {
     "strategy": "MACD Crossover",
@@ -54,20 +68,6 @@
     "closed_trades": 1,
     "last_transition": "",
     "note": "Insufficient trade history (1/5)"
-  },
-  "Z-Score Mean Reversion": {
-    "strategy": "Z-Score Mean Reversion",
-    "state": "ACTIVE",
-    "prev_state": "ACTIVE",
-    "rolling_sharpe": -1.7913,
-    "rolling_win_rate": 0.0,
-    "baseline_win_rate": 0.0,
-    "consec_losses": 2,
-    "mean_r": 0.0,
-    "strategy_drawdown_pct": 7.6,
-    "closed_trades": 2,
-    "last_transition": "",
-    "note": "Insufficient trade history (2/5)"
   },
   "Stochastic Oscillator": {
     "strategy": "Stochastic Oscillator",
