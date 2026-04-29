@@ -16,10 +16,17 @@ EnvironmentFile=/etc/day-trader/env
 # and stands down if not.
 ExecStart=/opt/day-trader/repo/.venv/bin/python -m day_trader live
 
-# Restart after 30s — the next invocation checks the NYSE calendar
-# and either runs the session or exits immediately (weekends etc.)
-Restart=on-failure
-RestartSec=30
+# Restart in 5 minutes regardless of exit status. Each restart re-reads
+# the NYSE calendar and either runs the session or stands down for the
+# day (clean exit code 0). On weekends / holidays / between-session
+# evenings the daemon exits in <1s — this loop keeps it alive until
+# the next session opens. ~24 cheap restarts/day worst case.
+#
+# Why not on-failure: clean exits at session close would otherwise
+# leave the daemon stopped until a manual restart, missing the next
+# session entirely.
+Restart=always
+RestartSec=300
 
 # Kill the whole process tree on stop (bracket cancel + journal flush
 # happen in the daemon's finally block during SIGTERM handling).
