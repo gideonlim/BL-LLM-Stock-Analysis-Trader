@@ -32,6 +32,11 @@ def _setup_logging(verbose: bool = False) -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stderr)],
     )
+    # yfinance logs HTTP 404 at ERROR for ETF tickers (SPY/QQQ/DIA...)
+    # because they have no fundamentals/earnings data — that's expected
+    # and our catalyst classifier already fail-opens to NO_NEWS. The
+    # 404s spam ~25 lines per pre-session and bury the real signals.
+    logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 
 def _parse_args() -> argparse.Namespace:
