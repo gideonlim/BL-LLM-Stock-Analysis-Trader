@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-30T15:29:09",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "FDX",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "FDX exceeded max hold period (10 days). P&L: -0.5%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 392.07,
+      "entry_price": 394.08,
+      "pnl_pct": -0.51,
+      "timestamp": "2026-04-30T15:29:05"
+    }
+  ]
+}
