@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-04-30T16:15:54",
+  "positions_checked": 10,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "INTC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "INTC missing stop loss leg. P&L: +0.5%",
+      "action_taken": "Reattached OCO: SL=$89.04, TP=$103.1",
+      "current_price": 93.7299,
+      "entry_price": 93.240303,
+      "pnl_pct": 0.53,
+      "timestamp": "2026-04-30T16:15:50"
+    },
+    {
+      "ticker": "UDR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "UDR missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$34.31, TP=$39.73",
+      "current_price": 36.115,
+      "entry_price": 36.16,
+      "pnl_pct": -0.12,
+      "timestamp": "2026-04-30T16:15:52"
+    }
+  ]
+}
