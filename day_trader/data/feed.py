@@ -149,12 +149,33 @@ def _create_stream(api_key: str, api_secret: str, feed: str):
 
     Tests inject a fake by passing ``stream_factory=...`` to
     :class:`MarketDataFeed`.
+
+    Note on the ``feed`` parameter: alpaca-py >=0.21 requires a
+    ``DataFeed`` enum value here, not a plain string. The string
+    "sip" fed in directly fails with::
+
+        AttributeError: 'str' object has no attribute 'value'
+
+    We accept the string from config (cleaner / serializable) and
+    map to the enum at construction time.
     """
     from alpaca.data.live import StockDataStream
+    from alpaca.data.enums import DataFeed
+
+    feed_map = {
+        "sip": DataFeed.SIP,
+        "iex": DataFeed.IEX,
+    }
+    feed_enum = feed_map.get(feed.lower())
+    if feed_enum is None:
+        raise ValueError(
+            f"Unknown data feed {feed!r} — must be 'sip' or 'iex'"
+        )
+
     return StockDataStream(
         api_key=api_key,
         secret_key=api_secret,
-        feed=feed,
+        feed=feed_enum,
     )
 
 
