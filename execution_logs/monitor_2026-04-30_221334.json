@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-04-30T22:13:34",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KDP",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "KDP up 2.8% \u2014 moving SL to breakeven $28.76 (was $27.54)",
+      "action_taken": "DRY RUN: would move SL to breakeven",
+      "current_price": 29.57,
+      "entry_price": 28.764621,
+      "pnl_pct": 2.8,
+      "timestamp": "2026-04-30T22:13:31"
+    }
+  ]
+}
