@@ -377,6 +377,158 @@ class TestDetectClosedTrades(unittest.TestCase):
             self.assertEqual(len(closed), 0)
 
 
+class TestPrematureCloseRevert(unittest.TestCase):
+    """Regression tests for _reconcile_premature_closes.
+
+    Background: prior implementation reverted any closed entry to
+    open if the ticker was in current_positions. This caused
+    bug 2026-04-29: closing FLG, then re-entering FLG weeks later
+    caused the original closed entry to revert (losing exit data
+    and producing phantom 30-day open holdings).
+
+    Fix: only revert if broker's current avg_entry matches the
+    journal entry's entry_fill_price within tolerance.
+    """
+
+    def _closed_entry(
+        self, trade_id: str, ticker: str, fill: float, jdir: Path,
+    ) -> JournalEntry:
+        entry = JournalEntry(
+            trade_id=trade_id,
+            ticker=ticker,
+            strategy="test",
+            side="long",
+            entry_order_id=f"{trade_id}-order",
+            entry_signal_price=fill,
+            entry_fill_price=fill,
+            entry_qty=100,
+            entry_notional=fill * 100,
+            entry_date="2026-03-30T15:42:00",
+            status="closed",
+            exit_price=fill * 1.05,
+            exit_fill_price=fill * 1.05,
+            exit_date="2026-04-10T16:00:00",
+            closed_at="2026-04-10T16:00:00",
+            exit_reason="take_profit",
+            holding_days=11,
+            realized_pnl=fill * 100 * 0.05,
+            r_multiple=1.5,
+        )
+        _save_entry(entry, jdir)
+        return entry
+
+    def test_does_not_revert_when_avg_entry_differs(self):
+        """Different trade with same ticker — must NOT revert.
+
+        FLG closed at $13.13 in March; re-opened at $13.97 in April.
+        The April entry is in broker positions, but the March entry
+        is a different trade. Reverting it would corrupt the closed
+        record.
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._closed_entry("FLG_old", "FLG", 13.13, jdir)
+
+            # Broker shows FLG at a DIFFERENT avg_entry (new position)
+            detect_closed_trades(
+                current_positions={"FLG": {"avg_entry": 13.97, "qty": 616}},
+                journal_dir=jdir,
+            )
+
+            # Old closed entry should remain closed
+            entries = load_all_trades(jdir, lookback_days=365)
+            old = next(e for e in entries if e.trade_id == "FLG_old")
+            self.assertEqual(old.status, "closed")
+            self.assertEqual(old.exit_date, "2026-04-10T16:00:00")
+            self.assertEqual(old.holding_days, 11)
+            self.assertEqual(old.r_multiple, 1.5)
+
+    def test_reverts_when_avg_entry_matches(self):
+        """Same trade prematurely closed — must revert.
+
+        The legitimate use case: bot mistakenly fired close_trade
+        but the close order never filled, so the position is still
+        held at the same fill price.
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._closed_entry("AAPL_premature", "AAPL", 150.0, jdir)
+
+            # Broker shows AAPL at the SAME avg_entry — same trade
+            detect_closed_trades(
+                current_positions={
+                    "AAPL": {"avg_entry": 150.0, "qty": 100},
+                },
+                journal_dir=jdir,
+            )
+
+            entries = load_all_trades(jdir, lookback_days=365)
+            entry = next(
+                e for e in entries if e.trade_id == "AAPL_premature"
+            )
+            self.assertEqual(entry.status, "open")
+            self.assertEqual(entry.exit_date, "")
+            self.assertEqual(entry.holding_days, 0)
+
+    def test_does_not_revert_when_position_gone(self):
+        """No premature close to revert — position correctly closed."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._closed_entry("MSFT_clean", "MSFT", 200.0, jdir)
+
+            # MSFT not in current positions — closed correctly
+            detect_closed_trades(
+                current_positions={},
+                journal_dir=jdir,
+            )
+
+            entries = load_all_trades(jdir, lookback_days=365)
+            entry = next(
+                e for e in entries if e.trade_id == "MSFT_clean"
+            )
+            self.assertEqual(entry.status, "closed")
+
+    def test_tolerance_within_threshold_reverts(self):
+        """Tiny avg_entry drift (e.g. 0.1%) is treated as same trade."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._closed_entry("NVDA_drift", "NVDA", 500.0, jdir)
+
+            # Broker avg 500.10 — 0.02% drift, within 0.5% tolerance
+            detect_closed_trades(
+                current_positions={
+                    "NVDA": {"avg_entry": 500.10, "qty": 50},
+                },
+                journal_dir=jdir,
+            )
+
+            entries = load_all_trades(jdir, lookback_days=365)
+            entry = next(
+                e for e in entries if e.trade_id == "NVDA_drift"
+            )
+            self.assertEqual(entry.status, "open")  # reverted
+
+    def test_tolerance_above_threshold_does_not_revert(self):
+        """avg_entry drift > 0.5% means different trade."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._closed_entry("TSLA_diff", "TSLA", 200.0, jdir)
+
+            # Broker avg 210.0 — 5% drift, well above tolerance
+            detect_closed_trades(
+                current_positions={
+                    "TSLA": {"avg_entry": 210.0, "qty": 50},
+                },
+                journal_dir=jdir,
+            )
+
+            entries = load_all_trades(jdir, lookback_days=365)
+            entry = next(
+                e for e in entries if e.trade_id == "TSLA_diff"
+            )
+            self.assertEqual(entry.status, "closed")
+
+
 class TestMigration(unittest.TestCase):
     def test_migrates_new_position(self):
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -457,13 +457,25 @@ def close_trade(
 def _reconcile_premature_closes(
     current_positions: dict[str, dict],
     journal_dir: Path,
+    *,
+    avg_entry_tolerance_pct: float = 0.5,
 ) -> int:
     """Revert journal entries that were prematurely marked closed.
 
     If a journal entry has ``status='closed'`` but the ticker is
-    still held in the portfolio, the close order never actually
+    still held in the portfolio AND the broker position's avg entry
+    matches the journal entry's fill price (within
+    ``avg_entry_tolerance_pct``), the close order never actually
     filled.  Reset the entry to ``open`` so the next monitor run
     can re-attempt the close properly.
+
+    The avg-entry match is critical: it distinguishes "same trade
+    that was prematurely closed" from "different trade with the
+    same ticker that was opened later". Without this check, closing
+    FLG at $13.13, then re-entering FLG at $13.97 weeks later, would
+    incorrectly revert the original closed trade to open — losing
+    the exit data and producing phantom long-running open positions
+    in the journal (real bug encountered Apr 2026).
 
     Returns the number of entries reverted.
     """
@@ -481,7 +493,26 @@ def _reconcile_premature_closes(
             if ticker not in current_positions:
                 continue  # correctly closed — position is gone
 
-            # Position still held but journal says closed → revert
+            # Same-trade check: compare broker's current avg_entry
+            # to journal's entry_fill_price. If they don't match
+            # within tolerance, this is a different trade with the
+            # same ticker — don't revert.
+            broker_pos = current_positions[ticker]
+            broker_avg = float(broker_pos.get("avg_entry", 0) or 0)
+            journal_fill = float(d.get("entry_fill_price", 0) or 0)
+            if broker_avg > 0 and journal_fill > 0:
+                drift_pct = abs(broker_avg - journal_fill) / journal_fill * 100
+                if drift_pct > avg_entry_tolerance_pct:
+                    log.debug(
+                        f"  Journal: NOT reverting {d.get('trade_id')} "
+                        f"— broker avg_entry ${broker_avg:.4f} differs from "
+                        f"journal fill ${journal_fill:.4f} ({drift_pct:.2f}% > "
+                        f"{avg_entry_tolerance_pct}% tolerance) — likely "
+                        f"a new trade in same ticker"
+                    )
+                    continue
+
+            # Position still held AND avg_entry matches → premature close
             d["status"] = "open"
             d["closed_at"] = ""
             d["exit_price"] = 0.0
@@ -493,12 +524,13 @@ def _reconcile_premature_closes(
             d["realized_pnl"] = 0.0
             d["realized_pnl_pct"] = 0.0
             d["r_multiple"] = None
+            d["holding_days"] = 0
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(d, f, indent=2)
 
             log.warning(
                 f"  Journal: reverted {d.get('trade_id')} to open "
-                f"— position {ticker} still held"
+                f"— position {ticker} still held (avg_entry matches)"
             )
             reverted += 1
         except Exception:
