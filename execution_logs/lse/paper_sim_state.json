@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 405.37114085854046,
+  "cash": 419.2783238429274,
   "positions": [
     {
       "ticker": "SGE.L",
@@ -12,27 +12,11 @@
       "take_profit": 986.02,
       "strategy": "ADX Trend Following",
       "composite_score": 73.42,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 924.2000122070312,
-      "min_price": 892.2000122070312
-    },
-    {
-      "ticker": "IMI.L",
-      "entry_date": "2026-04-21",
-      "entry_price": 2888.0,
-      "qty": 2.8808,
-      "notional": 8319.64,
-      "stop_loss": 2770.17,
-      "take_profit": 3300.41,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 41.51,
-      "holding_days": 6,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 2890.0,
-      "min_price": 2824.0
+      "min_price": 884.4000244140625
     },
     {
       "ticker": "PCT.L",
@@ -44,11 +28,11 @@
       "take_profit": 671.0,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.05,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 609.39990234375,
-      "min_price": 605.0999755859375
+      "min_price": 603.97900390625
     },
     {
       "ticker": "LGEN.L",
@@ -60,11 +44,11 @@
       "take_profit": 273.84,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.58,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 252.65,
-      "min_price": 251.5500030517578
+      "min_price": 246.9499969482422
     },
     {
       "ticker": "IMB.L",
@@ -76,10 +60,10 @@
       "take_profit": 2915.43,
       "strategy": "VWAP Trend",
       "composite_score": 38.74,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 2778.0,
+      "max_price": 2778.5,
       "min_price": 2753.0
     },
     {
@@ -92,11 +76,27 @@
       "take_profit": 610.81,
       "strategy": "VWAP Trend",
       "composite_score": 38.0,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 583.5,
-      "min_price": 583.5
+      "min_price": 579.8905029296875
+    },
+    {
+      "ticker": "RR.L",
+      "entry_date": "2026-04-30",
+      "entry_price": 1124.6,
+      "qty": 7.0837,
+      "notional": 7966.29,
+      "stop_loss": 1023.5,
+      "take_profit": 1478.4,
+      "strategy": "Stochastic Oscillator",
+      "composite_score": 27.4,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 1124.6,
+      "min_price": 1124.6
     }
   ],
   "closed_trades": [
@@ -195,6 +195,18 @@
       "pnl": 9.33,
       "pnl_pct": 0.12,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "IMI.L",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-04-21",
+      "exit_date": "2026-04-30",
+      "entry_price": 2888.0,
+      "exit_price": 2770.17,
+      "qty": 2.8808,
+      "pnl": -339.44,
+      "pnl_pct": -4.08,
+      "exit_reason": "stop_loss"
     }
   ],
   "equity_history": [
@@ -301,7 +313,15 @@
       "num_positions": 6,
       "total_pnl": -1111.46,
       "total_pnl_pct": -2.22
+    },
+    {
+      "date": "2026-04-30",
+      "equity": 48460.71,
+      "cash": 419.28,
+      "num_positions": 6,
+      "total_pnl": -1539.29,
+      "total_pnl_pct": -3.08
     }
   ],
-  "last_run_date": "2026-04-29"
+  "last_run_date": "2026-04-30"
 }
