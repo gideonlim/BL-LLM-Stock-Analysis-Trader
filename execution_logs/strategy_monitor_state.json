@@ -1,31 +1,31 @@
 {
-  "ADX Trend Following": {
-    "strategy": "ADX Trend Following",
-    "state": "ACTIVE",
-    "prev_state": "ACTIVE",
-    "rolling_sharpe": 0.1451,
-    "rolling_win_rate": 0.5,
-    "baseline_win_rate": 0.0,
-    "consec_losses": 0,
-    "mean_r": -0.0175,
-    "strategy_drawdown_pct": 3.5,
-    "closed_trades": 4,
-    "last_transition": "",
-    "note": "Insufficient trade history (4/5)"
-  },
   "VWAP Trend": {
     "strategy": "VWAP Trend",
     "state": "CAUTION",
     "prev_state": "CAUTION",
-    "rolling_sharpe": 0.3684,
+    "rolling_sharpe": 0.4241,
     "rolling_win_rate": 0.65,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 3,
-    "mean_r": 0.2865,
-    "strategy_drawdown_pct": 12.82,
-    "closed_trades": 20,
+    "consec_losses": 4,
+    "mean_r": 0.3121,
+    "strategy_drawdown_pct": 14.18,
+    "closed_trades": 22,
     "last_transition": "2026-04-08T15:44:08",
-    "note": "rolling Sharpe 0.37 < 0.5; win rate dropped 18.3pp from baseline; 3 consecutive losses"
+    "note": "rolling Sharpe 0.42 < 0.5; win rate dropped 18.3pp from baseline; 4 consecutive losses"
+  },
+  "ADX Trend Following": {
+    "strategy": "ADX Trend Following",
+    "state": "CAUTION",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": 0.2611,
+    "rolling_win_rate": 0.5,
+    "baseline_win_rate": 0.0,
+    "consec_losses": 0,
+    "mean_r": 0.1017,
+    "strategy_drawdown_pct": 3.5,
+    "closed_trades": 6,
+    "last_transition": "2026-04-30T15:58:23",
+    "note": "rolling Sharpe 0.26 < 0.5"
   },
   "Z-Score Mean Reversion": {
     "strategy": "Z-Score Mean Reversion",
