@@ -12,11 +12,11 @@
       "take_profit": 986.02,
       "strategy": "ADX Trend Following",
       "composite_score": 73.42,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 924.2000122070312,
-      "min_price": 884.4000244140625
+      "min_price": 880.0
     },
     {
       "ticker": "PCT.L",
@@ -28,7 +28,7 @@
       "take_profit": 671.0,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.05,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 609.39990234375,
@@ -44,10 +44,10 @@
       "take_profit": 273.84,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.58,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 252.65,
+      "max_price": 253.2519989013672,
       "min_price": 246.9499969482422
     },
     {
@@ -60,10 +60,10 @@
       "take_profit": 2915.43,
       "strategy": "VWAP Trend",
       "composite_score": 38.74,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 2778.5,
+      "max_price": 2800.0,
       "min_price": 2753.0
     },
     {
@@ -76,10 +76,10 @@
       "take_profit": 610.81,
       "strategy": "VWAP Trend",
       "composite_score": 38.0,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 583.5,
+      "max_price": 587.5,
       "min_price": 579.8905029296875
     },
     {
@@ -92,10 +92,10 @@
       "take_profit": 1478.4,
       "strategy": "Stochastic Oscillator",
       "composite_score": 27.4,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1124.6,
+      "max_price": 1184.0,
       "min_price": 1124.6
     }
   ],
@@ -321,7 +321,15 @@
       "num_positions": 6,
       "total_pnl": -1539.29,
       "total_pnl_pct": -3.08
+    },
+    {
+      "date": "2026-05-01",
+      "equity": 49211.1,
+      "cash": 419.28,
+      "num_positions": 6,
+      "total_pnl": -788.9,
+      "total_pnl_pct": -1.58
     }
   ],
-  "last_run_date": "2026-04-30"
+  "last_run_date": "2026-05-01"
 }
