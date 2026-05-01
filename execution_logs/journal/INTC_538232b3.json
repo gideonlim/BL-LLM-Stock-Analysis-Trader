@@ -33,11 +33,11 @@
   "realized_pnl_pct": 0.0,
   "r_multiple": 0.0,
   "holding_days": 5,
-  "max_favorable_excursion": 94.56,
+  "max_favorable_excursion": 98.735,
   "max_adverse_excursion": 57.41,
-  "mfe_pct": 64.71,
+  "mfe_pct": 71.98,
   "mae_pct": 0.0,
-  "mfe_date": "2026-04-30",
+  "mfe_date": "2026-05-01",
   "mae_date": "",
   "etd": -0.51,
   "etd_pct": -0.89,
@@ -49,6 +49,13 @@
       "new_sl": 57.41,
       "reason": "breakeven",
       "price_at_modification": 60.84
+    },
+    {
+      "date": "2026-05-01T14:39:09",
+      "old_sl": 57.41,
+      "new_sl": 93.24,
+      "reason": "breakeven",
+      "price_at_modification": 98.73
     }
   ],
   "price_samples": [

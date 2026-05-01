@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-05-01T14:39:13",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "INTC",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "INTC up 5.9% \u2014 moving SL to breakeven $93.24 (was $57.41)",
+      "action_taken": "SL moved to breakeven $93.24",
+      "current_price": 98.735,
+      "entry_price": 93.240303,
+      "pnl_pct": 5.89,
+      "timestamp": "2026-05-01T14:39:08"
+    },
+    {
+      "ticker": "NVST",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-05-06) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 26.27,
+      "entry_price": 26.8,
+      "pnl_pct": -1.98,
+      "timestamp": "2026-05-01T14:39:10"
+    },
+    {
+      "ticker": "TECH",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-05-06) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 55.07,
+      "entry_price": 53.44,
+      "pnl_pct": 3.05,
+      "timestamp": "2026-05-01T14:39:11"
+    }
+  ]
+}
