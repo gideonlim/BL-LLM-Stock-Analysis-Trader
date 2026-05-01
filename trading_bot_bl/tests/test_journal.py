@@ -529,6 +529,145 @@ class TestPrematureCloseRevert(unittest.TestCase):
             self.assertEqual(entry.status, "closed")
 
 
+class TestDetectClosedOrphan(unittest.TestCase):
+    """Regression tests for orphan-close in detect_closed_trades.
+
+    Background: prior implementation skipped any open journal
+    entry whose ticker appeared in current_positions, regardless
+    of whether the broker's avg_entry matched.  Combined with
+    the (now-fixed) premature-close revert bug, this caused
+    orphans like INTC_538232b3: closed correctly Apr 13, then
+    reverted to open Apr 30 when a NEW INTC trade opened, then
+    permanently stuck open because the close loop kept skipping
+    on naive ticker match.
+
+    Fix: mirror _reconcile_premature_closes — if avg_entry drifts
+    beyond tolerance, the held position is a different trade and
+    this journal entry is an orphan (close it).
+    """
+
+    def _open_entry(
+        self,
+        trade_id: str,
+        ticker: str,
+        fill: float,
+        jdir: Path,
+        last_sample_price: float | None = None,
+    ) -> JournalEntry:
+        """Create a status='open' journal entry with a price sample
+        so the close-detection fallback path has something to work
+        with when no broker is supplied.
+        """
+        sample_price = (
+            last_sample_price
+            if last_sample_price is not None
+            else fill * 1.05
+        )
+        entry = JournalEntry(
+            trade_id=trade_id,
+            ticker=ticker,
+            strategy="test",
+            side="long",
+            entry_order_id=f"{trade_id}-order",
+            entry_signal_price=fill,
+            entry_fill_price=fill,
+            entry_qty=100,
+            entry_notional=fill * 100,
+            entry_date="2026-04-08T15:44:00",
+            opened_at="2026-04-08T15:44:00",
+            initial_risk_per_share=fill * 0.1,
+            status="open",
+            price_samples=[
+                {"date": "2026-04-10", "price": sample_price}
+            ],
+        )
+        _save_entry(entry, jdir)
+        return entry
+
+    def test_orphan_closes_when_avg_entry_mismatches(self):
+        """The INTC scenario.
+
+        Old INTC trade @ $57.41 closed Apr 10 but stuck status=open
+        in journal.  New INTC trade opens @ $93.24 — broker now has
+        INTC at avg $93.24.  detect_closed_trades must treat the
+        old entry as an orphan and close it (not skip on naive
+        ticker match).
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._open_entry(
+                "INTC_orphan",
+                "INTC",
+                57.41,
+                jdir,
+                last_sample_price=63.70,
+            )
+
+            closed = detect_closed_trades(
+                current_positions={
+                    "INTC": {"avg_entry": 93.24, "qty": 66},
+                },
+                journal_dir=jdir,
+            )
+
+            self.assertEqual(len(closed), 1)
+            self.assertEqual(closed[0].ticker, "INTC")
+            self.assertEqual(closed[0].status, "closed")
+            # Should have used the price-sample fallback
+            self.assertGreater(closed[0].exit_price, 0)
+
+    def test_held_position_not_closed_when_avg_entry_matches(self):
+        """Same trade, still held — must NOT be closed.
+
+        AAPL fill price $150.00, broker avg_entry $150.00 — this
+        is the active position.  The close loop must skip it.
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._open_entry("AAPL_held", "AAPL", 150.0, jdir)
+
+            closed = detect_closed_trades(
+                current_positions={
+                    "AAPL": {"avg_entry": 150.0, "qty": 100},
+                },
+                journal_dir=jdir,
+            )
+            self.assertEqual(len(closed), 0)
+
+    def test_held_position_not_closed_within_tolerance(self):
+        """Tiny avg_entry drift (e.g. 0.1%) is treated as same trade."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._open_entry("NVDA_held", "NVDA", 500.0, jdir)
+
+            # Broker avg 500.10 — 0.02% drift, within 0.5% tolerance
+            closed = detect_closed_trades(
+                current_positions={
+                    "NVDA": {"avg_entry": 500.10, "qty": 50},
+                },
+                journal_dir=jdir,
+            )
+            self.assertEqual(len(closed), 0)
+
+    def test_safe_default_when_broker_avg_missing(self):
+        """If broker_pos lacks avg_entry, fall back to skip (safe).
+
+        Conservative default: never close an entry whose status we
+        can't verify.  An orphan staying open one extra cycle is
+        cheaper than wrongly closing a live position.
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jdir = Path(tmpdir) / "journal"
+            self._open_entry("MSFT_unknown", "MSFT", 200.0, jdir)
+
+            # Broker dict has no avg_entry — verification impossible
+            closed = detect_closed_trades(
+                current_positions={"MSFT": {"qty": 50}},
+                journal_dir=jdir,
+            )
+            self.assertEqual(len(closed), 0)
+
+
 class TestMigration(unittest.TestCase):
     def test_migrates_new_position(self):
         with tempfile.TemporaryDirectory() as tmpdir:
