@@ -543,12 +543,23 @@ def detect_closed_trades(
     journal_dir: Path,
     broker: object | None = None,
     max_hold_days: int = 10,
+    *,
+    avg_entry_tolerance_pct: float = 0.5,
 ) -> list[JournalEntry]:
     """Detect trades that closed since the last run.
 
     Compares open journal entries against current portfolio
     positions.  Any entry whose ticker no longer appears in
-    positions is considered closed.
+    positions is considered closed.  Symmetric with
+    ``_reconcile_premature_closes``: if the journal has an
+    open entry for a ticker AND broker holds that ticker but
+    at a DIFFERENT ``avg_entry`` (within ``avg_entry_tolerance_pct``),
+    the journal entry is an orphan from a prior closed trade
+    and is closed here.  Without this check, two open same-ticker
+    journal entries can coexist forever, since both pass the
+    naive ``ticker in current_positions`` filter (real bug
+    encountered Apr 2026 — INTC, FDX, IBKR, VRSN, FLG orphans
+    after re-entries).
 
     First runs a reconciliation pass: if any journal entry is
     marked ``closed`` but the ticker is still in the portfolio
@@ -563,7 +574,9 @@ def detect_closed_trades(
     """
     # Safety: revert prematurely closed entries
     reverted = _reconcile_premature_closes(
-        current_positions, journal_dir,
+        current_positions,
+        journal_dir,
+        avg_entry_tolerance_pct=avg_entry_tolerance_pct,
     )
     if reverted:
         log.info(
@@ -577,7 +590,36 @@ def detect_closed_trades(
 
         for entry in active:
             if entry.ticker in current_positions:
-                continue  # still held
+                # Same-ticker check: skip only if broker's avg_entry
+                # matches this entry's fill price (i.e. this IS the
+                # held position).  If avg_entry differs beyond
+                # tolerance, broker holds a different trade in the
+                # same ticker — this entry is an orphan and should
+                # be closed.  Without numeric data on either side
+                # we fall back to the conservative "skip" (don't
+                # risk closing a real position incorrectly).
+                broker_pos = current_positions[entry.ticker]
+                broker_avg = float(
+                    broker_pos.get("avg_entry", 0) or 0
+                )
+                journal_fill = float(entry.entry_fill_price or 0)
+                if broker_avg <= 0 or journal_fill <= 0:
+                    continue  # can't verify — safe default
+                drift_pct = (
+                    abs(broker_avg - journal_fill)
+                    / journal_fill
+                    * 100
+                )
+                if drift_pct <= avg_entry_tolerance_pct:
+                    continue  # same trade, still held
+                # avg_entry mismatch — orphan, fall through to close
+                log.warning(
+                    f"  Journal: closing orphan {entry.trade_id} — "
+                    f"broker holds {entry.ticker} @ ${broker_avg:.4f} "
+                    f"but this entry filled @ ${journal_fill:.4f} "
+                    f"({drift_pct:.2f}% > "
+                    f"{avg_entry_tolerance_pct}% tolerance)"
+                )
 
             # Position gone — determine exit details
             exit_price = 0.0
