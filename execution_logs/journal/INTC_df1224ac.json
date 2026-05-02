@@ -23,31 +23,55 @@
   "initial_risk_dollars": 652.1,
   "initial_reward_dollars": 830.26,
   "planned_rr_ratio": 1.27,
-  "exit_price": 0.0,
-  "exit_date": "",
-  "exit_reason": "",
+  "exit_price": 99.85,
+  "exit_date": "2026-05-01T15:19:27",
+  "exit_reason": "manual_close",
   "exit_order_id": "",
-  "exit_fill_price": 0.0,
+  "exit_fill_price": 99.85,
   "exit_slippage": 0.0,
-  "realized_pnl": 0.0,
-  "realized_pnl_pct": 0.0,
-  "r_multiple": 0.0,
-  "holding_days": 0,
-  "max_favorable_excursion": 93.240303,
+  "realized_pnl": 436.24,
+  "realized_pnl_pct": 7.09,
+  "r_multiple": 0.67,
+  "holding_days": 1,
+  "max_favorable_excursion": 99.85,
   "max_adverse_excursion": 93.240303,
-  "mfe_pct": 0.0,
+  "mfe_pct": 7.09,
   "mae_pct": 0.0,
-  "mfe_date": "",
+  "mfe_date": "2026-05-01",
   "mae_date": "",
   "etd": 0.0,
   "etd_pct": 0.0,
   "edge_ratio": 0.0,
-  "sl_modifications": [],
-  "price_samples": [],
-  "status": "open",
+  "sl_modifications": [
+    {
+      "date": "2026-05-01T02:15:51",
+      "old_sl": 83.36,
+      "new_sl": 89.04,
+      "reason": "trailing",
+      "price_at_modification": 0.0
+    },
+    {
+      "date": "2026-05-02T12:39:09",
+      "old_sl": 89.04,
+      "new_sl": 93.24,
+      "reason": "breakeven",
+      "price_at_modification": 0.0
+    }
+  ],
+  "price_samples": [
+    {
+      "date": "2026-04-30",
+      "price": 93.73
+    },
+    {
+      "date": "2026-05-01",
+      "price": 99.85
+    }
+  ],
+  "status": "closed",
   "opened_at": "2026-04-30T16:00:22",
-  "closed_at": "",
+  "closed_at": "2026-05-01T15:19:27",
   "tags": [],
-  "notes": "",
+  "notes": "Manually closed: Market SELL filled @ $99.85 on 2026-05-01 11:19 AM ET (May 02 01:19 AEST). Bot's bracket legs (Stop @ $93.24 trailed-breakeven, Limit @ $103.10 TP) were cancelled when the manual market order replaced them.",
   "trade_type": "swing"
 }
