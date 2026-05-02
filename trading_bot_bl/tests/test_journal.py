@@ -67,6 +67,7 @@ from trading_bot_bl.journal import (
     resolve_pending_trades,
     _entry_to_dict,
     _dict_to_entry,
+    _query_exit_details,
     _save_entry,
 )
 from trading_bot_bl.equity_curve import (
@@ -666,6 +667,201 @@ class TestDetectClosedOrphan(unittest.TestCase):
                 journal_dir=jdir,
             )
             self.assertEqual(len(closed), 0)
+
+
+class TestQueryExitDetailsQtyMatch(unittest.TestCase):
+    """_query_exit_details must match SELL fills by qty + date.
+
+    Real bug May 2026: an INTC orphan @ $57.41 x 152 (Apr 8 entry)
+    was auto-closed using a later sell @ $99.85 x 66 (May 1 close
+    of a different INTC trade), yielding bogus +$6,450 P&L.
+    Fix: prefer SELL with matching filled_qty and filled_at >=
+    entry.entry_date.
+    """
+
+    def _mk_order(
+        self,
+        *,
+        qty: float,
+        fill_price: float,
+        filled_at: str,
+        stop_price: float | None = None,
+        limit_price: float | None = None,
+    ):
+        return SimpleNamespace(
+            filled_qty=qty,
+            filled_avg_price=fill_price,
+            filled_at=filled_at,
+            stop_price=stop_price,
+            limit_price=limit_price,
+            order_type="limit",
+        )
+
+    def _mk_broker(self, orders):
+        client = SimpleNamespace(
+            get_orders=lambda **kw: orders,
+        )
+        return SimpleNamespace(_client=client)
+
+    def _mk_entry(
+        self,
+        *,
+        ticker: str,
+        qty: float,
+        fill: float,
+        entry_date: str,
+    ) -> JournalEntry:
+        return JournalEntry(
+            trade_id=f"{ticker}_test",
+            ticker=ticker,
+            strategy="test",
+            side="long",
+            entry_order_id="x",
+            entry_signal_price=fill,
+            entry_fill_price=fill,
+            entry_qty=qty,
+            entry_date=entry_date,
+            original_sl_price=fill * 0.9,
+            original_tp_price=fill * 1.1,
+        )
+
+    def test_old_orphan_picks_qty_matching_sell(self):
+        """INTC scenario: 2 SELL fills (152 @ $63.70 Apr 10,
+        66 @ $99.85 May 1).  Old orphan with qty=152 must pick
+        the Apr 10 fill, not the most recent (May 1) fill.
+        """
+        entry = self._mk_entry(
+            ticker="INTC",
+            qty=152.0,
+            fill=57.41,
+            entry_date="2026-04-08 15:44:18+00:00",
+        )
+        # Alpaca returns most-recent first
+        orders = [
+            self._mk_order(
+                qty=66,
+                fill_price=99.85,
+                filled_at="2026-05-01 15:19:27+00:00",
+                limit_price=99.85,
+            ),
+            self._mk_order(
+                qty=152,
+                fill_price=63.70,
+                filled_at="2026-04-10 16:00:00+00:00",
+                limit_price=63.61,
+            ),
+        ]
+        broker = self._mk_broker(orders)
+
+        fp, reason, exp = _query_exit_details(broker, entry)
+        self.assertAlmostEqual(fp, 63.70, places=2)
+        self.assertEqual(reason, "take_profit")
+        self.assertAlmostEqual(exp, 63.61, places=2)
+
+    def test_new_entry_picks_qty_matching_sell(self):
+        """Same broker setup; entry qty=66 must pick the May 1 fill."""
+        entry = self._mk_entry(
+            ticker="INTC",
+            qty=66.0,
+            fill=93.24,
+            entry_date="2026-04-30 16:00:23+00:00",
+        )
+        orders = [
+            self._mk_order(
+                qty=66,
+                fill_price=99.85,
+                filled_at="2026-05-01 15:19:27+00:00",
+                limit_price=99.85,
+            ),
+            self._mk_order(
+                qty=152,
+                fill_price=63.70,
+                filled_at="2026-04-10 16:00:00+00:00",
+                limit_price=63.61,
+            ),
+        ]
+        broker = self._mk_broker(orders)
+
+        fp, reason, _exp = _query_exit_details(broker, entry)
+        self.assertAlmostEqual(fp, 99.85, places=2)
+        self.assertEqual(reason, "take_profit")
+
+    def test_qty_match_prefers_earliest_after_entry(self):
+        """When multiple qty matches exist after entry_date,
+        pick the earliest (closest forward in time) — that's
+        the actual exit fill, not a later same-qty re-entry exit.
+        """
+        entry = self._mk_entry(
+            ticker="AAPL",
+            qty=100.0,
+            fill=150.0,
+            entry_date="2026-03-01 10:00:00+00:00",
+        )
+        # Two later same-qty SELLs — the FIRST after entry is correct
+        orders = [
+            self._mk_order(
+                qty=100,
+                fill_price=180.0,
+                filled_at="2026-04-15 14:00:00+00:00",
+                limit_price=180.0,
+            ),
+            self._mk_order(
+                qty=100,
+                fill_price=160.0,
+                filled_at="2026-03-15 14:00:00+00:00",
+                limit_price=160.0,
+            ),
+        ]
+        broker = self._mk_broker(orders)
+
+        fp, _reason, _exp = _query_exit_details(broker, entry)
+        # Should pick the Mar 15 fill ($160), not Apr 15 ($180)
+        self.assertAlmostEqual(fp, 160.0, places=2)
+
+    def test_falls_back_to_most_recent_when_no_qty_match(self):
+        """When no SELL has matching qty (entry qty is unusual),
+        fall back to the most recent SELL — preserves legacy
+        behavior for orphans whose actual close is unidentifiable.
+        """
+        entry = self._mk_entry(
+            ticker="TSLA",
+            qty=200.0,
+            fill=200.0,
+            entry_date="2026-04-01 10:00:00+00:00",
+        )
+        orders = [
+            self._mk_order(
+                qty=66,
+                fill_price=210.0,
+                filled_at="2026-05-01 14:00:00+00:00",
+                limit_price=210.0,
+            ),
+            self._mk_order(
+                qty=152,
+                fill_price=190.0,
+                filled_at="2026-04-15 14:00:00+00:00",
+                limit_price=190.0,
+            ),
+        ]
+        broker = self._mk_broker(orders)
+
+        fp, _reason, _exp = _query_exit_details(broker, entry)
+        self.assertAlmostEqual(fp, 210.0, places=2)
+
+    def test_returns_unknown_when_no_filled_orders(self):
+        """Empty broker response → (0.0, 'unknown', 0.0)."""
+        entry = self._mk_entry(
+            ticker="MSFT",
+            qty=50.0,
+            fill=400.0,
+            entry_date="2026-04-01 10:00:00+00:00",
+        )
+        broker = self._mk_broker([])
+
+        fp, reason, exp = _query_exit_details(broker, entry)
+        self.assertEqual(fp, 0.0)
+        self.assertEqual(reason, "unknown")
+        self.assertEqual(exp, 0.0)
 
 
 class TestMigration(unittest.TestCase):
