@@ -910,11 +910,30 @@ def _query_exit_details(
 ) -> tuple[float, str, float]:
     """Query Alpaca for exit details of a closed position.
 
-    Looks for recently filled SELL orders for this ticker.
+    For tickers with multiple historical SELL fills (e.g. several
+    round-trips on the same ticker), the SELL whose ``filled_qty``
+    matches ``entry.entry_qty`` AND whose ``filled_at`` is closest
+    after ``entry.entry_date`` is chosen.  Without this, the most
+    recent SELL on the ticker would be attributed to an older
+    orphan entry — producing bogus realized P&L (real bug
+    encountered May 2026: an INTC orphan @ $57.41 × 152 was wrongly
+    closed using a later sell @ $99.85 × 66, yielding +$6,450
+    instead of +$956).
+
+    Fallback order:
+      1. qty-match AND filled at-or-after entry_date — earliest such
+      2. qty-match but filled before entry_date — most recent
+      3. no qty match — most recent SELL (legacy behavior)
 
     Returns:
         (exit_fill_price, exit_reason, expected_exit_price)
     """
+    def _norm(dt_or_str) -> str:
+        # Truncate to second precision and normalize the T/space
+        # separator so journal entry_date and Alpaca filled_at can be
+        # compared lexically.
+        return str(dt_or_str)[:19].replace("T", " ")
+
     try:
         from alpaca.trading.requests import GetOrdersRequest
         from alpaca.trading.enums import (
@@ -926,10 +945,12 @@ def _query_exit_details(
             status=QueryOrderStatus.CLOSED,
             symbols=[entry.ticker],
             side=OrderSide.SELL,
-            limit=10,
+            limit=50,
         )
         orders = broker._client.get_orders(filter=request)  # type: ignore[attr-defined]
 
+        # Collect every valid filled SELL order
+        candidates: list[tuple] = []
         for order in orders:
             filled_at = getattr(order, "filled_at", None)
             if not filled_at:
@@ -937,38 +958,73 @@ def _query_exit_details(
             fill_price = float(order.filled_avg_price or 0)
             if fill_price <= 0:
                 continue
+            filled_qty = float(
+                getattr(order, "filled_qty", 0) or 0
+            )
+            candidates.append(
+                (order, filled_at, fill_price, filled_qty)
+            )
 
-            # Determine exit reason from order type
-            raw_type = getattr(order, "order_type", "")
-            order_type = str(
-                getattr(raw_type, "value", raw_type) or ""
-            ).lower()
-            stop_px = getattr(order, "stop_price", None)
-            limit_px = getattr(order, "limit_price", None)
+        if not candidates:
+            return (0.0, "unknown", 0.0)
 
-            if stop_px:
-                return (
-                    fill_price,
-                    "stop_loss",
-                    float(stop_px),
-                )
-            elif limit_px:
-                return (
-                    fill_price,
-                    "take_profit",
-                    float(limit_px),
-                )
+        target_qty = float(entry.entry_qty or 0)
+        entry_at = _norm(entry.entry_date)
+
+        qty_matches = [
+            c for c in candidates
+            if target_qty > 0 and abs(c[3] - target_qty) < 1
+        ]
+        if qty_matches:
+            forward = [
+                c for c in qty_matches if _norm(c[1]) >= entry_at
+            ]
+            if forward:
+                # Earliest qty-match at-or-after entry — closest
+                # forward in time, the most likely real exit
+                forward.sort(key=lambda c: _norm(c[1]))
+                chosen = forward[0]
             else:
-                # No stop/limit on the order — infer reason
-                # from the journal's SL/TP levels and holding
-                # period.
-                filled_at_str = str(filled_at) if filled_at else ""
-                reason = _infer_exit_reason(
-                    entry, fill_price,
-                    filled_at=filled_at_str,
-                    max_hold_days=max_hold_days,
+                # Defensive: qty match exists but only before entry
+                qty_matches.sort(
+                    key=lambda c: _norm(c[1]), reverse=True
                 )
-                return (fill_price, reason, 0.0)
+                chosen = qty_matches[0]
+        else:
+            # Legacy fallback — most recent SELL of any qty
+            candidates.sort(
+                key=lambda c: _norm(c[1]), reverse=True
+            )
+            chosen = candidates[0]
+
+        order, filled_at, fill_price, _filled_qty = chosen
+
+        # Determine exit reason from the chosen order's type
+        stop_px = getattr(order, "stop_price", None)
+        limit_px = getattr(order, "limit_price", None)
+
+        if stop_px:
+            return (
+                fill_price,
+                "stop_loss",
+                float(stop_px),
+            )
+        elif limit_px:
+            return (
+                fill_price,
+                "take_profit",
+                float(limit_px),
+            )
+        else:
+            # No stop/limit on the order — infer reason from the
+            # journal's SL/TP levels and holding period.
+            filled_at_str = str(filled_at) if filled_at else ""
+            reason = _infer_exit_reason(
+                entry, fill_price,
+                filled_at=filled_at_str,
+                max_hold_days=max_hold_days,
+            )
+            return (fill_price, reason, 0.0)
 
     except Exception as exc:
         log.debug(
