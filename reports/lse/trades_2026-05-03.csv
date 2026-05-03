@@ -1,0 +1,10 @@
+trade_id,ticker,strategy,side,entry_signal_price,entry_fill_price,exit_price,exit_reason,realized_pnl,r_multiple,holding_days,mfe,mae,edge_ratio,etd,entry_vix,entry_market_regime,sl_price,tp_price,entry_slippage,exit_slippage,status
+BARC.L_sim_0165bcb3,BARC.L,Momentum (Rate of Change),long,434.3,434.3,423.8500061035156,max_hold,-200.51,-0.22,10,,,1.76,29.0,0.0,,,,0.0,0.0,closed
+BEZ.L_sim_1000b420,BEZ.L,52-Week High Momentum,long,1273.0,1273.0,1274.5,max_hold,9.33,0.08,10,,,0.0,1.5,0.0,,,,0.0,0.0,closed
+EDV.L_sim_983cdc17,EDV.L,Momentum (Rate of Change),long,4833.0,4833.0,4497.0,max_hold,-579.36,-0.81,10,,,0.46,490.0,0.0,,,,0.0,0.0,closed
+GLEN.L_sim_bc5b71b8,GLEN.L,52-Week High Momentum,long,567.1,567.1,556.5999755859375,max_hold,-154.29,-0.4,10,,,0.0,10.5,0.0,,,,0.0,0.0,closed
+IMI.L_sim_fd11423f,IMI.L,Momentum (Rate of Change),long,2888.0,2888.0,2770.17,stop_loss,-339.44,-1.0,7,,,0.01,119.83,0.0,,,,0.0,0.0,closed
+ITRK.L_sim_d9b210d8,ITRK.L,VWAP Trend,long,4363.0,4363.0,4759.6,take_profit,734.74,1.5,2,,,0.0,209.4,0.0,,,,0.0,0.0,closed
+NG.L_sim_a1b6f643,NG.L,Momentum (Rate of Change),long,1340.6,1340.6,1301.75,stop_loss,-241.5,-1.0,3,,,0.0,38.85,0.0,,,,0.0,0.0,closed
+SHEL.L_sim_12c32a8a,SHEL.L,52-Week High Momentum,long,3466.5,3466.5,3311.51,stop_loss,-372.6,-1.0,5,,,0.02,159.49,0.0,,,,0.0,0.0,closed
+SSE.L_sim_09acb9fc,SSE.L,ADX Trend Following,long,2469.5,2469.5,2516.5,exit_signal,155.53,0.4,1,,,0.0,0.0,0.0,,,,0.0,0.0,closed
