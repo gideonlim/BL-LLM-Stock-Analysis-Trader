@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-04T15:54:14",
+  "positions_checked": 6,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "NVST",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-05-06) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 25.79,
+      "entry_price": 26.8,
+      "pnl_pct": -3.77,
+      "timestamp": "2026-05-04T15:54:12"
+    }
+  ]
+}
