@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-05-04T16:27:57",
+  "positions_checked": 10,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DOCU",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "DOCU missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$46.26, TP=$53.56",
+      "current_price": 48.69,
+      "entry_price": 48.76,
+      "pnl_pct": -0.14,
+      "timestamp": "2026-05-04T16:27:51"
+    },
+    {
+      "ticker": "EFX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EFX missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$164.19, TP=$190.11",
+      "current_price": 172.83,
+      "entry_price": 173.14,
+      "pnl_pct": -0.18,
+      "timestamp": "2026-05-04T16:27:52"
+    },
+    {
+      "ticker": "NVST",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-05-06) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 25.85,
+      "entry_price": 26.8,
+      "pnl_pct": -3.54,
+      "timestamp": "2026-05-04T16:27:54"
+    },
+    {
+      "ticker": "SLGN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SLGN missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$37.31, TP=$43.2",
+      "current_price": 39.27,
+      "entry_price": 39.22,
+      "pnl_pct": 0.13,
+      "timestamp": "2026-05-04T16:27:54"
+    },
+    {
+      "ticker": "ZBH",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ZBH missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$79.19, TP=$91.7",
+      "current_price": 83.36,
+      "entry_price": 83.34,
+      "pnl_pct": 0.02,
+      "timestamp": "2026-05-04T16:27:56"
+    }
+  ]
+}
