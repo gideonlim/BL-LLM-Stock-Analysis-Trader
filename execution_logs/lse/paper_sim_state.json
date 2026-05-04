@@ -1,23 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 419.2783238429274,
+  "cash": 426.02747814551185,
   "positions": [
-    {
-      "ticker": "SGE.L",
-      "entry_date": "2026-04-20",
-      "entry_price": 921.0,
-      "qty": 9.3398,
-      "notional": 8601.99,
-      "stop_loss": 877.62,
-      "take_profit": 986.02,
-      "strategy": "ADX Trend Following",
-      "composite_score": 73.42,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 924.2000122070312,
-      "min_price": 880.0
-    },
     {
       "ticker": "PCT.L",
       "entry_date": "2026-04-27",
@@ -28,10 +12,10 @@
       "take_profit": 671.0,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.05,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 609.39990234375,
+      "max_price": 611.5,
       "min_price": 603.97900390625
     },
     {
@@ -44,27 +28,11 @@
       "take_profit": 273.84,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.58,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 253.2519989013672,
+      "max_price": 254.89999389648438,
       "min_price": 246.9499969482422
-    },
-    {
-      "ticker": "IMB.L",
-      "entry_date": "2026-04-28",
-      "entry_price": 2753.0,
-      "qty": 2.9449,
-      "notional": 8107.42,
-      "stop_loss": 2644.81,
-      "take_profit": 2915.43,
-      "strategy": "VWAP Trend",
-      "composite_score": 38.74,
-      "holding_days": 3,
-      "confidence": "LOW",
-      "confidence_score": 1,
-      "max_price": 2800.0,
-      "min_price": 2753.0
     },
     {
       "ticker": "LAND.L",
@@ -76,10 +44,10 @@
       "take_profit": 610.81,
       "strategy": "VWAP Trend",
       "composite_score": 38.0,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 587.5,
+      "max_price": 589.5,
       "min_price": 579.8905029296875
     },
     {
@@ -92,11 +60,43 @@
       "take_profit": 1478.4,
       "strategy": "Stochastic Oscillator",
       "composite_score": 27.4,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1184.0,
+      "max_price": 1199.199951171875,
       "min_price": 1124.6
+    },
+    {
+      "ticker": "HLMA.L",
+      "entry_date": "2026-05-04",
+      "entry_price": 4527.0,
+      "qty": 1.8822,
+      "notional": 8520.55,
+      "stop_loss": 4364.48,
+      "take_profit": 5095.59,
+      "strategy": "VWAP Trend",
+      "composite_score": 50.46,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 4527.0,
+      "min_price": 4527.0
+    },
+    {
+      "ticker": "REL.L",
+      "entry_date": "2026-05-04",
+      "entry_price": 2698.0,
+      "qty": 3.0002,
+      "notional": 8094.52,
+      "stop_loss": 2590.89,
+      "take_profit": 2858.8,
+      "strategy": "VWAP Trend",
+      "composite_score": 47.32,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 2698.0,
+      "min_price": 2698.0
     }
   ],
   "closed_trades": [
@@ -207,6 +207,30 @@
       "pnl": -339.44,
       "pnl_pct": -4.08,
       "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "SGE.L",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-04-20",
+      "exit_date": "2026-05-04",
+      "entry_price": 921.0,
+      "exit_price": 891.5999755859375,
+      "qty": 9.3398,
+      "pnl": -274.59,
+      "pnl_pct": -3.19,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "IMB.L",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-04-28",
+      "exit_date": "2026-05-04",
+      "entry_price": 2753.0,
+      "exit_price": 2816.5,
+      "qty": 2.9449,
+      "pnl": 187.0,
+      "pnl_pct": 2.31,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -329,7 +353,15 @@
       "num_positions": 6,
       "total_pnl": -788.9,
       "total_pnl_pct": -1.58
+    },
+    {
+      "date": "2026-05-04",
+      "equity": 49641.89,
+      "cash": 426.03,
+      "num_positions": 6,
+      "total_pnl": -358.11,
+      "total_pnl_pct": -0.72
     }
   ],
-  "last_run_date": "2026-05-01"
+  "last_run_date": "2026-05-04"
 }
