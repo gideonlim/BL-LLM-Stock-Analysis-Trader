@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-05T15:41:21",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "UDR",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "UDR up 2.9% \u2014 moving SL to breakeven $36.16 (was $35.02)",
+      "action_taken": "SL moved to breakeven $36.16",
+      "current_price": 37.225,
+      "entry_price": 36.16,
+      "pnl_pct": 2.95,
+      "timestamp": "2026-05-05T15:41:19"
+    }
+  ]
+}
