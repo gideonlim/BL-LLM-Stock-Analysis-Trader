@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-05T19:09:27",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "VRSN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "VRSN up 3.3% \u2014 moving SL to breakeven $266.85 (was $253.50)",
+      "action_taken": "SL moved to breakeven $266.85",
+      "current_price": 275.56,
+      "entry_price": 266.85,
+      "pnl_pct": 3.26,
+      "timestamp": "2026-05-05T19:09:26"
+    }
+  ]
+}
