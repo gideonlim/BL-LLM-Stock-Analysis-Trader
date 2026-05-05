@@ -51,6 +51,23 @@ jobs:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_API_SECRET: ${{ secrets.ALPACA_API_SECRET }}
           ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+          # Risk limits — must match execute_trades.yml so monitor uses
+          # the same effective config as the executor (max_positions,
+          # exposure caps, regime overrides, etc.).
+          MAX_EXPOSURE_PCT: ${{ vars.MAX_EXPOSURE_PCT || '80.0' }}
+          MAX_POSITION_PCT: ${{ vars.MAX_POSITION_PCT || '12.0' }}
+          MAX_POSITIONS: ${{ vars.MAX_POSITIONS || '10' }}
+          DAILY_LOSS_LIMIT_PCT: ${{ vars.DAILY_LOSS_LIMIT_PCT || '3.0' }}
+          MIN_COMPOSITE_SCORE: ${{ vars.MIN_COMPOSITE_SCORE || '20.0' }}
+          MIN_CONFIDENCE_SCORE: ${{ vars.MIN_CONFIDENCE_SCORE || '2' }}
+          MAX_ENTRY_SLIPPAGE_PCT: ${{ vars.MAX_ENTRY_SLIPPAGE_PCT || '1.5' }}
+          MAX_SIGNAL_DRIFT_PCT: ${{ vars.MAX_SIGNAL_DRIFT_PCT || '3.0' }}
+          # SPY trend regime
+          SPY_REGIME_ENABLED: ${{ vars.SPY_REGIME_ENABLED || 'true' }}
+          SPY_BEAR_CONFIRMATION_DAYS: ${{ vars.SPY_BEAR_CONFIRMATION_DAYS || '3' }}
+          SPY_BEAR_MAX_POSITIONS: ${{ vars.SPY_BEAR_MAX_POSITIONS || '5' }}
+          SPY_BEAR_MIN_COMPOSITE_SCORE: ${{ vars.SPY_BEAR_MIN_COMPOSITE_SCORE || '30.0' }}
+          SPY_SEVERE_DRAWDOWN_PCT: ${{ vars.SPY_SEVERE_DRAWDOWN_PCT || '15.0' }}
         run: python -m trading_bot_bl --monitor-only
 
       - name: Upload monitor logs
