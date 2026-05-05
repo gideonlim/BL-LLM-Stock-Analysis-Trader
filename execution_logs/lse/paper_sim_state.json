@@ -12,10 +12,10 @@
       "take_profit": 671.0,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.05,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 611.5,
+      "max_price": 620.2069702148438,
       "min_price": 603.97900390625
     },
     {
@@ -28,7 +28,7 @@
       "take_profit": 273.84,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.58,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 254.89999389648438,
@@ -44,7 +44,7 @@
       "take_profit": 610.81,
       "strategy": "VWAP Trend",
       "composite_score": 38.0,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 589.5,
@@ -60,7 +60,7 @@
       "take_profit": 1478.4,
       "strategy": "Stochastic Oscillator",
       "composite_score": 27.4,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1199.199951171875,
@@ -76,11 +76,11 @@
       "take_profit": 5095.59,
       "strategy": "VWAP Trend",
       "composite_score": 50.46,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 4527.0,
-      "min_price": 4527.0
+      "min_price": 4525.0
     },
     {
       "ticker": "REL.L",
@@ -92,10 +92,10 @@
       "take_profit": 2858.8,
       "strategy": "VWAP Trend",
       "composite_score": 47.32,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 2698.0,
+      "max_price": 2759.0,
       "min_price": 2698.0
     }
   ],
@@ -361,7 +361,15 @@
       "num_positions": 6,
       "total_pnl": -358.11,
       "total_pnl_pct": -0.72
+    },
+    {
+      "date": "2026-05-05",
+      "equity": 49586.12,
+      "cash": 426.03,
+      "num_positions": 6,
+      "total_pnl": -413.88,
+      "total_pnl_pct": -0.83
     }
   ],
-  "last_run_date": "2026-05-04"
+  "last_run_date": "2026-05-05"
 }
