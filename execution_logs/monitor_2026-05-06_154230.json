@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-06T15:42:30",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "SLGN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "SLGN up 4.8% \u2014 moving SL to breakeven $39.22 (was $37.22)",
+      "action_taken": "SL moved to breakeven $39.22",
+      "current_price": 41.115,
+      "entry_price": 39.22,
+      "pnl_pct": 4.83,
+      "timestamp": "2026-05-06T15:42:28"
+    }
+  ]
+}
