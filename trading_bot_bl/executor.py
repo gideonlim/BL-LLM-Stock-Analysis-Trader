@@ -871,9 +871,12 @@ def execute(
                         f"({drift_pct:+.1f}% drift exceeds "
                         f"max {max_drift}%)"
                     )
+                    # Drift is a pre-trade risk filter (like other
+                    # signal-quality checks), not a broker failure —
+                    # use "skipped" so the workflow doesn't exit 1.
                     result = OrderResult(
                         ticker=approved_order.ticker,
-                        status="rejected",
+                        status="skipped",
                         order_id="",
                         side=intent.side,
                         notional=0.0,
