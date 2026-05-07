@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-05-07T15:44:51",
+  "positions_checked": 11,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "MCO",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "MCO exceeded max hold period (10 days). P&L: -1.6%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 453.21,
+      "entry_price": 460.61,
+      "pnl_pct": -1.61,
+      "timestamp": "2026-05-07T15:44:45"
+    },
+    {
+      "ticker": "NTNX",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "NTNX up 5.0% \u2014 moving SL to breakeven $43.31 (was $40.18)",
+      "action_taken": "SL moved to breakeven $43.31",
+      "current_price": 45.46,
+      "entry_price": 43.31,
+      "pnl_pct": 4.96,
+      "timestamp": "2026-05-07T15:44:46"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "VRSN exceeded max hold period (10 days). P&L: +4.3%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 278.34,
+      "entry_price": 266.85,
+      "pnl_pct": 4.31,
+      "timestamp": "2026-05-07T15:44:49"
+    }
+  ]
+}
