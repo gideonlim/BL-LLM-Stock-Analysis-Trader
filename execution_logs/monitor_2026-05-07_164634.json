@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-05-07T16:46:34",
+  "positions_checked": 11,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "META",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "META missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$587.57, TP=$680.35",
+      "current_price": 618.5,
+      "entry_price": 617.952308,
+      "pnl_pct": 0.09,
+      "timestamp": "2026-05-07T16:46:29"
+    },
+    {
+      "ticker": "NFLX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NFLX missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$84.22, TP=$97.52",
+      "current_price": 88.65,
+      "entry_price": 88.670119,
+      "pnl_pct": -0.02,
+      "timestamp": "2026-05-07T16:46:30"
+    },
+    {
+      "ticker": "OXY",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OXY missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$51.29, TP=$59.38",
+      "current_price": 53.985,
+      "entry_price": 54.03,
+      "pnl_pct": -0.08,
+      "timestamp": "2026-05-07T16:46:32"
+    }
+  ]
+}
