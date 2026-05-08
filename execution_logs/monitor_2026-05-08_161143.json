@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-08T16:11:43",
+  "positions_checked": 11,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BKNG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BKNG missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$161.73, TP=$187.26",
+      "current_price": 170.24,
+      "entry_price": 169.99,
+      "pnl_pct": 0.15,
+      "timestamp": "2026-05-08T16:11:36"
+    }
+  ]
+}
