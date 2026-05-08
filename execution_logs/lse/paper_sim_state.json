@@ -12,7 +12,7 @@
       "take_profit": 671.0,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.05,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 652.9500122070312,
@@ -28,7 +28,7 @@
       "take_profit": 273.84,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.58,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 254.89999389648438,
@@ -44,7 +44,7 @@
       "take_profit": 1478.4,
       "strategy": "Stochastic Oscillator",
       "composite_score": 27.4,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1297.800048828125,
@@ -60,7 +60,7 @@
       "take_profit": 5095.59,
       "strategy": "VWAP Trend",
       "composite_score": 50.46,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 4657.0,
@@ -76,11 +76,11 @@
       "take_profit": 523.49,
       "strategy": "Stochastic Oscillator",
       "composite_score": 41.0,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 472.0,
-      "min_price": 472.0
+      "min_price": 471.0799865722656
     },
     {
       "ticker": "BBOX.L",
@@ -92,11 +92,11 @@
       "take_profit": 164.34,
       "strategy": "MACD Crossover",
       "composite_score": 36.56,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 153.7,
-      "min_price": 153.7
+      "min_price": 152.5
     }
   ],
   "closed_trades": [
@@ -409,7 +409,15 @@
       "num_positions": 6,
       "total_pnl": 888.95,
       "total_pnl_pct": 1.78
+    },
+    {
+      "date": "2026-05-08",
+      "equity": 50564.12,
+      "cash": 403.31,
+      "num_positions": 6,
+      "total_pnl": 564.12,
+      "total_pnl_pct": 1.13
     }
   ],
-  "last_run_date": "2026-05-07"
+  "last_run_date": "2026-05-08"
 }
