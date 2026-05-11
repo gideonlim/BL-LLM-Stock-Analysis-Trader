@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 64.51,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2546.5,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 54.24,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 6,
       "max_price": 2625.0,
@@ -44,27 +44,11 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 30.76,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 6460.0,
       "min_price": 6071.0
-    },
-    {
-      "ticker": "6770.T",
-      "entry_date": "2026-04-30",
-      "entry_price": 2328.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "Composite Multi-Indicator",
-      "composite_score": 29.55,
-      "holding_days": 5,
-      "confidence": "LOW",
-      "confidence_score": 1,
-      "max_price": 2328.0,
-      "min_price": 2012.5
     },
     {
       "ticker": "7751.T",
@@ -76,7 +60,7 @@
       "take_profit": 4272.24,
       "strategy": "Stochastic Oscillator",
       "composite_score": 44.54,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 4063.0,
@@ -92,11 +76,27 @@
       "take_profit": 2133.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 36.71,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1986.0,
       "min_price": 1986.0
+    },
+    {
+      "ticker": "5411.T",
+      "entry_date": "2026-05-11",
+      "entry_price": NaN,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "VWAP Trend",
+      "composite_score": 45.8,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
+      "max_price": NaN,
+      "min_price": NaN
     }
   ],
   "closed_trades": [
@@ -399,6 +399,18 @@
       "pnl": NaN,
       "pnl_pct": 7.95,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "6770.T",
+      "strategy": "Composite Multi-Indicator",
+      "entry_date": "2026-04-30",
+      "exit_date": "2026-05-11",
+      "entry_price": 2328.0,
+      "exit_price": 2083.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -10.52,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -561,7 +573,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-11",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-10"
+  "last_run_date": "2026-05-11"
 }
