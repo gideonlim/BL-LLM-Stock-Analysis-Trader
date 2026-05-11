@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-11T16:17:33",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "KDP",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "KDP exceeded max hold period (10 days). P&L: -0.4%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 28.645,
+      "entry_price": 28.764621,
+      "pnl_pct": -0.42,
+      "timestamp": "2026-05-11T16:17:30"
+    },
+    {
+      "ticker": "UDR",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "UDR exceeded max hold period (10 days). P&L: +2.3%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 36.995,
+      "entry_price": 36.16,
+      "pnl_pct": 2.31,
+      "timestamp": "2026-05-11T16:17:32"
+    }
+  ]
+}
