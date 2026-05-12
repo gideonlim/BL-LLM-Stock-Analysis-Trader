@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-12T17:05:12",
+  "positions_checked": 8,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AMT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "AMT missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$169.75, TP=$196.55",
+      "current_price": 178.68,
+      "entry_price": 178.23,
+      "pnl_pct": 0.25,
+      "timestamp": "2026-05-12T17:05:08"
+    },
+    {
+      "ticker": "PEG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "PEG missing stop loss leg. P&L: +0.2%",
+      "action_taken": "Reattached OCO: SL=$74.31, TP=$86.04",
+      "current_price": 78.22,
+      "entry_price": 78.07,
+      "pnl_pct": 0.19,
+      "timestamp": "2026-05-12T17:05:11"
+    }
+  ]
+}
