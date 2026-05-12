@@ -3,15 +3,15 @@
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.083,
-    "rolling_win_rate": 0.45,
+    "rolling_sharpe": -0.0321,
+    "rolling_win_rate": 0.35,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 1,
-    "mean_r": -0.0945,
+    "consec_losses": 3,
+    "mean_r": -0.135,
     "strategy_drawdown_pct": 14.18,
-    "closed_trades": 33,
+    "closed_trades": 35,
     "last_transition": "2026-05-06T16:12:43",
-    "note": "win rate dropped 38.3pp from baseline"
+    "note": "rolling Sharpe -0.03 < 0.0; win rate dropped 48.3pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
@@ -101,14 +101,14 @@
     "strategy": "52-Week High Momentum",
     "state": "ACTIVE",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": 0.0,
-    "rolling_win_rate": 1.0,
+    "rolling_sharpe": -1.4364,
+    "rolling_win_rate": 0.25,
     "baseline_win_rate": 1.0,
-    "consec_losses": 0,
-    "mean_r": 0.01,
-    "strategy_drawdown_pct": 0.0,
-    "closed_trades": 1,
+    "consec_losses": 3,
+    "mean_r": -0.3675,
+    "strategy_drawdown_pct": 16.46,
+    "closed_trades": 4,
     "last_transition": "",
-    "note": "Insufficient trade history (1/5)"
+    "note": "Insufficient trade history (4/5)"
   }
 }
