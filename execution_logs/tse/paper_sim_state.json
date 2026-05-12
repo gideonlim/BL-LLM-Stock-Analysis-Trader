@@ -3,38 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "2503.T",
-      "entry_date": "2026-04-27",
-      "entry_price": 2506.5,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "ADX Trend Following",
-      "composite_score": 64.51,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 2546.5,
-      "min_price": 2486.5
-    },
-    {
-      "ticker": "8304.T",
-      "entry_date": "2026-04-27",
-      "entry_price": 2625.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "ADX Trend Following",
-      "composite_score": 54.24,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 6,
-      "max_price": 2625.0,
-      "min_price": 2526.0
-    },
-    {
       "ticker": "6503.T",
       "entry_date": "2026-04-30",
       "entry_price": 6078.0,
@@ -44,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 30.76,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 6460.0,
@@ -60,10 +28,10 @@
       "take_profit": 4272.24,
       "strategy": "Stochastic Oscillator",
       "composite_score": 44.54,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 0,
-      "max_price": 4063.0,
+      "max_price": 4092.0,
       "min_price": 4063.0
     },
     {
@@ -76,10 +44,10 @@
       "take_profit": 2133.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 36.71,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 1986.0,
+      "max_price": 2010.0,
       "min_price": 1986.0
     },
     {
@@ -92,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 45.8,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -411,6 +379,30 @@
       "pnl": NaN,
       "pnl_pct": -10.52,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "2503.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-04-27",
+      "exit_date": "2026-05-12",
+      "entry_price": 2506.5,
+      "exit_price": 2474.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -1.3,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "8304.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-04-27",
+      "exit_date": "2026-05-12",
+      "entry_price": 2625.0,
+      "exit_price": 2608.5,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -0.63,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -581,7 +573,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-12",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-11"
+  "last_run_date": "2026-05-12"
 }
