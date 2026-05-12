@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-12T19:31:20",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AA",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "AA up 8.0% \u2014 tightening SL from $62.76 to $63.27 (Chandelier: HH=$67.75, ATR=2.24)",
+      "action_taken": "SL tightened to $63.27",
+      "current_price": 67.75,
+      "entry_price": 62.76,
+      "pnl_pct": 7.95,
+      "timestamp": "2026-05-12T19:31:17"
+    }
+  ]
+}
