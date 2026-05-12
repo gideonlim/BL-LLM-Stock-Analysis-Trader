@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-12T16:04:08",
+  "positions_checked": 6,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "OXY",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "OXY up 3.8% \u2014 moving SL to breakeven $54.03 (was $50.03)",
+      "action_taken": "SL moved to breakeven $54.03",
+      "current_price": 56.06,
+      "entry_price": 54.03,
+      "pnl_pct": 3.76,
+      "timestamp": "2026-05-12T16:04:07"
+    }
+  ]
+}
