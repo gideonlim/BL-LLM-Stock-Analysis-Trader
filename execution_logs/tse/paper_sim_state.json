@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 30.76,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 6460.0,
@@ -28,10 +28,10 @@
       "take_profit": 4272.24,
       "strategy": "Stochastic Oscillator",
       "composite_score": 44.54,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 0,
-      "max_price": 4092.0,
+      "max_price": 4111.0,
       "min_price": 4063.0
     },
     {
@@ -44,10 +44,10 @@
       "take_profit": 2133.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 36.71,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 2010.0,
+      "max_price": 2089.0,
       "min_price": 1986.0
     },
     {
@@ -60,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 45.8,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -581,7 +581,15 @@
       "num_positions": 4,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-13",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-12"
+  "last_run_date": "2026-05-13"
 }
