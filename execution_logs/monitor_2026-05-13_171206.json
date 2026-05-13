@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-05-13T17:12:06",
+  "positions_checked": 10,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACIW",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ACIW missing stop loss leg. P&L: -0.5%",
+      "action_taken": "Reattached OCO: SL=$38.74, TP=$44.86",
+      "current_price": 40.78,
+      "entry_price": 40.97,
+      "pnl_pct": -0.46,
+      "timestamp": "2026-05-13T17:11:58"
+    },
+    {
+      "ticker": "COIN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "COIN missing stop loss leg. P&L: -0.9%",
+      "action_taken": "Reattached OCO: SL=$190.58, TP=$220.67",
+      "current_price": 200.6101,
+      "entry_price": 202.37,
+      "pnl_pct": -0.87,
+      "timestamp": "2026-05-13T17:12:00"
+    },
+    {
+      "ticker": "PSA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "PSA missing stop loss leg. P&L: +0.2%",
+      "action_taken": "Reattached OCO: SL=$292.04, TP=$338.16",
+      "current_price": 307.415,
+      "entry_price": 306.77,
+      "pnl_pct": 0.21,
+      "timestamp": "2026-05-13T17:12:03"
+    },
+    {
+      "ticker": "XLF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XLF missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$48.48, TP=$56.13",
+      "current_price": 51.03,
+      "entry_price": 51.05,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-05-13T17:12:06"
+    }
+  ]
+}
