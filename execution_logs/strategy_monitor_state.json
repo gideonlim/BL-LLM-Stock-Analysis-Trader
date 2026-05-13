@@ -29,17 +29,17 @@
   },
   "Stochastic Oscillator": {
     "strategy": "Stochastic Oscillator",
-    "state": "ACTIVE",
+    "state": "CAUTION",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": -43.8465,
-    "rolling_win_rate": 0.0,
+    "rolling_sharpe": -0.287,
+    "rolling_win_rate": 0.2,
     "baseline_win_rate": 0.0,
-    "consec_losses": 3,
-    "mean_r": -0.755,
+    "consec_losses": 1,
+    "mean_r": -0.295,
     "strategy_drawdown_pct": 14.94,
-    "closed_trades": 3,
-    "last_transition": "",
-    "note": "Insufficient trade history (3/5)"
+    "closed_trades": 5,
+    "last_transition": "2026-05-13T16:35:55",
+    "note": "rolling Sharpe -0.29 < 0.5"
   },
   "SMA Crossover (10/50)": {
     "strategy": "SMA Crossover (10/50)",
