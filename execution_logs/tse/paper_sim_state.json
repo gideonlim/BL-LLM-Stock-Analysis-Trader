@@ -12,10 +12,10 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 30.76,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 6460.0,
+      "max_price": 6468.0,
       "min_price": 6071.0
     },
     {
@@ -28,10 +28,10 @@
       "take_profit": 4272.24,
       "strategy": "Stochastic Oscillator",
       "composite_score": 44.54,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "LOW",
       "confidence_score": 0,
-      "max_price": 4111.0,
+      "max_price": 4169.0,
       "min_price": 4063.0
     },
     {
@@ -44,10 +44,10 @@
       "take_profit": 2133.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 36.71,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 2089.0,
+      "max_price": 2096.0,
       "min_price": 1986.0
     },
     {
@@ -60,9 +60,25 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 45.8,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
+      "max_price": NaN,
+      "min_price": NaN
+    },
+    {
+      "ticker": "4324.T",
+      "entry_date": "2026-05-14",
+      "entry_price": NaN,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "VWAP Trend",
+      "composite_score": 42.15,
+      "holding_days": 0,
+      "confidence": "LOW",
+      "confidence_score": 0,
       "max_price": NaN,
       "min_price": NaN
     }
@@ -589,7 +605,15 @@
       "num_positions": 4,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-14",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-13"
+  "last_run_date": "2026-05-14"
 }
