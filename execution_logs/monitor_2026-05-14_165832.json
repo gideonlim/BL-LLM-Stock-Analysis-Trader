@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-14T16:58:32",
+  "positions_checked": 9,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "NOG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NOG missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$22.31, TP=$25.83",
+      "current_price": 23.48,
+      "entry_price": 23.42,
+      "pnl_pct": 0.26,
+      "timestamp": "2026-05-14T16:58:29"
+    }
+  ]
+}
