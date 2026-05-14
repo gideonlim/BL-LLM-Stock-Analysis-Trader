@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-14T16:03:47",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "COIN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "COIN up 7.4% \u2014 moving SL to breakeven $202.37 (was $178.13)",
+      "action_taken": "SL moved to breakeven $202.37",
+      "current_price": 217.38,
+      "entry_price": 202.37,
+      "pnl_pct": 7.42,
+      "timestamp": "2026-05-14T16:03:43"
+    }
+  ]
+}
