@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-15T19:21:36",
+  "positions_checked": 11,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "NOG",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "NOG up 4.4% \u2014 moving SL to breakeven $23.42 (was $21.44)",
+      "action_taken": "SL moved to breakeven $23.42",
+      "current_price": 24.455,
+      "entry_price": 23.42,
+      "pnl_pct": 4.42,
+      "timestamp": "2026-05-15T19:21:31"
+    },
+    {
+      "ticker": "OXY",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "OXY up 9.6% \u2014 tightening SL from $55.26 to $55.48 (Chandelier: HH=$59.20, ATR=1.86)",
+      "action_taken": "SL tightened to $55.48",
+      "current_price": 59.205,
+      "entry_price": 54.03,
+      "pnl_pct": 9.58,
+      "timestamp": "2026-05-15T19:21:32"
+    }
+  ]
+}
