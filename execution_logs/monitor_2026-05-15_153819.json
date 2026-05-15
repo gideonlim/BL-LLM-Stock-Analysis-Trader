@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-15T15:38:19",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "OXY",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "OXY up 9.2% \u2014 tightening SL from $54.03 to $55.26 (Chandelier: HH=$58.99, ATR=1.86)",
+      "action_taken": "SL tightened to $55.26",
+      "current_price": 58.99,
+      "entry_price": 54.03,
+      "pnl_pct": 9.18,
+      "timestamp": "2026-05-15T15:38:17"
+    }
+  ]
+}
