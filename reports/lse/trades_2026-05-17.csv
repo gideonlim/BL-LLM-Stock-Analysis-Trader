@@ -1,0 +1,22 @@
+trade_id,ticker,strategy,side,entry_signal_price,entry_fill_price,exit_price,exit_reason,realized_pnl,r_multiple,holding_days,mfe,mae,edge_ratio,etd,entry_vix,entry_market_regime,sl_price,tp_price,entry_slippage,exit_slippage,status
+BARC.L_sim_0165bcb3,BARC.L,Momentum (Rate of Change),long,434.3,434.3,423.8500061035156,max_hold,-200.51,-0.22,10,,,1.76,29.0,0.0,,,,0.0,0.0,closed
+BARC.L_sim_c8ae6220,BARC.L,MACD Crossover,long,437.2,437.2,417.57,stop_loss,-370.27,-1.0,1,,,0.0,19.63,0.0,,,,0.0,0.0,closed
+BBOX.L_sim_342adc10,BBOX.L,MACD Crossover,long,153.7,153.7,148.38,stop_loss,-265.23,-1.0,4,,,0.0,5.32,0.0,,,,0.0,0.0,closed
+BEZ.L_sim_1000b420,BEZ.L,52-Week High Momentum,long,1273.0,1273.0,1274.5,max_hold,9.33,0.08,10,,,0.0,1.5,0.0,,,,0.0,0.0,closed
+EDV.L_sim_983cdc17,EDV.L,Momentum (Rate of Change),long,4833.0,4833.0,4497.0,max_hold,-579.36,-0.81,10,,,0.46,490.0,0.0,,,,0.0,0.0,closed
+GLEN.L_sim_bc5b71b8,GLEN.L,52-Week High Momentum,long,567.1,567.1,556.5999755859375,max_hold,-154.29,-0.4,10,,,0.0,10.5,0.0,,,,0.0,0.0,closed
+HLMA.L_sim_a91a3243,HLMA.L,VWAP Trend,long,4527.0,4527.0,4593.7958984375,exit_signal,125.72,0.41,8,,,71.75,63.2,0.0,,,,0.0,0.0,closed
+IMB.L_sim_7a64bb6c,IMB.L,VWAP Trend,long,2753.0,2753.0,2816.5,exit_signal,187.0,0.59,4,,,0.0,0.0,0.0,,,,0.0,0.0,closed
+IMI.L_sim_fd11423f,IMI.L,Momentum (Rate of Change),long,2888.0,2888.0,2770.17,stop_loss,-339.44,-1.0,7,,,0.01,119.83,0.0,,,,0.0,0.0,closed
+ITRK.L_sim_d9b210d8,ITRK.L,VWAP Trend,long,4363.0,4363.0,4759.6,take_profit,734.74,1.5,2,,,0.0,209.4,0.0,,,,0.0,0.0,closed
+LAND.L_sim_33938866,LAND.L,VWAP Trend,long,594.02,594.02,571.92,stop_loss,-322.96,-1.0,1,,,0.0,22.1,0.0,,,,0.0,0.0,closed
+LAND.L_sim_b89eee9b,LAND.L,VWAP Trend,long,583.5,583.5,601.0,exit_signal,230.99,0.96,6,,,4.84,0.0,0.0,,,,0.0,0.0,closed
+LGEN.L_sim_cd90c45d,LGEN.L,Stochastic Oscillator,long,252.65,252.65,251.60000610351562,max_hold,-33.69,-0.13,10,,,0.39,3.3,0.0,,,,0.0,0.0,closed
+NG.L_sim_a1b6f643,NG.L,Momentum (Rate of Change),long,1340.6,1340.6,1301.75,stop_loss,-241.5,-1.0,3,,,0.0,38.85,0.0,,,,0.0,0.0,closed
+PCT.L_sim_9ddf139f,PCT.L,Momentum (Rate of Change),long,608.68,608.68,667.0,max_hold,776.8,3.16,10,,,12.44,0.0,0.0,,,,0.0,0.0,closed
+REL.L_sim_397cd4bf,REL.L,VWAP Trend,long,2698.0,2698.0,2590.89,stop_loss,-321.35,-1.0,3,,,0.3,168.11,0.0,,,,0.0,0.0,closed
+RR.L_sim_4b2d6be2,RR.L,Stochastic Oscillator,long,1124.6,1124.6,1205.0,max_hold,569.53,0.8,10,,,0.0,92.8,0.0,,,,0.0,0.0,closed
+SGE.L_sim_ed40c1f6,SGE.L,ADX Trend Following,long,921.0,921.0,891.5999755859375,max_hold,-274.59,-0.68,10,,,0.08,32.6,0.0,,,,0.0,0.0,closed
+SHEL.L_sim_12c32a8a,SHEL.L,52-Week High Momentum,long,3466.5,3466.5,3311.51,stop_loss,-372.6,-1.0,5,,,0.02,159.49,0.0,,,,0.0,0.0,closed
+SSE.L_sim_09acb9fc,SSE.L,ADX Trend Following,long,2469.5,2469.5,2516.5,exit_signal,155.53,0.4,1,,,0.0,0.0,0.0,,,,0.0,0.0,closed
+TSCO.L_sim_86e6f7f2,TSCO.L,Stochastic Oscillator,long,472.0,472.0,454.77,stop_loss,-294.45,-1.0,6,,,0.0,17.23,0.0,,,,0.0,0.0,closed
