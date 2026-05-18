@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-05-18T16:40:52",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 3,
+  "alerts": [
+    {
+      "ticker": "ACIW",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "ACIW up 5.7% \u2014 moving SL to breakeven $40.97 (was $37.34)",
+      "action_taken": "SL moved to breakeven $40.97",
+      "current_price": 43.29,
+      "entry_price": 40.97,
+      "pnl_pct": 5.66,
+      "timestamp": "2026-05-18T16:40:41"
+    },
+    {
+      "ticker": "META",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "META exceeded max hold period (10 days). P&L: -1.4%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 609.36,
+      "entry_price": 617.952308,
+      "pnl_pct": -1.39,
+      "timestamp": "2026-05-18T16:40:44"
+    },
+    {
+      "ticker": "NFLX",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "NFLX exceeded max hold period (10 days). P&L: +0.5%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 89.155,
+      "entry_price": 88.670119,
+      "pnl_pct": 0.55,
+      "timestamp": "2026-05-18T16:40:45"
+    },
+    {
+      "ticker": "SJM",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "SJM up 2.3% \u2014 moving SL to breakeven $100.76 (was $97.98)",
+      "action_taken": "SL moved to breakeven $100.76",
+      "current_price": 103.11,
+      "entry_price": 100.76,
+      "pnl_pct": 2.33,
+      "timestamp": "2026-05-18T16:40:48"
+    },
+    {
+      "ticker": "VICI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "VICI exceeded max hold period (10 days). P&L: -1.0%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 28.435,
+      "entry_price": 28.71,
+      "pnl_pct": -0.96,
+      "timestamp": "2026-05-18T16:40:50"
+    }
+  ]
+}
