@@ -12,10 +12,10 @@
       "take_profit": 4272.24,
       "strategy": "Stochastic Oscillator",
       "composite_score": 44.54,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "LOW",
       "confidence_score": 0,
-      "max_price": 4231.0,
+      "max_price": 4232.0,
       "min_price": 4063.0
     },
     {
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 45.8,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -44,11 +44,59 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 42.15,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
       "min_price": NaN
+    },
+    {
+      "ticker": "2503.T",
+      "entry_date": "2026-05-19",
+      "entry_price": 2601.5,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "ADX Trend Following",
+      "composite_score": 70.25,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 2601.5,
+      "min_price": 2601.5
+    },
+    {
+      "ticker": "7261.T",
+      "entry_date": "2026-05-19",
+      "entry_price": 1056.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "ADX Trend Following",
+      "composite_score": 40.65,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 1056.0,
+      "min_price": 1056.0
+    },
+    {
+      "ticker": "8601.T",
+      "entry_date": "2026-05-19",
+      "entry_price": 1467.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "SMA Crossover (10/50)",
+      "composite_score": 24.78,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
+      "max_price": 1467.0,
+      "min_price": 1467.0
     }
   ],
   "closed_trades": [
@@ -657,7 +705,15 @@
       "num_positions": 3,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-19",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-18"
+  "last_run_date": "2026-05-19"
 }
