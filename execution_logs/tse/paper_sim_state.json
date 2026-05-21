@@ -12,7 +12,7 @@
       "take_profit": 4272.24,
       "strategy": "Stochastic Oscillator",
       "composite_score": 44.54,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 4252.0,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 45.8,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -44,11 +44,11 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 40.65,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 1067.5,
-      "min_price": 1056.0
+      "min_price": 1055.0
     },
     {
       "ticker": "8601.T",
@@ -60,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 24.78,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1491.5,
@@ -76,7 +76,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 17.51,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": NaN,
@@ -729,7 +729,15 @@
       "num_positions": 5,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-21",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-20"
+  "last_run_date": "2026-05-21"
 }
