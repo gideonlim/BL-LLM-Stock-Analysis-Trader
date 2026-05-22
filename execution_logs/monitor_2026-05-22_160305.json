@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-22T16:03:05",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "CSCO",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "CSCO up 4.9% \u2014 moving SL to breakeven $114.65 (was $106.77)",
+      "action_taken": "SL moved to breakeven $114.65",
+      "current_price": 120.25,
+      "entry_price": 114.65,
+      "pnl_pct": 4.88,
+      "timestamp": "2026-05-22T16:03:02"
+    },
+    {
+      "ticker": "PEG",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "PEG exceeded max hold period (10 days). P&L: +1.5%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 79.235,
+      "entry_price": 78.07,
+      "pnl_pct": 1.49,
+      "timestamp": "2026-05-22T16:03:04"
+    }
+  ]
+}
