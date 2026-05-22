@@ -12,10 +12,10 @@
       "take_profit": 1346.15,
       "strategy": "52-Week High Momentum",
       "composite_score": 35.06,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1281.5,
+      "max_price": 1281.625,
       "min_price": 1279.0
     },
     {
@@ -28,7 +28,7 @@
       "take_profit": 7177.86,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 35.03,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 6125.0,
@@ -44,7 +44,7 @@
       "take_profit": 617.69,
       "strategy": "ADX Trend Following",
       "composite_score": 40.37,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 572.2999877929688,
@@ -60,7 +60,7 @@
       "take_profit": 610.98,
       "strategy": "52-Week High Momentum",
       "composite_score": 32.82,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 582.5,
@@ -76,7 +76,7 @@
       "take_profit": 2556.05,
       "strategy": "Stochastic Oscillator",
       "composite_score": 49.44,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2530.223876953125,
@@ -92,10 +92,10 @@
       "take_profit": 2210.59,
       "strategy": "MACD Crossover",
       "composite_score": 40.15,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 1898.5,
+      "max_price": 1921.0,
       "min_price": 1878.0
     }
   ],
@@ -597,7 +597,15 @@
       "num_positions": 6,
       "total_pnl": 699.95,
       "total_pnl_pct": 1.4
+    },
+    {
+      "date": "2026-05-22",
+      "equity": 50721.88,
+      "cash": 463.59,
+      "num_positions": 6,
+      "total_pnl": 721.88,
+      "total_pnl_pct": 1.44
     }
   ],
-  "last_run_date": "2026-05-21"
+  "last_run_date": "2026-05-22"
 }
