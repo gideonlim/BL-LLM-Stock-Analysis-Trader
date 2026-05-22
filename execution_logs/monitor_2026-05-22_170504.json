@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-05-22T17:05:04",
+  "positions_checked": 11,
+  "orphaned": 5,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "D",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "D missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$64.73, TP=$74.95",
+      "current_price": 68.135,
+      "entry_price": 68.26,
+      "pnl_pct": -0.18,
+      "timestamp": "2026-05-22T17:04:56"
+    },
+    {
+      "ticker": "DHI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "DHI missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$136.04, TP=$157.51",
+      "current_price": 143.195,
+      "entry_price": 143.18,
+      "pnl_pct": 0.01,
+      "timestamp": "2026-05-22T17:04:57"
+    },
+    {
+      "ticker": "GAP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GAP missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$21.93, TP=$25.39",
+      "current_price": 23.08,
+      "entry_price": 23.06,
+      "pnl_pct": 0.09,
+      "timestamp": "2026-05-22T17:04:59"
+    },
+    {
+      "ticker": "KNF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KNF missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$68.4, TP=$79.2",
+      "current_price": 72.0,
+      "entry_price": 71.98,
+      "pnl_pct": 0.03,
+      "timestamp": "2026-05-22T17:05:00"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "VRSN missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$295.29, TP=$341.91",
+      "current_price": 310.83,
+      "entry_price": 310.49,
+      "pnl_pct": 0.11,
+      "timestamp": "2026-05-22T17:05:03"
+    }
+  ]
+}
