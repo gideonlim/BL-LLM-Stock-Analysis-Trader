@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-05-25T19:19:28",
+  "positions_checked": 11,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ACIW",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "ACIW exceeded max hold period (10 days). P&L: +4.3%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 42.73,
+      "entry_price": 40.97,
+      "pnl_pct": 4.3,
+      "timestamp": "2026-05-25T19:19:25"
+    },
+    {
+      "ticker": "GAP",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 3d (2026-05-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 23.39,
+      "entry_price": 23.06,
+      "pnl_pct": 1.43,
+      "timestamp": "2026-05-25T19:19:27"
+    },
+    {
+      "ticker": "GAP",
+      "type": "earnings_stop_tighten",
+      "severity": "warning",
+      "message": "GAP earnings in 3d (2026-05-28) \u2014 tightening SL from $21.18 to $23.23 to lock in gains (+1.4%)",
+      "action_taken": "DRY RUN: would tighten SL to $23.23",
+      "current_price": 23.39,
+      "entry_price": 23.06,
+      "pnl_pct": 1.43,
+      "timestamp": "2026-05-25T19:19:27"
+    },
+    {
+      "ticker": "KVUE",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "KVUE exceeded max hold period (10 days). P&L: +2.7%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 17.54,
+      "entry_price": 17.08,
+      "pnl_pct": 2.69,
+      "timestamp": "2026-05-25T19:19:27"
+    },
+    {
+      "ticker": "LDOS",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "LDOS exceeded max hold period (10 days). P&L: +0.9%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 126.04,
+      "entry_price": 124.86,
+      "pnl_pct": 0.95,
+      "timestamp": "2026-05-25T19:19:28"
+    }
+  ]
+}
