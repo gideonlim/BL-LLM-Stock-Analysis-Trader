@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-26T17:54:32",
+  "positions_checked": 7,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BWA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BWA missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$64.07, TP=$74.19",
+      "current_price": 67.445,
+      "entry_price": 67.21,
+      "pnl_pct": 0.35,
+      "timestamp": "2026-05-26T17:54:28"
+    }
+  ]
+}
