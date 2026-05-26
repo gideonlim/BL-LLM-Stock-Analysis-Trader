@@ -1,0 +1,109 @@
+{
+  "monitored_at": "2026-05-26T16:58:23",
+  "positions_checked": 12,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 3,
+  "alerts": [
+    {
+      "ticker": "ACIW",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "ACIW exceeded max hold period (10 days). P&L: +3.4%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 42.35,
+      "entry_price": 40.97,
+      "pnl_pct": 3.37,
+      "timestamp": "2026-05-26T16:58:12"
+    },
+    {
+      "ticker": "GAP",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-05-28) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 23.425,
+      "entry_price": 23.06,
+      "pnl_pct": 1.58,
+      "timestamp": "2026-05-26T16:58:16"
+    },
+    {
+      "ticker": "GAP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GAP has NO protective orders (SL/TP legs missing). P&L: +1.6%, entry=$23.06, now=$23.43",
+      "action_taken": "Reattached OCO: SL=$22.25, TP=$25.77",
+      "current_price": 23.425,
+      "entry_price": 23.06,
+      "pnl_pct": 1.58,
+      "timestamp": "2026-05-26T16:58:16"
+    },
+    {
+      "ticker": "KNF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KNF has NO protective orders (SL/TP legs missing). P&L: +2.6%, entry=$71.98, now=$73.88",
+      "action_taken": "Reattached OCO: SL=$70.19, TP=$81.27",
+      "current_price": 73.88,
+      "entry_price": 71.98,
+      "pnl_pct": 2.64,
+      "timestamp": "2026-05-26T16:58:16"
+    },
+    {
+      "ticker": "KVUE",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "KVUE exceeded max hold period (10 days). P&L: +2.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 17.545,
+      "entry_price": 17.08,
+      "pnl_pct": 2.72,
+      "timestamp": "2026-05-26T16:58:17"
+    },
+    {
+      "ticker": "LDOS",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "LDOS exceeded max hold period (10 days). P&L: +1.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 126.99,
+      "entry_price": 124.86,
+      "pnl_pct": 1.71,
+      "timestamp": "2026-05-26T16:58:19"
+    },
+    {
+      "ticker": "MLM",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "MLM up 4.3% \u2014 moving SL to breakeven $535.32 (was $512.43)",
+      "action_taken": "SL moved to breakeven $535.32",
+      "current_price": 558.405,
+      "entry_price": 535.32,
+      "pnl_pct": 4.31,
+      "timestamp": "2026-05-26T16:58:20"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "VRSN has NO protective orders (SL/TP legs missing). P&L: -1.2%, entry=$310.49, now=$306.76",
+      "action_taken": "Reattached OCO: SL=$291.42, TP=$337.44",
+      "current_price": 306.76,
+      "entry_price": 310.49,
+      "pnl_pct": -1.2,
+      "timestamp": "2026-05-26T16:58:22"
+    },
+    {
+      "ticker": "WRB",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "WRB missing stop loss leg. P&L: -0.5%",
+      "action_taken": "Reattached OCO: SL=$63.99, TP=$74.1",
+      "current_price": 67.36,
+      "entry_price": 67.684812,
+      "pnl_pct": -0.48,
+      "timestamp": "2026-05-26T16:58:23"
+    }
+  ]
+}
