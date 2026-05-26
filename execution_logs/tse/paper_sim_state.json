@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "7261.T",
-      "entry_date": "2026-05-19",
-      "entry_price": 1056.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "ADX Trend Following",
-      "composite_score": 40.65,
-      "holding_days": 4,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 1067.5,
-      "min_price": 1055.0
-    },
-    {
       "ticker": "8601.T",
       "entry_date": "2026-05-19",
       "entry_price": 1467.0,
@@ -28,27 +12,11 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 24.78,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 1491.5,
+      "max_price": 1495.0,
       "min_price": 1467.0
-    },
-    {
-      "ticker": "3086.T",
-      "entry_date": "2026-05-20",
-      "entry_price": NaN,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "ADX Trend Following",
-      "composite_score": 17.51,
-      "holding_days": 3,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": NaN,
-      "min_price": NaN
     },
     {
       "ticker": "5803.T",
@@ -60,10 +28,10 @@
       "take_profit": 6305.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 29.7,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 4850.0,
+      "max_price": 5550.0,
       "min_price": 4850.0
     }
   ],
@@ -523,6 +491,30 @@
       "pnl": NaN,
       "pnl_pct": 0.0,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "7261.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-05-19",
+      "exit_date": "2026-05-26",
+      "entry_price": 1056.0,
+      "exit_price": 1090.5,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 3.27,
+      "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "3086.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-05-20",
+      "exit_date": "2026-05-26",
+      "entry_price": NaN,
+      "exit_price": 2134.5,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -773,7 +765,15 @@
       "num_positions": 4,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-26",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 2,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-25"
+  "last_run_date": "2026-05-26"
 }
