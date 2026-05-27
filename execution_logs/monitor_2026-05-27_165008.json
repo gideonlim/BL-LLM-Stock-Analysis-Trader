@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-27T16:50:08",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "MLM",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MLM up 7.0% \u2014 tightening SL from $535.32 to $540.39 (Chandelier: HH=$572.58, ATR=16.09)",
+      "action_taken": "SL tightened to $540.39",
+      "current_price": 572.58,
+      "entry_price": 535.32,
+      "pnl_pct": 6.96,
+      "timestamp": "2026-05-27T16:50:07"
+    }
+  ]
+}
