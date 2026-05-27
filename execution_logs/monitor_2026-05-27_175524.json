@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-27T17:55:24",
+  "positions_checked": 8,
+  "orphaned": 1,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FSLR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FSLR missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$258.47, TP=$299.28",
+      "current_price": 272.07,
+      "entry_price": 272.13,
+      "pnl_pct": -0.02,
+      "timestamp": "2026-05-27T17:55:21"
+    },
+    {
+      "ticker": "MLM",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MLM up 7.3% \u2014 tightening SL from $541.29 to $542.10 (Chandelier: HH=$574.29, ATR=16.09)",
+      "action_taken": "SL tightened to $542.10",
+      "current_price": 574.29,
+      "entry_price": 535.32,
+      "pnl_pct": 7.28,
+      "timestamp": "2026-05-27T17:55:23"
+    }
+  ]
+}
