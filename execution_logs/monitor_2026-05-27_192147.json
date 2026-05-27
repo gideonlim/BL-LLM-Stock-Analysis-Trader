@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-27T19:21:47",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BWA",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "BWA up 6.3% \u2014 tightening SL from $67.21 to $69.32 (%-based trail)",
+      "action_taken": "SL tightened to $69.32",
+      "current_price": 71.425,
+      "entry_price": 67.21,
+      "pnl_pct": 6.27,
+      "timestamp": "2026-05-27T19:21:41"
+    }
+  ]
+}
