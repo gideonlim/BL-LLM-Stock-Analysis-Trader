@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-27T22:52:49",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DHI",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "DHI up 3.3% \u2014 moving SL to breakeven $143.18 (was $135.95)",
+      "action_taken": "DRY RUN: would move SL to breakeven",
+      "current_price": 147.85,
+      "entry_price": 143.18,
+      "pnl_pct": 3.26,
+      "timestamp": "2026-05-27T22:52:48"
+    }
+  ]
+}
