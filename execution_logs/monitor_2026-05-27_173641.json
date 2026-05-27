@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-27T17:36:41",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BWA",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "BWA up 4.8% \u2014 moving SL to breakeven $67.21 (was $61.18)",
+      "action_taken": "SL moved to breakeven $67.21",
+      "current_price": 70.45,
+      "entry_price": 67.21,
+      "pnl_pct": 4.82,
+      "timestamp": "2026-05-27T17:36:35"
+    },
+    {
+      "ticker": "MLM",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MLM up 7.1% \u2014 tightening SL from $540.40 to $541.29 (Chandelier: HH=$573.48, ATR=16.09)",
+      "action_taken": "SL tightened to $541.29",
+      "current_price": 573.48,
+      "entry_price": 535.32,
+      "pnl_pct": 7.13,
+      "timestamp": "2026-05-27T17:36:40"
+    }
+  ]
+}
