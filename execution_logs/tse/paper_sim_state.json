@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 24.78,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1495.0,
@@ -28,11 +28,27 @@
       "take_profit": 6305.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 29.7,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 5550.0,
       "min_price": 4850.0
+    },
+    {
+      "ticker": "5406.T",
+      "entry_date": "2026-05-27",
+      "entry_price": NaN,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "SMA Crossover (10/50)",
+      "composite_score": 32.01,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": NaN,
+      "min_price": NaN
     }
   ],
   "closed_trades": [
@@ -773,7 +789,15 @@
       "num_positions": 2,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-27",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-26"
+  "last_run_date": "2026-05-27"
 }
