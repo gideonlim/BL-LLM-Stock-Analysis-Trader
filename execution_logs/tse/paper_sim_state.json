@@ -12,11 +12,11 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 24.78,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1495.0,
-      "min_price": 1467.0
+      "min_price": 1466.0
     },
     {
       "ticker": "5803.T",
@@ -28,25 +28,25 @@
       "take_profit": 6305.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 29.7,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 5550.0,
       "min_price": 4850.0
     },
     {
-      "ticker": "5406.T",
-      "entry_date": "2026-05-27",
+      "ticker": "4523.T",
+      "entry_date": "2026-05-28",
       "entry_price": NaN,
       "qty": NaN,
       "notional": NaN,
       "stop_loss": NaN,
       "take_profit": NaN,
-      "strategy": "SMA Crossover (10/50)",
-      "composite_score": 32.01,
+      "strategy": "VWAP Trend",
+      "composite_score": 18.75,
       "holding_days": 0,
-      "confidence": "HIGH",
-      "confidence_score": 4,
+      "confidence": "LOW",
+      "confidence_score": 0,
       "max_price": NaN,
       "min_price": NaN
     }
@@ -531,6 +531,18 @@
       "pnl": NaN,
       "pnl_pct": NaN,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "5406.T",
+      "strategy": "SMA Crossover (10/50)",
+      "entry_date": "2026-05-27",
+      "exit_date": "2026-05-28",
+      "entry_price": NaN,
+      "exit_price": 1965.5,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -797,7 +809,15 @@
       "num_positions": 3,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-28",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-27"
+  "last_run_date": "2026-05-28"
 }
