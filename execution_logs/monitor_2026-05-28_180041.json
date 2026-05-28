@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-05-28T18:00:41",
+  "positions_checked": 7,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "XLF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XLF missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$48.65, TP=$56.33",
+      "current_price": 51.21,
+      "entry_price": 51.2,
+      "pnl_pct": 0.02,
+      "timestamp": "2026-05-28T18:00:41"
+    }
+  ]
+}
