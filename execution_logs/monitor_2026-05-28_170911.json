@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-28T17:09:11",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 1,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "MLM",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MLM up 7.3% \u2014 tightening SL from $542.91 to $543.00 (Chandelier: HH=$575.10, ATR=16.05)",
+      "action_taken": "SL tightened to $543.00",
+      "current_price": 574.27,
+      "entry_price": 535.32,
+      "pnl_pct": 7.28,
+      "timestamp": "2026-05-28T17:09:09"
+    },
+    {
+      "ticker": "WRB",
+      "type": "extreme_move",
+      "severity": "critical",
+      "message": "WRB price $64.62 gapped below SL $66.05 (SL may not have filled)",
+      "action_taken": "Closed gapped position: submitted",
+      "current_price": 64.62,
+      "entry_price": 67.684812,
+      "pnl_pct": -4.53,
+      "timestamp": "2026-05-28T17:09:10"
+    }
+  ]
+}
