@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-05-29T16:58:29",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DHI",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "DHI up 4.2% \u2014 moving SL to breakeven $143.18 (was $135.95)",
+      "action_taken": "SL moved to breakeven $143.18",
+      "current_price": 149.2,
+      "entry_price": 143.18,
+      "pnl_pct": 4.2,
+      "timestamp": "2026-05-29T16:58:27"
+    },
+    {
+      "ticker": "MLM",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MLM up 9.8% \u2014 tightening SL from $543.00 to $558.06 (Chandelier: HH=$587.86, ATR=14.90)",
+      "action_taken": "SL tightened to $558.06",
+      "current_price": 587.86,
+      "entry_price": 535.32,
+      "pnl_pct": 9.81,
+      "timestamp": "2026-05-29T16:58:28"
+    }
+  ]
+}
