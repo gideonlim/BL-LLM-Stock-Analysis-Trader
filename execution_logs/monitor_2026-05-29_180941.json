@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-05-29T18:09:41",
+  "positions_checked": 9,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FSLR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FSLR missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$286.18, TP=$331.36",
+      "current_price": 301.24,
+      "entry_price": 301.94,
+      "pnl_pct": -0.23,
+      "timestamp": "2026-05-29T18:09:38"
+    },
+    {
+      "ticker": "KVUE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KVUE missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$16.71, TP=$19.34",
+      "current_price": 17.585,
+      "entry_price": 17.59,
+      "pnl_pct": -0.03,
+      "timestamp": "2026-05-29T18:09:39"
+    },
+    {
+      "ticker": "TSN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "TSN missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$58.29, TP=$67.5",
+      "current_price": 61.36,
+      "entry_price": 61.48,
+      "pnl_pct": -0.2,
+      "timestamp": "2026-05-29T18:09:40"
+    }
+  ]
+}
