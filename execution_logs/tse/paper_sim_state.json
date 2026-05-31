@@ -12,10 +12,10 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 24.78,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 1495.0,
+      "max_price": 1500.5,
       "min_price": 1466.0
     },
     {
@@ -28,11 +28,11 @@
       "take_profit": 6305.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 29.7,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 5550.0,
-      "min_price": 4850.0
+      "min_price": 4771.0
     },
     {
       "ticker": "4523.T",
@@ -44,11 +44,59 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 18.75,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
       "min_price": NaN
+    },
+    {
+      "ticker": "4151.T",
+      "entry_date": "2026-05-31",
+      "entry_price": 2505.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 2408.31,
+      "take_profit": 2650.04,
+      "strategy": "VWAP Trend",
+      "composite_score": 95.11,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 2505.0,
+      "min_price": 2505.0
+    },
+    {
+      "ticker": "4519.T",
+      "entry_date": "2026-05-31",
+      "entry_price": 7892.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 7375.86,
+      "take_profit": 9440.41,
+      "strategy": "VWAP Trend",
+      "composite_score": 74.98,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 7892.0,
+      "min_price": 7892.0
+    },
+    {
+      "ticker": "6326.T",
+      "entry_date": "2026-05-31",
+      "entry_price": 2842.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 2703.88,
+      "take_profit": 3256.36,
+      "strategy": "VWAP Trend",
+      "composite_score": 72.06,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 6,
+      "max_price": 2842.0,
+      "min_price": 2842.0
     }
   ],
   "closed_trades": [
@@ -817,7 +865,15 @@
       "num_positions": 3,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-05-31",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-05-28"
+  "last_run_date": "2026-05-31"
 }
