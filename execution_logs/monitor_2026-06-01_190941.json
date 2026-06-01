@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-01T19:09:41",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 4,
+  "alerts": [
+    {
+      "ticker": "CSCO",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "CSCO exceeded max hold period (10 days). P&L: +5.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 121.24,
+      "entry_price": 114.65,
+      "pnl_pct": 5.75,
+      "timestamp": "2026-06-01T19:09:35"
+    },
+    {
+      "ticker": "D",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "D exceeded max hold period (10 days). P&L: -5.0%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 64.85,
+      "entry_price": 68.26,
+      "pnl_pct": -5.0,
+      "timestamp": "2026-06-01T19:09:37"
+    },
+    {
+      "ticker": "DHI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "DHI exceeded max hold period (10 days). P&L: +2.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 147.1,
+      "entry_price": 143.18,
+      "pnl_pct": 2.74,
+      "timestamp": "2026-06-01T19:09:38"
+    },
+    {
+      "ticker": "MLM",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "MLM exceeded max hold period (10 days). P&L: +6.9%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 572.315,
+      "entry_price": 535.32,
+      "pnl_pct": 6.91,
+      "timestamp": "2026-06-01T19:09:39"
+    }
+  ]
+}

@@ -34,11 +34,11 @@
   "r_multiple": 0.0,
   "holding_days": 0,
   "max_favorable_excursion": 61.48,
-  "max_adverse_excursion": 60.94,
+  "max_adverse_excursion": 60.1,
   "mfe_pct": 0.0,
-  "mae_pct": 0.88,
+  "mae_pct": 2.24,
   "mfe_date": "",
-  "mae_date": "2026-05-29",
+  "mae_date": "2026-06-01",
   "etd": 0.0,
   "etd_pct": 0.0,
   "edge_ratio": 0.0,
@@ -47,6 +47,10 @@
     {
       "date": "2026-05-29",
       "price": 61.36
+    },
+    {
+      "date": "2026-06-01",
+      "price": 60.1
     }
   ],
   "status": "open",
