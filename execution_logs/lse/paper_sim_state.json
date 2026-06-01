@@ -12,11 +12,11 @@
       "take_profit": 2210.59,
       "strategy": "MACD Crossover",
       "composite_score": 40.15,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 1932.5,
-      "min_price": 1878.0
+      "min_price": 1875.5
     },
     {
       "ticker": "AAF.L",
@@ -28,10 +28,10 @@
       "take_profit": 418.13,
       "strategy": "Stochastic Oscillator",
       "composite_score": 34.99,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 347.79998779296875,
+      "max_price": 353.20001220703125,
       "min_price": 332.20001220703125
     },
     {
@@ -44,10 +44,10 @@
       "take_profit": 8799.76,
       "strategy": "ADX Trend Following",
       "composite_score": 40.03,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 7922.0,
+      "max_price": 8033.0,
       "min_price": 7849.0
     },
     {
@@ -60,11 +60,11 @@
       "take_profit": 130.03,
       "strategy": "Stochastic Oscillator",
       "composite_score": 37.8,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 112.124,
-      "min_price": 111.6500015258789
+      "min_price": 111.5
     },
     {
       "ticker": "IGG.L",
@@ -76,7 +76,7 @@
       "take_profit": 2147.15,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.55,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1817.0,
@@ -92,10 +92,10 @@
       "take_profit": 1348.25,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.88,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1281.0,
+      "max_price": 1281.8470458984375,
       "min_price": 1281.0
     }
   ],
@@ -717,7 +717,15 @@
       "num_positions": 6,
       "total_pnl": 16.49,
       "total_pnl_pct": 0.03
+    },
+    {
+      "date": "2026-06-01",
+      "equity": 50240.9,
+      "cash": 425.98,
+      "num_positions": 6,
+      "total_pnl": 240.9,
+      "total_pnl_pct": 0.48
     }
   ],
-  "last_run_date": "2026-05-29"
+  "last_run_date": "2026-06-01"
 }
