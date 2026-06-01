@@ -3,15 +3,15 @@
     "strategy": "VWAP Trend",
     "state": "CAUTION",
     "prev_state": "CAUTION",
-    "rolling_sharpe": 0.2775,
-    "rolling_win_rate": 0.6,
+    "rolling_sharpe": 0.367,
+    "rolling_win_rate": 0.65,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 1,
-    "mean_r": 0.03,
+    "consec_losses": 0,
+    "mean_r": 0.1721,
     "strategy_drawdown_pct": 14.18,
-    "closed_trades": 57,
+    "closed_trades": 63,
     "last_transition": "2026-05-28T17:46:05",
-    "note": "rolling Sharpe 0.28 < 0.5; win rate dropped 23.3pp from baseline"
+    "note": "rolling Sharpe 0.37 < 0.5; win rate dropped 18.3pp from baseline"
   },
   "MACD Crossover": {
     "strategy": "MACD Crossover",
@@ -23,6 +23,20 @@
     "consec_losses": 1,
     "mean_r": 0.3267,
     "strategy_drawdown_pct": 2.99,
+    "closed_trades": 3,
+    "last_transition": "",
+    "note": "Insufficient trade history (3/5)"
+  },
+  "Momentum (Rate of Change)": {
+    "strategy": "Momentum (Rate of Change)",
+    "state": "ACTIVE",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": -0.0937,
+    "rolling_win_rate": 0.6667,
+    "baseline_win_rate": 1.0,
+    "consec_losses": 1,
+    "mean_r": -0.2967,
+    "strategy_drawdown_pct": 5.02,
     "closed_trades": 3,
     "last_transition": "",
     "note": "Insufficient trade history (3/5)"
@@ -93,20 +107,6 @@
     "consec_losses": 2,
     "mean_r": 0.0,
     "strategy_drawdown_pct": 7.6,
-    "closed_trades": 2,
-    "last_transition": "",
-    "note": "Insufficient trade history (2/5)"
-  },
-  "Momentum (Rate of Change)": {
-    "strategy": "Momentum (Rate of Change)",
-    "state": "ACTIVE",
-    "prev_state": "ACTIVE",
-    "rolling_sharpe": 2.4942,
-    "rolling_win_rate": 1.0,
-    "baseline_win_rate": 1.0,
-    "consec_losses": 0,
-    "mean_r": 0.275,
-    "strategy_drawdown_pct": 0.0,
     "closed_trades": 2,
     "last_transition": "",
     "note": "Insufficient trade history (2/5)"
