@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "8601.T",
-      "entry_date": "2026-05-19",
-      "entry_price": 1467.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "SMA Crossover (10/50)",
-      "composite_score": 24.78,
-      "holding_days": 9,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": 1500.5,
-      "min_price": 1466.0
-    },
-    {
       "ticker": "5803.T",
       "entry_date": "2026-05-24",
       "entry_price": 4850.0,
@@ -28,7 +12,7 @@
       "take_profit": 6305.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 29.7,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 5550.0,
@@ -44,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 18.75,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
@@ -60,7 +44,7 @@
       "take_profit": 457.3,
       "strategy": "VWAP Trend",
       "composite_score": 77.03,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 423.5,
@@ -76,7 +60,7 @@
       "take_profit": 2959.68,
       "strategy": "52-Week High Momentum",
       "composite_score": 38.84,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 2309.0,
@@ -92,7 +76,7 @@
       "take_profit": 1619.59,
       "strategy": "VWAP Trend",
       "composite_score": 24.28,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 1474.5,
@@ -627,6 +611,18 @@
       "pnl": NaN,
       "pnl_pct": -2.89,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "8601.T",
+      "strategy": "SMA Crossover (10/50)",
+      "entry_date": "2026-05-19",
+      "exit_date": "2026-06-02",
+      "entry_price": 1467.0,
+      "exit_price": 1494.5,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 1.87,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -917,7 +913,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-06-02",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-06-01"
+  "last_run_date": "2026-06-02"
 }
