@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-02T18:36:40",
+  "positions_checked": 6,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "AR missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$34.61, TP=$40.08",
+      "current_price": 36.435,
+      "entry_price": 36.39,
+      "pnl_pct": 0.12,
+      "timestamp": "2026-06-02T18:36:34"
+    },
+    {
+      "ticker": "CART",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CART missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$39.21, TP=$45.4",
+      "current_price": 41.27,
+      "entry_price": 41.34,
+      "pnl_pct": -0.17,
+      "timestamp": "2026-06-02T18:36:35"
+    },
+    {
+      "ticker": "LDOS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "LDOS missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$121.12, TP=$140.24",
+      "current_price": 127.49,
+      "entry_price": 127.41,
+      "pnl_pct": 0.06,
+      "timestamp": "2026-06-02T18:36:37"
+    },
+    {
+      "ticker": "NWS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NWS missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$28.44, TP=$32.93",
+      "current_price": 29.94,
+      "entry_price": 30.03,
+      "pnl_pct": -0.3,
+      "timestamp": "2026-06-02T18:36:39"
+    }
+  ]
+}
