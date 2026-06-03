@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-03T20:50:19",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 1,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KVUE",
+      "type": "extreme_move",
+      "severity": "critical",
+      "message": "KVUE price $16.85 gapped below SL $17.21 (SL may not have filled)",
+      "action_taken": "DRY RUN: would close gapped position",
+      "current_price": 16.85,
+      "entry_price": 17.59,
+      "pnl_pct": -4.21,
+      "timestamp": "2026-06-03T20:50:16"
+    }
+  ]
+}
