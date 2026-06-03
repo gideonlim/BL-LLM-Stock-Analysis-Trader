@@ -12,11 +12,11 @@
       "take_profit": 6305.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 29.7,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 5550.0,
-      "min_price": 4677.0
+      "min_price": 4574.0
     },
     {
       "ticker": "4523.T",
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 18.75,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
@@ -44,10 +44,10 @@
       "take_profit": 457.3,
       "strategy": "VWAP Trend",
       "composite_score": 77.03,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 423.5,
+      "max_price": 424.5,
       "min_price": 423.5
     },
     {
@@ -60,11 +60,11 @@
       "take_profit": 2959.68,
       "strategy": "52-Week High Momentum",
       "composite_score": 38.84,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 2309.0,
-      "min_price": 2309.0
+      "min_price": 2269.0
     },
     {
       "ticker": "2413.T",
@@ -76,11 +76,27 @@
       "take_profit": 1619.59,
       "strategy": "VWAP Trend",
       "composite_score": 24.28,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 0,
-      "max_price": 1474.5,
+      "max_price": 1553.0,
       "min_price": 1474.5
+    },
+    {
+      "ticker": "6770.T",
+      "entry_date": "2026-06-03",
+      "entry_price": NaN,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "SMA Crossover (10/50)",
+      "composite_score": 36.13,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
+      "max_price": NaN,
+      "min_price": NaN
     }
   ],
   "closed_trades": [
@@ -921,7 +937,15 @@
       "num_positions": 5,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-06-03",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-06-02"
+  "last_run_date": "2026-06-03"
 }
