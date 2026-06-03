@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-06-03T18:42:21",
+  "positions_checked": 9,
+  "orphaned": 5,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AVT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "AVT missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$88.18, TP=$102.1",
+      "current_price": 92.82,
+      "entry_price": 92.84,
+      "pnl_pct": -0.02,
+      "timestamp": "2026-06-03T18:42:15"
+    },
+    {
+      "ticker": "CLF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CLF missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$13.56, TP=$15.7",
+      "current_price": 14.27,
+      "entry_price": 14.31,
+      "pnl_pct": -0.28,
+      "timestamp": "2026-06-03T18:42:16"
+    },
+    {
+      "ticker": "COHR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "COHR missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$396.84, TP=$459.5",
+      "current_price": 417.73,
+      "entry_price": 418.54,
+      "pnl_pct": -0.19,
+      "timestamp": "2026-06-03T18:42:17"
+    },
+    {
+      "ticker": "CVLT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CVLT missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$113.97, TP=$131.97",
+      "current_price": 119.97,
+      "entry_price": 120.15,
+      "pnl_pct": -0.15,
+      "timestamp": "2026-06-03T18:42:18"
+    },
+    {
+      "ticker": "WDAY",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "WDAY missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$138.69, TP=$160.59",
+      "current_price": 145.99,
+      "entry_price": 146.06,
+      "pnl_pct": -0.05,
+      "timestamp": "2026-06-03T18:42:20"
+    }
+  ]
+}
