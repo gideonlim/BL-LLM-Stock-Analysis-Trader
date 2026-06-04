@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-06-04T17:43:23",
+  "positions_checked": 11,
+  "orphaned": 5,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BAC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BAC missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$51.11, TP=$59.17",
+      "current_price": 53.795,
+      "entry_price": 53.96,
+      "pnl_pct": -0.31,
+      "timestamp": "2026-06-04T17:43:15"
+    },
+    {
+      "ticker": "GPK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GPK missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$10.16, TP=$11.76",
+      "current_price": 10.69,
+      "entry_price": 10.68,
+      "pnl_pct": 0.09,
+      "timestamp": "2026-06-04T17:43:17"
+    },
+    {
+      "ticker": "WELL",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "WELL missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$188.67, TP=$218.46",
+      "current_price": 198.6,
+      "entry_price": 198.77,
+      "pnl_pct": -0.09,
+      "timestamp": "2026-06-04T17:43:20"
+    },
+    {
+      "ticker": "XEL",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XEL missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$73.6, TP=$85.22",
+      "current_price": 77.47,
+      "entry_price": 77.55,
+      "pnl_pct": -0.1,
+      "timestamp": "2026-06-04T17:43:21"
+    },
+    {
+      "ticker": "XLF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XLF missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$49.45, TP=$57.26",
+      "current_price": 52.05,
+      "entry_price": 52.12,
+      "pnl_pct": -0.13,
+      "timestamp": "2026-06-04T17:43:23"
+    }
+  ]
+}
