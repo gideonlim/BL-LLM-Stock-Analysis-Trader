@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-05T16:42:57",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "WELL",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "WELL up 5.5% \u2014 tightening SL from $198.77 to $199.22 (Chandelier: HH=$209.63, ATR=5.20)",
+      "action_taken": "SL tightened to $199.22",
+      "current_price": 209.63,
+      "entry_price": 198.77,
+      "pnl_pct": 5.46,
+      "timestamp": "2026-06-05T16:42:55"
+    }
+  ]
+}
