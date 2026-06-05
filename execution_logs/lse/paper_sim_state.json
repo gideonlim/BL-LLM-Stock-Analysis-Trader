@@ -12,7 +12,7 @@
       "take_profit": 418.13,
       "strategy": "Stochastic Oscillator",
       "composite_score": 34.99,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 353.20001220703125,
@@ -28,11 +28,11 @@
       "take_profit": 8799.76,
       "strategy": "ADX Trend Following",
       "composite_score": 40.03,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 8201.0,
-      "min_price": 7849.0
+      "min_price": 7712.0
     },
     {
       "ticker": "VOD.L",
@@ -44,7 +44,7 @@
       "take_profit": 130.03,
       "strategy": "Stochastic Oscillator",
       "composite_score": 37.8,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 113.0,
@@ -60,10 +60,10 @@
       "take_profit": 2147.15,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.55,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1845.0,
+      "max_price": 1854.0,
       "min_price": 1795.0
     },
     {
@@ -76,10 +76,10 @@
       "take_profit": 1935.83,
       "strategy": "EMA Crossover (9/21)",
       "composite_score": 46.16,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 2,
-      "max_price": 1875.0,
+      "max_price": 1891.0,
       "min_price": 1844.0
     },
     {
@@ -92,11 +92,11 @@
       "take_profit": 4589.92,
       "strategy": "52-Week High Momentum",
       "composite_score": 41.25,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 4059.0,
-      "min_price": 4059.0
+      "min_price": 3982.0
     }
   ],
   "closed_trades": [
@@ -785,7 +785,15 @@
       "num_positions": 6,
       "total_pnl": -822.37,
       "total_pnl_pct": -1.64
+    },
+    {
+      "date": "2026-06-05",
+      "equity": 49409.46,
+      "cash": 412.71,
+      "num_positions": 6,
+      "total_pnl": -590.54,
+      "total_pnl_pct": -1.18
     }
   ],
-  "last_run_date": "2026-06-04"
+  "last_run_date": "2026-06-05"
 }
