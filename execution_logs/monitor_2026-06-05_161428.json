@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-06-05T16:14:28",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "NWS",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "NWS up 2.9% \u2014 moving SL to breakeven $30.03 (was $28.93)",
+      "action_taken": "SL moved to breakeven $30.03",
+      "current_price": 30.9,
+      "entry_price": 30.03,
+      "pnl_pct": 2.9,
+      "timestamp": "2026-06-05T16:14:25"
+    },
+    {
+      "ticker": "WELL",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "WELL up 4.7% \u2014 moving SL to breakeven $198.77 (was $191.21)",
+      "action_taken": "SL moved to breakeven $198.77",
+      "current_price": 208.195,
+      "entry_price": 198.77,
+      "pnl_pct": 4.74,
+      "timestamp": "2026-06-05T16:14:26"
+    }
+  ]
+}
