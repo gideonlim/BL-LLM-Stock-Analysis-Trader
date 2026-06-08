@@ -2,16 +2,16 @@
   "VWAP Trend": {
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
-    "prev_state": "CAUTION",
-    "rolling_sharpe": 0.0575,
-    "rolling_win_rate": 0.5,
+    "prev_state": "SUSPENDED",
+    "rolling_sharpe": -0.0149,
+    "rolling_win_rate": 0.45,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 6,
-    "mean_r": -0.0837,
-    "strategy_drawdown_pct": 29.21,
-    "closed_trades": 71,
+    "consec_losses": 7,
+    "mean_r": -0.1653,
+    "strategy_drawdown_pct": 34.08,
+    "closed_trades": 72,
     "last_transition": "2026-06-05T16:43:09",
-    "note": "win rate dropped 33.3pp from baseline; 6 consecutive losses"
+    "note": "rolling Sharpe -0.01 < 0.0; win rate dropped 38.3pp from baseline; 7 consecutive losses"
   },
   "MACD Crossover": {
     "strategy": "MACD Crossover",
