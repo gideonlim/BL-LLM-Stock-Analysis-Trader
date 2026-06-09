@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-06-09T17:21:19",
+  "positions_checked": 10,
+  "orphaned": 5,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BXP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BXP missing stop loss leg. P&L: +0.6%",
+      "action_taken": "Reattached OCO: SL=$63.13, TP=$73.1",
+      "current_price": 66.45,
+      "entry_price": 66.07,
+      "pnl_pct": 0.58,
+      "timestamp": "2026-06-09T17:21:09"
+    },
+    {
+      "ticker": "CBT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CBT missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$78.96, TP=$91.43",
+      "current_price": 83.12,
+      "entry_price": 83.4,
+      "pnl_pct": -0.34,
+      "timestamp": "2026-06-09T17:21:11"
+    },
+    {
+      "ticker": "KRG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KRG missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$27.12, TP=$31.41",
+      "current_price": 28.55,
+      "entry_price": 28.6,
+      "pnl_pct": -0.17,
+      "timestamp": "2026-06-09T17:21:12"
+    },
+    {
+      "ticker": "OGE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OGE missing stop loss leg. P&L: -0.4%",
+      "action_taken": "Reattached OCO: SL=$45.08, TP=$52.2",
+      "current_price": 47.45,
+      "entry_price": 47.62,
+      "pnl_pct": -0.36,
+      "timestamp": "2026-06-09T17:21:15"
+    },
+    {
+      "ticker": "SPG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SPG missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$200.74, TP=$232.43",
+      "current_price": 211.3,
+      "entry_price": 211.4,
+      "pnl_pct": -0.05,
+      "timestamp": "2026-06-09T17:21:17"
+    }
+  ]
+}
