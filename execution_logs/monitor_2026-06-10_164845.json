@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-10T16:48:45",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BAC",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "BAC up 2.2% \u2014 moving SL to breakeven $53.96 (was $52.35)",
+      "action_taken": "SL moved to breakeven $53.96",
+      "current_price": 55.145,
+      "entry_price": 53.96,
+      "pnl_pct": 2.2,
+      "timestamp": "2026-06-10T16:48:41"
+    }
+  ]
+}
