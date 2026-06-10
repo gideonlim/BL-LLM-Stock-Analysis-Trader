@@ -1,23 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 444.0495603126328,
+  "cash": 363.59787185781624,
   "positions": [
-    {
-      "ticker": "RIO.L",
-      "entry_date": "2026-05-27",
-      "entry_price": 7922.0,
-      "qty": 0.9049,
-      "notional": 7168.4,
-      "stop_loss": 7483.12,
-      "take_profit": 8799.76,
-      "strategy": "ADX Trend Following",
-      "composite_score": 40.03,
-      "holding_days": 9,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": 8201.0,
-      "min_price": 7571.0
-    },
     {
       "ticker": "IGG.L",
       "entry_date": "2026-05-28",
@@ -28,7 +12,7 @@
       "take_profit": 2147.15,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.55,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1876.3709716796875,
@@ -44,27 +28,11 @@
       "take_profit": 1935.83,
       "strategy": "EMA Crossover (9/21)",
       "composite_score": 46.16,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 2,
-      "max_price": 1891.0,
+      "max_price": 1932.5,
       "min_price": 1844.0
-    },
-    {
-      "ticker": "AAL.L",
-      "entry_date": "2026-06-04",
-      "entry_price": 4059.0,
-      "qty": 1.9319,
-      "notional": 7841.45,
-      "stop_loss": 3793.54,
-      "take_profit": 4589.92,
-      "strategy": "52-Week High Momentum",
-      "composite_score": 41.25,
-      "holding_days": 3,
-      "confidence": "MEDIUM",
-      "confidence_score": 2,
-      "max_price": 4059.0,
-      "min_price": 3831.5
     },
     {
       "ticker": "LSEG.L",
@@ -76,11 +44,11 @@
       "take_profit": 11642.54,
       "strategy": "VWAP Trend",
       "composite_score": 66.37,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 9320.0,
-      "min_price": 9194.0
+      "min_price": 8966.0
     },
     {
       "ticker": "DPLM.L",
@@ -92,11 +60,43 @@
       "take_profit": 7755.11,
       "strategy": "MACD Crossover",
       "composite_score": 40.07,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 7105.0,
-      "min_price": 7105.0
+      "min_price": 6995.0
+    },
+    {
+      "ticker": "BEZ.L",
+      "entry_date": "2026-06-10",
+      "entry_price": 1282.6252,
+      "qty": 5.6696,
+      "notional": 7271.96,
+      "stop_loss": 1263.75,
+      "take_profit": 1350.36,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 34.67,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 1282.6252,
+      "min_price": 1282.6252
+    },
+    {
+      "ticker": "HSX.L",
+      "entry_date": "2026-06-10",
+      "entry_price": 1721.0,
+      "qty": 4.0142,
+      "notional": 6908.36,
+      "stop_loss": 1660.08,
+      "take_profit": 1903.77,
+      "strategy": "Stochastic Oscillator",
+      "composite_score": 28.21,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 1721.0,
+      "min_price": 1721.0
     }
   ],
   "closed_trades": [
@@ -495,6 +495,30 @@
       "pnl": 252.13,
       "pnl_pct": 3.08,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "RIO.L",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-05-27",
+      "exit_date": "2026-06-10",
+      "entry_price": 7922.0,
+      "exit_price": 7483.12,
+      "qty": 0.9049,
+      "pnl": -397.14,
+      "pnl_pct": -5.54,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "AAL.L",
+      "strategy": "52-Week High Momentum",
+      "entry_date": "2026-06-04",
+      "exit_date": "2026-06-10",
+      "entry_price": 4059.0,
+      "exit_price": 3793.54,
+      "qty": 1.9319,
+      "pnl": -512.84,
+      "pnl_pct": -6.54,
+      "exit_reason": "stop_loss"
     }
   ],
   "equity_history": [
@@ -833,7 +857,15 @@
       "num_positions": 6,
       "total_pnl": -952.28,
       "total_pnl_pct": -1.9
+    },
+    {
+      "date": "2026-06-10",
+      "equity": 48633.65,
+      "cash": 363.6,
+      "num_positions": 6,
+      "total_pnl": -1366.35,
+      "total_pnl_pct": -2.73
     }
   ],
-  "last_run_date": "2026-06-09"
+  "last_run_date": "2026-06-10"
 }
