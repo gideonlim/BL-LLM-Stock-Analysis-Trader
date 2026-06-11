@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-06-11T17:33:02",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KRG",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "KRG up 2.2% \u2014 moving SL to breakeven $28.60 (was $28.03)",
+      "action_taken": "SL moved to breakeven $28.60",
+      "current_price": 29.22,
+      "entry_price": 28.6,
+      "pnl_pct": 2.17,
+      "timestamp": "2026-06-11T17:32:57"
+    },
+    {
+      "ticker": "SPG",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "SPG up 1.9% \u2014 moving SL to breakeven $211.40 (was $207.02)",
+      "action_taken": "SL moved to breakeven $211.40",
+      "current_price": 215.49,
+      "entry_price": 211.4,
+      "pnl_pct": 1.93,
+      "timestamp": "2026-06-11T17:33:00"
+    }
+  ]
+}
