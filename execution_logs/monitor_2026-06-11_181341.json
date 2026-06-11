@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-06-11T18:13:41",
+  "positions_checked": 8,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DOCU",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "DOCU missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$42.89, TP=$49.66",
+      "current_price": 45.15,
+      "entry_price": 45.01,
+      "pnl_pct": 0.31,
+      "timestamp": "2026-06-11T18:13:35"
+    },
+    {
+      "ticker": "PKG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "PKG missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$209.95, TP=$243.11",
+      "current_price": 221.005,
+      "entry_price": 220.99,
+      "pnl_pct": 0.01,
+      "timestamp": "2026-06-11T18:13:38"
+    }
+  ]
+}
