@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "4523.T",
-      "entry_date": "2026-05-28",
-      "entry_price": NaN,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "VWAP Trend",
-      "composite_score": 18.75,
-      "holding_days": 9,
-      "confidence": "LOW",
-      "confidence_score": 0,
-      "max_price": NaN,
-      "min_price": NaN
-    },
-    {
       "ticker": "4689.T",
       "entry_date": "2026-06-01",
       "entry_price": 423.5,
@@ -28,7 +12,7 @@
       "take_profit": 457.3,
       "strategy": "VWAP Trend",
       "composite_score": 77.03,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 424.5,
@@ -44,11 +28,11 @@
       "take_profit": 2959.68,
       "strategy": "52-Week High Momentum",
       "composite_score": 38.84,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 2348.0,
-      "min_price": 2193.0
+      "min_price": 2185.0
     },
     {
       "ticker": "6770.T",
@@ -60,27 +44,11 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 36.13,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
       "min_price": NaN
-    },
-    {
-      "ticker": "6674.T",
-      "entry_date": "2026-06-07",
-      "entry_price": 7280.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 6609.51,
-      "take_profit": 9626.34,
-      "strategy": "PEAD Earnings Drift",
-      "composite_score": 41.01,
-      "holding_days": 3,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 7280.0,
-      "min_price": 6654.0
     }
   ],
   "closed_trades": [
@@ -647,6 +615,30 @@
       "pnl": NaN,
       "pnl_pct": 9.84,
       "exit_reason": "take_profit"
+    },
+    {
+      "ticker": "4523.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-05-28",
+      "exit_date": "2026-06-11",
+      "entry_price": NaN,
+      "exit_price": 3740.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "6674.T",
+      "strategy": "PEAD Earnings Drift",
+      "entry_date": "2026-06-07",
+      "exit_date": "2026-06-11",
+      "entry_price": 7280.0,
+      "exit_price": 6609.51,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -9.21,
+      "exit_reason": "stop_loss"
     }
   ],
   "equity_history": [
@@ -993,7 +985,15 @@
       "num_positions": 5,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-06-11",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-06-10"
+  "last_run_date": "2026-06-11"
 }
