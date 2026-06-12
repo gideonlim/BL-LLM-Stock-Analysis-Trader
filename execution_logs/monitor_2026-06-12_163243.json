@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-12T16:32:43",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "CBT",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "CBT up 4.1% \u2014 moving SL to breakeven $83.40 (was $79.12)",
+      "action_taken": "SL moved to breakeven $83.40",
+      "current_price": 86.805,
+      "entry_price": 83.4,
+      "pnl_pct": 4.08,
+      "timestamp": "2026-06-12T16:32:39"
+    },
+    {
+      "ticker": "LDOS",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "LDOS exceeded max hold period (10 days). P&L: -3.1%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 123.48,
+      "entry_price": 127.41,
+      "pnl_pct": -3.08,
+      "timestamp": "2026-06-12T16:32:40"
+    },
+    {
+      "ticker": "PKG",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "PKG up 3.0% \u2014 moving SL to breakeven $220.99 (was $212.04)",
+      "action_taken": "SL moved to breakeven $220.99",
+      "current_price": 227.71,
+      "entry_price": 220.99,
+      "pnl_pct": 3.04,
+      "timestamp": "2026-06-12T16:32:41"
+    },
+    {
+      "ticker": "XLF",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "XLF up 2.1% \u2014 moving SL to breakeven $52.12 (was $51.34)",
+      "action_taken": "SL moved to breakeven $52.12",
+      "current_price": 53.235,
+      "entry_price": 52.12,
+      "pnl_pct": 2.14,
+      "timestamp": "2026-06-12T16:32:42"
+    }
+  ]
+}
