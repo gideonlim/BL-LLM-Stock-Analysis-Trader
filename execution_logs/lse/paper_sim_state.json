@@ -12,11 +12,11 @@
       "take_profit": 11642.54,
       "strategy": "VWAP Trend",
       "composite_score": 66.37,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 9320.0,
-      "min_price": 8966.0
+      "min_price": 8832.0
     },
     {
       "ticker": "DPLM.L",
@@ -28,7 +28,7 @@
       "take_profit": 7755.11,
       "strategy": "MACD Crossover",
       "composite_score": 40.07,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 7105.0,
@@ -44,10 +44,10 @@
       "take_profit": 1350.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.67,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1282.6252,
+      "max_price": 1283.125,
       "min_price": 1282.5
     },
     {
@@ -60,10 +60,10 @@
       "take_profit": 1903.77,
       "strategy": "Stochastic Oscillator",
       "composite_score": 28.21,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1751.0,
+      "max_price": 1752.7640380859375,
       "min_price": 1721.0
     },
     {
@@ -76,11 +76,11 @@
       "take_profit": 6809.86,
       "strategy": "52-Week High Momentum",
       "composite_score": 39.22,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 6165.0,
-      "min_price": 6165.0
+      "min_price": 6125.0
     }
   ],
   "closed_trades": [
@@ -881,7 +881,15 @@
       "num_positions": 5,
       "total_pnl": -1029.46,
       "total_pnl_pct": -2.06
+    },
+    {
+      "date": "2026-06-12",
+      "equity": 48782.15,
+      "cash": 9051.53,
+      "num_positions": 5,
+      "total_pnl": -1217.85,
+      "total_pnl_pct": -2.44
     }
   ],
-  "last_run_date": "2026-06-11"
+  "last_run_date": "2026-06-12"
 }
