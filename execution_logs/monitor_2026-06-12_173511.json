@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-06-12T17:35:11",
+  "positions_checked": 8,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "APP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "APP missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$466.92, TP=$540.64",
+      "current_price": 491.49,
+      "entry_price": 491.68,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-06-12T17:35:05"
+    },
+    {
+      "ticker": "DUOL",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "DUOL missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$115.29, TP=$133.5",
+      "current_price": 121.36,
+      "entry_price": 121.22,
+      "pnl_pct": 0.12,
+      "timestamp": "2026-06-12T17:35:08"
+    },
+    {
+      "ticker": "NXPI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NXPI missing stop loss leg. P&L: -0.6%",
+      "action_taken": "Reattached OCO: SL=$289.83, TP=$335.59",
+      "current_price": 305.08,
+      "entry_price": 306.889545,
+      "pnl_pct": -0.59,
+      "timestamp": "2026-06-12T17:35:09"
+    }
+  ]
+}
