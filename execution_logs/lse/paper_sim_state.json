@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 9051.530556428908,
+  "cash": 452.5765278214458,
   "positions": [
     {
       "ticker": "LSEG.L",
@@ -12,7 +12,7 @@
       "take_profit": 11642.54,
       "strategy": "VWAP Trend",
       "composite_score": 66.37,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 9320.0,
@@ -28,7 +28,7 @@
       "take_profit": 7755.11,
       "strategy": "MACD Crossover",
       "composite_score": 40.07,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 7105.0,
@@ -44,7 +44,7 @@
       "take_profit": 1350.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.67,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1283.125,
@@ -60,10 +60,10 @@
       "take_profit": 1903.77,
       "strategy": "Stochastic Oscillator",
       "composite_score": 28.21,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1752.7640380859375,
+      "max_price": 1759.0,
       "min_price": 1721.0
     },
     {
@@ -76,11 +76,27 @@
       "take_profit": 6809.86,
       "strategy": "52-Week High Momentum",
       "composite_score": 39.22,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 6165.0,
       "min_price": 6125.0
+    },
+    {
+      "ticker": "CPG.L",
+      "entry_date": "2026-06-15",
+      "entry_price": 34.01,
+      "qty": 252.836,
+      "notional": 8598.95,
+      "stop_loss": 31.96,
+      "take_profit": 40.17,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 28.01,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 34.01,
+      "min_price": 34.01
     }
   ],
   "closed_trades": [
@@ -889,7 +905,15 @@
       "num_positions": 5,
       "total_pnl": -1217.85,
       "total_pnl_pct": -2.44
+    },
+    {
+      "date": "2026-06-15",
+      "equity": 49037.47,
+      "cash": 452.58,
+      "num_positions": 6,
+      "total_pnl": -962.53,
+      "total_pnl_pct": -1.93
     }
   ],
-  "last_run_date": "2026-06-12"
+  "last_run_date": "2026-06-15"
 }
