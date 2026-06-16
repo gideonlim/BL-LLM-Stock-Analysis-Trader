@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-16T18:41:03",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DUOL",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "DUOL up 5.2% \u2014 tightening SL from $106.56 to $121.22 (Chandelier: HH=$127.52, ATR=8.57)",
+      "action_taken": "SL tightened to $121.22",
+      "current_price": 127.52,
+      "entry_price": 121.22,
+      "pnl_pct": 5.2,
+      "timestamp": "2026-06-16T18:41:02"
+    }
+  ]
+}
