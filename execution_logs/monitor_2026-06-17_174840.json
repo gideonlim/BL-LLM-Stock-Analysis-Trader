@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-06-17T17:48:40",
+  "positions_checked": 10,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BKNG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BKNG missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$164.88, TP=$190.92",
+      "current_price": 173.56,
+      "entry_price": 173.63,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-06-17T17:48:35"
+    },
+    {
+      "ticker": "GS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GS missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$1061.89, TP=$1229.56",
+      "current_price": 1117.78,
+      "entry_price": 1119.82,
+      "pnl_pct": -0.18,
+      "timestamp": "2026-06-17T17:48:38"
+    }
+  ]
+}
