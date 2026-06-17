@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-17T16:47:44",
+  "positions_checked": 11,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "CBT",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "CBT up 7.8% \u2014 tightening SL from $84.01 to $84.60 (Chandelier: HH=$89.88, ATR=2.64)",
+      "action_taken": "SL tightened to $84.60",
+      "current_price": 89.88,
+      "entry_price": 83.4,
+      "pnl_pct": 7.77,
+      "timestamp": "2026-06-17T16:47:40"
+    }
+  ]
+}
