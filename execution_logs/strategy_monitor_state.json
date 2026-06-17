@@ -3,15 +3,15 @@
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": -0.3363,
+    "rolling_sharpe": -0.2209,
     "rolling_win_rate": 0.45,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 0,
-    "mean_r": 0.0042,
+    "consec_losses": 2,
+    "mean_r": 0.1447,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 84,
+    "closed_trades": 86,
     "last_transition": "2026-06-05T16:43:09",
-    "note": "rolling Sharpe -0.34 < 0.0; win rate dropped 38.3pp from baseline"
+    "note": "rolling Sharpe -0.22 < 0.0; win rate dropped 38.3pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
@@ -87,14 +87,14 @@
     "strategy": "MACD Crossover",
     "state": "ACTIVE",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": 0.149,
-    "rolling_win_rate": 0.3333,
+    "rolling_sharpe": 0.4563,
+    "rolling_win_rate": 0.5,
     "baseline_win_rate": 0.0,
     "consec_losses": 1,
-    "mean_r": 0.3267,
-    "strategy_drawdown_pct": 2.99,
-    "closed_trades": 3,
+    "mean_r": 0.755,
+    "strategy_drawdown_pct": 1.47,
+    "closed_trades": 2,
     "last_transition": "",
-    "note": "Insufficient trade history (3/5)"
+    "note": "Insufficient trade history (2/5)"
   }
 }
