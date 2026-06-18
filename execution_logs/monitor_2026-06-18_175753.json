@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-18T17:57:53",
+  "positions_checked": 10,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "EQT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EQT missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$48.55, TP=$56.22",
+      "current_price": 51.11,
+      "entry_price": 51.25,
+      "pnl_pct": -0.27,
+      "timestamp": "2026-06-18T17:57:47"
+    },
+    {
+      "ticker": "IRM",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "IRM missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$121.68, TP=$140.89",
+      "current_price": 128.08,
+      "entry_price": 128.4,
+      "pnl_pct": -0.25,
+      "timestamp": "2026-06-18T17:57:49"
+    },
+    {
+      "ticker": "RRC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "RRC missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$34.69, TP=$40.17",
+      "current_price": 36.515,
+      "entry_price": 36.54,
+      "pnl_pct": -0.07,
+      "timestamp": "2026-06-18T17:57:50"
+    },
+    {
+      "ticker": "TOL",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "TOL missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$149.16, TP=$172.71",
+      "current_price": 157.01,
+      "entry_price": 157.47,
+      "pnl_pct": -0.29,
+      "timestamp": "2026-06-18T17:57:51"
+    }
+  ]
+}
