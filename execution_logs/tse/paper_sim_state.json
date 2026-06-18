@@ -12,11 +12,11 @@
       "take_profit": 2470.63,
       "strategy": "MACD Crossover",
       "composite_score": 42.93,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2144.0,
-      "min_price": 2140.0
+      "min_price": 2132.5
     },
     {
       "ticker": "3086.T",
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 47.55,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 2394.5,
@@ -44,10 +44,10 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 26.76,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 416.5,
+      "max_price": 418.5,
       "min_price": 402.3
     },
     {
@@ -60,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 34.1,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -1137,7 +1137,15 @@
       "num_positions": 4,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-06-18",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-06-17"
+  "last_run_date": "2026-06-18"
 }
