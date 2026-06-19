@@ -12,10 +12,10 @@
       "take_profit": 7755.11,
       "strategy": "MACD Crossover",
       "composite_score": 40.07,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 7105.0,
+      "max_price": 7155.0,
       "min_price": 6945.0
     },
     {
@@ -28,10 +28,10 @@
       "take_profit": 1350.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.67,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 1284.25,
+      "max_price": 1285.0,
       "min_price": 1282.5
     },
     {
@@ -44,7 +44,7 @@
       "take_profit": 1903.77,
       "strategy": "Stochastic Oscillator",
       "composite_score": 28.21,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1783.0,
@@ -60,7 +60,7 @@
       "take_profit": 6809.86,
       "strategy": "52-Week High Momentum",
       "composite_score": 39.22,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 6182.67138671875,
@@ -76,7 +76,7 @@
       "take_profit": 40.17,
       "strategy": "52-Week High Momentum",
       "composite_score": 28.01,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 34.01,
@@ -92,11 +92,11 @@
       "take_profit": 847.73,
       "strategy": "52-Week High Momentum",
       "composite_score": 38.79,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 732.63,
-      "min_price": 732.63
+      "min_price": 732.0150146484375
     }
   ],
   "closed_trades": [
@@ -949,7 +949,15 @@
       "num_positions": 6,
       "total_pnl": -1495.03,
       "total_pnl_pct": -2.99
+    },
+    {
+      "date": "2026-06-19",
+      "equity": 48544.5,
+      "cash": 423.18,
+      "num_positions": 6,
+      "total_pnl": -1455.5,
+      "total_pnl_pct": -2.91
     }
   ],
-  "last_run_date": "2026-06-18"
+  "last_run_date": "2026-06-19"
 }
