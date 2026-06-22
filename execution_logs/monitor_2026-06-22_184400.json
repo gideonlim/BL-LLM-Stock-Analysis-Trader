@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-22T18:44:00",
+  "positions_checked": 10,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ADM",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ADM missing stop loss leg. P&L: +0.4%",
+      "action_taken": "Reattached OCO: SL=$72.05, TP=$83.42",
+      "current_price": 75.84,
+      "entry_price": 75.55,
+      "pnl_pct": 0.38,
+      "timestamp": "2026-06-22T18:43:50"
+    },
+    {
+      "ticker": "BMY",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BMY missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$51.79, TP=$59.97",
+      "current_price": 54.515,
+      "entry_price": 54.54,
+      "pnl_pct": -0.05,
+      "timestamp": "2026-06-22T18:43:51"
+    },
+    {
+      "ticker": "CSCO",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CSCO missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$115.69, TP=$133.96",
+      "current_price": 121.78,
+      "entry_price": 121.85,
+      "pnl_pct": -0.06,
+      "timestamp": "2026-06-22T18:43:53"
+    },
+    {
+      "ticker": "OXY",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OXY missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$49.22, TP=$57.0",
+      "current_price": 51.815,
+      "entry_price": 51.8,
+      "pnl_pct": 0.03,
+      "timestamp": "2026-06-22T18:43:58"
+    }
+  ]
+}
