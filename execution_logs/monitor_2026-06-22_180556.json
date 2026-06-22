@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-06-22T18:05:56",
+  "positions_checked": 9,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "DOCU",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "DOCU missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$40.51, TP=$46.9",
+      "current_price": 42.64,
+      "entry_price": 42.71,
+      "pnl_pct": -0.16,
+      "timestamp": "2026-06-22T18:05:51"
+    },
+    {
+      "ticker": "IRM",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "IRM up 3.0% \u2014 moving SL to breakeven $128.40 (was $122.71)",
+      "action_taken": "SL moved to breakeven $128.40",
+      "current_price": 132.285,
+      "entry_price": 128.4,
+      "pnl_pct": 3.03,
+      "timestamp": "2026-06-22T18:05:53"
+    },
+    {
+      "ticker": "NXPI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "NXPI exceeded max hold period (10 days). P&L: +4.8%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 321.66,
+      "entry_price": 306.889545,
+      "pnl_pct": 4.81,
+      "timestamp": "2026-06-22T18:05:54"
+    }
+  ]
+}
