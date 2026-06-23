@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-06-23T17:13:39",
+  "positions_checked": 8,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KVUE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KVUE missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$17.31, TP=$20.04",
+      "current_price": 18.22,
+      "entry_price": 18.25,
+      "pnl_pct": -0.16,
+      "timestamp": "2026-06-23T17:13:36"
+    },
+    {
+      "ticker": "MAA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MAA missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$127.0, TP=$147.05",
+      "current_price": 133.68,
+      "entry_price": 133.98,
+      "pnl_pct": -0.22,
+      "timestamp": "2026-06-23T17:13:37"
+    }
+  ]
+}
