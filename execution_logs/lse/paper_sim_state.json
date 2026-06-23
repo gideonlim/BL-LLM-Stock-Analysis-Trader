@@ -1,23 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 423.1821618910726,
+  "cash": 411.11278104727717,
   "positions": [
-    {
-      "ticker": "DPLM.L",
-      "entry_date": "2026-06-09",
-      "entry_price": 7105.0,
-      "qty": 1.1875,
-      "notional": 8436.94,
-      "stop_loss": 6888.3,
-      "take_profit": 7755.11,
-      "strategy": "MACD Crossover",
-      "composite_score": 40.07,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 7225.0,
-      "min_price": 6945.0
-    },
     {
       "ticker": "BEZ.L",
       "entry_date": "2026-06-10",
@@ -28,7 +12,7 @@
       "take_profit": 1350.36,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.67,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1285.0,
@@ -44,7 +28,7 @@
       "take_profit": 1903.77,
       "strategy": "Stochastic Oscillator",
       "composite_score": 28.21,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1785.0,
@@ -60,7 +44,7 @@
       "take_profit": 6809.86,
       "strategy": "52-Week High Momentum",
       "composite_score": 39.22,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 6182.67138671875,
@@ -76,27 +60,43 @@
       "take_profit": 40.17,
       "strategy": "52-Week High Momentum",
       "composite_score": 28.01,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 34.01,
-      "min_price": 32.22999954223633
+      "min_price": 32.17490005493164
     },
     {
-      "ticker": "PCT.L",
-      "entry_date": "2026-06-18",
-      "entry_price": 732.63,
-      "qty": 10.9748,
-      "notional": 8040.46,
-      "stop_loss": 699.73,
-      "take_profit": 847.73,
-      "strategy": "52-Week High Momentum",
-      "composite_score": 38.79,
-      "holding_days": 2,
+      "ticker": "HSBA.L",
+      "entry_date": "2026-06-23",
+      "entry_price": 1432.8,
+      "qty": 5.7386,
+      "notional": 8222.26,
+      "stop_loss": 1375.63,
+      "take_profit": 1604.31,
+      "strategy": "ADX Trend Following",
+      "composite_score": 60.05,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 1432.8,
+      "min_price": 1432.8
+    },
+    {
+      "ticker": "ENT.L",
+      "entry_date": "2026-06-23",
+      "entry_price": 548.9,
+      "qty": 14.2305,
+      "notional": 7811.14,
+      "stop_loss": 508.17,
+      "take_profit": 609.99,
+      "strategy": "Stochastic Oscillator",
+      "composite_score": 43.52,
+      "holding_days": 0,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 732.63,
-      "min_price": 730.0
+      "max_price": 548.9,
+      "min_price": 548.9
     }
   ],
   "closed_trades": [
@@ -555,6 +555,30 @@
       "pnl": -614.14,
       "pnl_pct": -7.12,
       "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "DPLM.L",
+      "strategy": "MACD Crossover",
+      "entry_date": "2026-06-09",
+      "exit_date": "2026-06-23",
+      "entry_price": 7105.0,
+      "exit_price": 7025.0,
+      "qty": 1.1875,
+      "pnl": -95.0,
+      "pnl_pct": -1.13,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "PCT.L",
+      "strategy": "52-Week High Momentum",
+      "entry_date": "2026-06-18",
+      "exit_date": "2026-06-23",
+      "entry_price": 732.63,
+      "exit_price": 699.73,
+      "qty": 10.9748,
+      "pnl": -361.07,
+      "pnl_pct": -4.49,
+      "exit_reason": "stop_loss"
     }
   ],
   "equity_history": [
@@ -965,7 +989,15 @@
       "num_positions": 6,
       "total_pnl": -1356.79,
       "total_pnl_pct": -2.71
+    },
+    {
+      "date": "2026-06-23",
+      "equity": 48045.53,
+      "cash": 411.11,
+      "num_positions": 6,
+      "total_pnl": -1954.47,
+      "total_pnl_pct": -3.91
     }
   ],
-  "last_run_date": "2026-06-22"
+  "last_run_date": "2026-06-23"
 }
