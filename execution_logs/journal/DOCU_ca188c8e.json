@@ -33,11 +33,11 @@
   "realized_pnl_pct": 0.0,
   "r_multiple": 0.0,
   "holding_days": 0,
-  "max_favorable_excursion": 43.53,
+  "max_favorable_excursion": 44.295,
   "max_adverse_excursion": 42.39,
-  "mfe_pct": 1.92,
+  "mfe_pct": 3.71,
   "mae_pct": 0.75,
-  "mfe_date": "2026-06-23",
+  "mfe_date": "2026-06-24",
   "mae_date": "2026-06-22",
   "etd": 0.0,
   "etd_pct": 0.0,
@@ -51,6 +51,10 @@
     {
       "date": "2026-06-23",
       "price": 43.44
+    },
+    {
+      "date": "2026-06-24",
+      "price": 44.3
     }
   ],
   "status": "open",

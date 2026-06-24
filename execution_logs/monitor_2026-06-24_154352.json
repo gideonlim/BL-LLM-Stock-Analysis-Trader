@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-24T15:43:52",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KVUE",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "KVUE up 3.2% \u2014 moving SL to breakeven $18.25 (was $17.62)",
+      "action_taken": "SL moved to breakeven $18.25",
+      "current_price": 18.83,
+      "entry_price": 18.25,
+      "pnl_pct": 3.18,
+      "timestamp": "2026-06-24T15:43:49"
+    }
+  ]
+}
