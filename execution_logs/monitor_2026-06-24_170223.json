@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-24T17:02:23",
+  "positions_checked": 11,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "NXPI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NXPI missing stop loss leg. P&L: -0.8%",
+      "action_taken": "Reattached OCO: SL=$277.6, TP=$321.43",
+      "current_price": 292.21,
+      "entry_price": 294.63,
+      "pnl_pct": -0.82,
+      "timestamp": "2026-06-24T17:02:17"
+    },
+    {
+      "ticker": "PWR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "PWR missing stop loss leg. P&L: -0.4%",
+      "action_taken": "Reattached OCO: SL=$668.01, TP=$773.49",
+      "current_price": 703.17,
+      "entry_price": 705.94,
+      "pnl_pct": -0.39,
+      "timestamp": "2026-06-24T17:02:18"
+    },
+    {
+      "ticker": "SAIC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SAIC missing stop loss leg. P&L: +0.2%",
+      "action_taken": "Reattached OCO: SL=$102.15, TP=$118.28",
+      "current_price": 107.53,
+      "entry_price": 107.36,
+      "pnl_pct": 0.16,
+      "timestamp": "2026-06-24T17:02:20"
+    },
+    {
+      "ticker": "SNPS",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SNPS missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$446.92, TP=$517.48",
+      "current_price": 470.44,
+      "entry_price": 471.79,
+      "pnl_pct": -0.29,
+      "timestamp": "2026-06-24T17:02:22"
+    }
+  ]
+}
