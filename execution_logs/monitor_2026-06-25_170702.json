@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-25T17:07:02",
+  "positions_checked": 12,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "GEN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GEN missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$22.28, TP=$25.8",
+      "current_price": 23.455,
+      "entry_price": 23.46,
+      "pnl_pct": -0.02,
+      "timestamp": "2026-06-25T17:06:57"
+    }
+  ]
+}
