@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-25T16:03:53",
+  "positions_checked": 11,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "MAA",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "MAA up 2.3% \u2014 moving SL to breakeven $133.98 (was $129.41)",
+      "action_taken": "SL moved to breakeven $133.98",
+      "current_price": 137.1,
+      "entry_price": 133.98,
+      "pnl_pct": 2.33,
+      "timestamp": "2026-06-25T16:03:49"
+    }
+  ]
+}
