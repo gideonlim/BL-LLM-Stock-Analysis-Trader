@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-25T19:04:59",
+  "positions_checked": 12,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "VLO",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "VLO up 3.9% \u2014 moving SL to breakeven $245.13 (was $230.61)",
+      "action_taken": "SL moved to breakeven $245.13",
+      "current_price": 254.72,
+      "entry_price": 245.13,
+      "pnl_pct": 3.91,
+      "timestamp": "2026-06-25T19:04:58"
+    }
+  ]
+}
