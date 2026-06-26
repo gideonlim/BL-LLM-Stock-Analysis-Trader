@@ -12,11 +12,11 @@
       "take_profit": 1604.31,
       "strategy": "ADX Trend Following",
       "composite_score": 60.05,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 1439.4000244140625,
-      "min_price": 1432.8
+      "min_price": 1426.199951171875
     },
     {
       "ticker": "ENT.L",
@@ -28,10 +28,10 @@
       "take_profit": 609.99,
       "strategy": "Stochastic Oscillator",
       "composite_score": 43.52,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 555.4409790039062,
+      "max_price": 571.4000244140625,
       "min_price": 544.5999755859375
     },
     {
@@ -44,11 +44,11 @@
       "take_profit": 815.19,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 39.1,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 718.0354,
-      "min_price": 718.0354
+      "min_price": 697.3604736328125
     },
     {
       "ticker": "DCC.L",
@@ -60,10 +60,10 @@
       "take_profit": 6546.53,
       "strategy": "52-Week High Momentum",
       "composite_score": 37.45,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 6219.939,
+      "max_price": 6235.0,
       "min_price": 6219.939
     },
     {
@@ -76,10 +76,10 @@
       "take_profit": 5316.32,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 33.61,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 4781.0,
+      "max_price": 4857.0,
       "min_price": 4781.0
     },
     {
@@ -92,10 +92,10 @@
       "take_profit": 467.42,
       "strategy": "MACD Crossover",
       "composite_score": 32.55,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 422.4,
+      "max_price": 422.6000061035156,
       "min_price": 422.4
     }
   ],
@@ -1061,7 +1061,15 @@
       "num_positions": 6,
       "total_pnl": -1787.81,
       "total_pnl_pct": -3.58
+    },
+    {
+      "date": "2026-06-26",
+      "equity": 48317.56,
+      "cash": 401.03,
+      "num_positions": 6,
+      "total_pnl": -1682.44,
+      "total_pnl_pct": -3.36
     }
   ],
-  "last_run_date": "2026-06-25"
+  "last_run_date": "2026-06-26"
 }
