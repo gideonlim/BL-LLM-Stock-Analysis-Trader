@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-06-26T15:40:55",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "EQT",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "EQT up 3.6% \u2014 moving SL to breakeven $51.25 (was $49.36)",
+      "action_taken": "SL moved to breakeven $51.25",
+      "current_price": 53.105,
+      "entry_price": 51.25,
+      "pnl_pct": 3.62,
+      "timestamp": "2026-06-26T15:40:50"
+    },
+    {
+      "ticker": "VLO",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "VLO exceeded max hold period (10 days). P&L: +4.8%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 256.95,
+      "entry_price": 245.13,
+      "pnl_pct": 4.82,
+      "timestamp": "2026-06-26T15:40:54"
+    }
+  ]
+}
