@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-26T16:58:12",
+  "positions_checked": 11,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "GEN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "GEN up 4.0% \u2014 moving SL to breakeven $23.46 (was $21.50)",
+      "action_taken": "SL moved to breakeven $23.46",
+      "current_price": 24.405,
+      "entry_price": 23.46,
+      "pnl_pct": 4.03,
+      "timestamp": "2026-06-26T16:58:02"
+    },
+    {
+      "ticker": "GPN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GPN missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$65.6, TP=$75.95",
+      "current_price": 69.05,
+      "entry_price": 68.85,
+      "pnl_pct": 0.29,
+      "timestamp": "2026-06-26T16:58:03"
+    },
+    {
+      "ticker": "KDP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KDP missing stop loss leg. P&L: +0.2%",
+      "action_taken": "Reattached OCO: SL=$31.53, TP=$36.5",
+      "current_price": 33.185,
+      "entry_price": 33.12,
+      "pnl_pct": 0.2,
+      "timestamp": "2026-06-26T16:58:05"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "VRSN missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$240.99, TP=$279.04",
+      "current_price": 253.67,
+      "entry_price": 254.42,
+      "pnl_pct": -0.29,
+      "timestamp": "2026-06-26T16:58:11"
+    }
+  ]
+}
