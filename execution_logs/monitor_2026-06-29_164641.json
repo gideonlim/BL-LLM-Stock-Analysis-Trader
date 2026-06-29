@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-06-29T16:46:41",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "DOCU",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "DOCU up 5.8% \u2014 moving SL to breakeven $42.71 (was $38.26)",
+      "action_taken": "SL moved to breakeven $42.71",
+      "current_price": 45.2,
+      "entry_price": 42.71,
+      "pnl_pct": 5.83,
+      "timestamp": "2026-06-29T16:46:35"
+    },
+    {
+      "ticker": "EQT",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "EQT exceeded max hold period (10 days). P&L: +1.6%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 52.05,
+      "entry_price": 51.25,
+      "pnl_pct": 1.56,
+      "timestamp": "2026-06-29T16:46:36"
+    },
+    {
+      "ticker": "RRC",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "RRC exceeded max hold period (10 days). P&L: +0.3%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 36.66,
+      "entry_price": 36.54,
+      "pnl_pct": 0.33,
+      "timestamp": "2026-06-29T16:46:40"
+    }
+  ]
+}
