@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "4689.T",
-      "entry_date": "2026-06-15",
-      "entry_price": 402.3,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "VWAP Trend",
-      "composite_score": 26.76,
-      "holding_days": 9,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": 418.5,
-      "min_price": 402.3
-    },
-    {
       "ticker": "8001.T",
       "entry_date": "2026-06-17",
       "entry_price": NaN,
@@ -28,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 34.1,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -44,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 53.95,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1766.5,
@@ -60,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 30.66,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 4310.0,
@@ -76,27 +60,11 @@
       "take_profit": 2829.11,
       "strategy": "Stochastic Oscillator",
       "composite_score": 56.59,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2405.5,
       "min_price": 2405.5
-    },
-    {
-      "ticker": "2914.T",
-      "entry_date": "2026-06-28",
-      "entry_price": 5951.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 5911.7,
-      "take_profit": 6552.9,
-      "strategy": "VWAP Trend",
-      "composite_score": 45.3,
-      "holding_days": 0,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 5951.0,
-      "min_price": 5951.0
     }
   ],
   "closed_trades": [
@@ -831,6 +799,30 @@
       "pnl": NaN,
       "pnl_pct": 0.23,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "4689.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-06-15",
+      "exit_date": "2026-06-29",
+      "entry_price": 402.3,
+      "exit_price": 410.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 1.91,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "2914.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-06-28",
+      "exit_date": "2026-06-29",
+      "entry_price": 5951.0,
+      "exit_price": 5951.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 0.0,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -1273,7 +1265,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-06-29",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-06-28"
+  "last_run_date": "2026-06-29"
 }
