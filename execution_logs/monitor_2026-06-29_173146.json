@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-06-29T17:31:46",
+  "positions_checked": 11,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ELV",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ELV missing stop loss leg. P&L: -0.4%",
+      "action_taken": "Reattached OCO: SL=$368.95, TP=$427.21",
+      "current_price": 388.37,
+      "entry_price": 390.0245,
+      "pnl_pct": -0.42,
+      "timestamp": "2026-06-29T17:31:35"
+    },
+    {
+      "ticker": "HALO",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "HALO missing stop loss leg. P&L: +0.4%",
+      "action_taken": "Reattached OCO: SL=$72.24, TP=$83.64",
+      "current_price": 76.04,
+      "entry_price": 75.73,
+      "pnl_pct": 0.41,
+      "timestamp": "2026-06-29T17:31:38"
+    },
+    {
+      "ticker": "JPM",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "JPM missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$314.11, TP=$363.71",
+      "current_price": 330.645,
+      "entry_price": 331.11,
+      "pnl_pct": -0.14,
+      "timestamp": "2026-06-29T17:31:40"
+    },
+    {
+      "ticker": "SIGI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SIGI missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$91.54, TP=$106.0",
+      "current_price": 96.36,
+      "entry_price": 96.52,
+      "pnl_pct": -0.17,
+      "timestamp": "2026-06-29T17:31:44"
+    }
+  ]
+}
