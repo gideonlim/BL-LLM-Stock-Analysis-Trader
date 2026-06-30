@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-30T16:07:56",
+  "positions_checked": 11,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "HALO",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "HALO up 4.0% \u2014 moving SL to breakeven $75.73 (was $72.37)",
+      "action_taken": "SL moved to breakeven $75.73",
+      "current_price": 78.745,
+      "entry_price": 75.73,
+      "pnl_pct": 3.98,
+      "timestamp": "2026-06-30T16:07:52"
+    }
+  ]
+}
