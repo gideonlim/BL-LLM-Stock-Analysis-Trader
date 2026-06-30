@@ -3,15 +3,15 @@
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.093,
-    "rolling_win_rate": 0.55,
+    "rolling_sharpe": 0.1545,
+    "rolling_win_rate": 0.6,
     "baseline_win_rate": 0.8333,
     "consec_losses": 0,
-    "mean_r": 0.0985,
+    "mean_r": 0.1285,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 101,
+    "closed_trades": 102,
     "last_transition": "2026-06-05T16:43:09",
-    "note": "win rate dropped 28.3pp from baseline"
+    "note": "SUSPENDED"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
