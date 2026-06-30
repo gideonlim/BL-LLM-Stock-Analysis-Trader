@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-06-30T18:54:42",
+  "positions_checked": 12,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "GPN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "GPN up 4.3% \u2014 moving SL to breakeven $68.85 (was $63.24)",
+      "action_taken": "SL moved to breakeven $68.85",
+      "current_price": 71.8,
+      "entry_price": 68.85,
+      "pnl_pct": 4.28,
+      "timestamp": "2026-06-30T18:54:36"
+    }
+  ]
+}
