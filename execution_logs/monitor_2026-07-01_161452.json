@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-01T16:14:52",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KVUE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "KVUE up 5.8% \u2014 tightening SL from $18.61 to $18.62 (Chandelier: HH=$19.30, ATR=0.34)",
+      "action_taken": "SL tightened to $18.62",
+      "current_price": 19.305,
+      "entry_price": 18.25,
+      "pnl_pct": 5.78,
+      "timestamp": "2026-07-01T16:14:50"
+    }
+  ]
+}
