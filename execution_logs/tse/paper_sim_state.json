@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "8001.T",
-      "entry_date": "2026-06-17",
-      "entry_price": NaN,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "SMA Crossover (10/50)",
-      "composite_score": 34.1,
-      "holding_days": 9,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": NaN,
-      "min_price": NaN
-    },
-    {
       "ticker": "2413.T",
       "entry_date": "2026-06-22",
       "entry_price": 1637.5,
@@ -28,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 53.95,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1830.0,
@@ -44,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 30.66,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 4310.0,
@@ -60,10 +44,10 @@
       "take_profit": 2829.11,
       "strategy": "Stochastic Oscillator",
       "composite_score": 56.59,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 2450.0,
+      "max_price": 2450.5,
       "min_price": 2405.5
     },
     {
@@ -76,11 +60,43 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 16.21,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
       "min_price": NaN
+    },
+    {
+      "ticker": "8001.T",
+      "entry_date": "2026-07-01",
+      "entry_price": 1854.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "SMA Crossover (10/50)",
+      "composite_score": 34.22,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
+      "max_price": 1854.0,
+      "min_price": 1854.0
+    },
+    {
+      "ticker": "4689.T",
+      "entry_date": "2026-07-01",
+      "entry_price": 433.8,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "VWAP Trend",
+      "composite_score": 24.44,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
+      "max_price": 433.8,
+      "min_price": 433.8
     }
   ],
   "closed_trades": [
@@ -839,6 +855,18 @@
       "pnl": NaN,
       "pnl_pct": 0.0,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "8001.T",
+      "strategy": "SMA Crossover (10/50)",
+      "entry_date": "2026-06-17",
+      "exit_date": "2026-07-01",
+      "entry_price": NaN,
+      "exit_price": 1854.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1297,7 +1325,15 @@
       "num_positions": 5,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-01",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-06-30"
+  "last_run_date": "2026-07-01"
 }
