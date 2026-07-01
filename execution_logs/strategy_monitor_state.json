@@ -1,17 +1,17 @@
 {
   "VWAP Trend": {
     "strategy": "VWAP Trend",
-    "state": "SUSPENDED",
+    "state": "CAUTION",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.1545,
-    "rolling_win_rate": 0.6,
+    "rolling_sharpe": 0.3089,
+    "rolling_win_rate": 0.65,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 0,
-    "mean_r": 0.1285,
+    "consec_losses": 1,
+    "mean_r": 0.246,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 102,
-    "last_transition": "2026-06-05T16:43:09",
-    "note": "SUSPENDED"
+    "closed_trades": 105,
+    "last_transition": "2026-07-01T16:41:14",
+    "note": "rolling Sharpe 0.31 < 0.5; win rate dropped 18.3pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
