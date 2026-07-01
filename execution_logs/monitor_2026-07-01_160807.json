@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-01T16:08:07",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ELV",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "ELV up 3.0% \u2014 moving SL to breakeven $390.02 (was $373.43)",
+      "action_taken": "SL moved to breakeven $390.02",
+      "current_price": 401.73,
+      "entry_price": 390.0245,
+      "pnl_pct": 3.0,
+      "timestamp": "2026-07-01T16:07:58"
+    },
+    {
+      "ticker": "KVUE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "KVUE up 5.7% \u2014 tightening SL from $18.25 to $18.61 (Chandelier: HH=$19.29, ATR=0.34)",
+      "action_taken": "SL tightened to $18.61",
+      "current_price": 19.29,
+      "entry_price": 18.25,
+      "pnl_pct": 5.7,
+      "timestamp": "2026-07-01T16:08:02"
+    },
+    {
+      "ticker": "MAA",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MAA up 5.8% \u2014 tightening SL from $133.98 to $136.36 (Chandelier: HH=$141.80, ATR=2.72)",
+      "action_taken": "SL tightened to $136.36",
+      "current_price": 141.8,
+      "entry_price": 133.98,
+      "pnl_pct": 5.84,
+      "timestamp": "2026-07-01T16:08:04"
+    }
+  ]
+}
