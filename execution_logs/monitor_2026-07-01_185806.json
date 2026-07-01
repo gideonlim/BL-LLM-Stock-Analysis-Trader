@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-01T18:58:06",
+  "positions_checked": 12,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ELV",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "ELV up 5.5% \u2014 tightening SL from $390.02 to $390.59 (Chandelier: HH=$411.65, ATR=10.53)",
+      "action_taken": "SL tightened to $390.59",
+      "current_price": 411.65,
+      "entry_price": 390.0245,
+      "pnl_pct": 5.54,
+      "timestamp": "2026-07-01T18:58:00"
+    }
+  ]
+}
