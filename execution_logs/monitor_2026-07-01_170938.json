@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-01T17:09:38",
+  "positions_checked": 12,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DVN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "DVN missing stop loss leg. P&L: -0.5%",
+      "action_taken": "Reattached OCO: SL=$38.4, TP=$44.47",
+      "current_price": 40.425,
+      "entry_price": 40.64,
+      "pnl_pct": -0.53,
+      "timestamp": "2026-07-01T17:09:31"
+    },
+    {
+      "ticker": "OKE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OKE missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$81.77, TP=$94.68",
+      "current_price": 86.07,
+      "entry_price": 86.3,
+      "pnl_pct": -0.27,
+      "timestamp": "2026-07-01T17:09:35"
+    },
+    {
+      "ticker": "TRGP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "TRGP missing stop loss leg. P&L: -0.7%",
+      "action_taken": "Reattached OCO: SL=$245.81, TP=$284.62",
+      "current_price": 258.75,
+      "entry_price": 260.64,
+      "pnl_pct": -0.73,
+      "timestamp": "2026-07-01T17:09:37"
+    }
+  ]
+}
