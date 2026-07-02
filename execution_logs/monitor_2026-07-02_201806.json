@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-02T20:18:06",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KVUE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "KVUE up 8.5% \u2014 tightening SL from $19.09 to $19.12 (Chandelier: HH=$19.81, ATR=0.35)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 19.81,
+      "entry_price": 18.25,
+      "pnl_pct": 8.55,
+      "timestamp": "2026-07-02T20:18:03"
+    },
+    {
+      "ticker": "MAA",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MAA up 6.1% \u2014 tightening SL from $136.36 to $136.58 (Chandelier: HH=$142.20, ATR=2.81)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 142.2,
+      "entry_price": 133.98,
+      "pnl_pct": 6.14,
+      "timestamp": "2026-07-02T20:18:04"
+    }
+  ]
+}
