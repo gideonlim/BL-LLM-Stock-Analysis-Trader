@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-02T15:59:17",
+  "positions_checked": 12,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ELV",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "ELV up 7.5% \u2014 tightening SL from $397.33 to $397.58 (Chandelier: HH=$419.25, ATR=10.83)",
+      "action_taken": "SL tightened to $397.58",
+      "current_price": 419.245,
+      "entry_price": 390.0245,
+      "pnl_pct": 7.49,
+      "timestamp": "2026-07-02T15:59:10"
+    },
+    {
+      "ticker": "KVUE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "KVUE up 7.8% \u2014 tightening SL from $18.92 to $18.99 (Chandelier: HH=$19.68, ATR=0.35)",
+      "action_taken": "SL tightened to $18.99",
+      "current_price": 19.68,
+      "entry_price": 18.25,
+      "pnl_pct": 7.84,
+      "timestamp": "2026-07-02T15:59:12"
+    },
+    {
+      "ticker": "SIGI",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "SIGI up 2.4% \u2014 moving SL to breakeven $96.52 (was $93.82)",
+      "action_taken": "SL moved to breakeven $96.52",
+      "current_price": 98.81,
+      "entry_price": 96.52,
+      "pnl_pct": 2.37,
+      "timestamp": "2026-07-02T15:59:14"
+    }
+  ]
+}

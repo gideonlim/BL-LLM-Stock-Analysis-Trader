@@ -33,9 +33,9 @@
   "realized_pnl_pct": 0.0,
   "r_multiple": 0.0,
   "holding_days": 0,
-  "max_favorable_excursion": 418.995,
+  "max_favorable_excursion": 419.245,
   "max_adverse_excursion": 386.605,
-  "mfe_pct": 7.43,
+  "mfe_pct": 7.49,
   "mae_pct": 0.88,
   "mfe_date": "2026-07-02",
   "mae_date": "2026-06-30",
@@ -70,6 +70,13 @@
       "new_sl": 397.33,
       "reason": "trailing",
       "price_at_modification": 419.0
+    },
+    {
+      "date": "2026-07-02T15:59:10",
+      "old_sl": 397.33,
+      "new_sl": 397.58,
+      "reason": "trailing",
+      "price_at_modification": 419.25
     }
   ],
   "price_samples": [
