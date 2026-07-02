@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-02T16:47:15",
+  "positions_checked": 10,
+  "orphaned": 1,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KVUE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "KVUE up 8.0% \u2014 tightening SL from $18.99 to $19.02 (Chandelier: HH=$19.71, ATR=0.35)",
+      "action_taken": "SL tightened to $19.02",
+      "current_price": 19.71,
+      "entry_price": 18.25,
+      "pnl_pct": 8.0,
+      "timestamp": "2026-07-02T16:47:12"
+    },
+    {
+      "ticker": "OMC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OMC missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$73.82, TP=$85.48",
+      "current_price": 77.705,
+      "entry_price": 77.94,
+      "pnl_pct": -0.3,
+      "timestamp": "2026-07-02T16:47:14"
+    }
+  ]
+}
