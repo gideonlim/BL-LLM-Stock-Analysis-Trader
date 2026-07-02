@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-02T15:42:49",
+  "positions_checked": 12,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ELV",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "ELV up 7.4% \u2014 tightening SL from $392.35 to $397.33 (Chandelier: HH=$419.00, ATR=10.83)",
+      "action_taken": "SL tightened to $397.33",
+      "current_price": 418.995,
+      "entry_price": 390.0245,
+      "pnl_pct": 7.43,
+      "timestamp": "2026-07-02T15:42:42"
+    },
+    {
+      "ticker": "KVUE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "KVUE up 7.5% \u2014 tightening SL from $18.67 to $18.92 (Chandelier: HH=$19.61, ATR=0.35)",
+      "action_taken": "SL tightened to $18.92",
+      "current_price": 19.615,
+      "entry_price": 18.25,
+      "pnl_pct": 7.48,
+      "timestamp": "2026-07-02T15:42:46"
+    }
+  ]
+}
