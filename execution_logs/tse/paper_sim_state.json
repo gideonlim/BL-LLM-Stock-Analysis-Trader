@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 53.95,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1830.0,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 30.66,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 4310.0,
@@ -44,10 +44,10 @@
       "take_profit": 2829.11,
       "strategy": "Stochastic Oscillator",
       "composite_score": 56.59,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 2450.5,
+      "max_price": 2527.5,
       "min_price": 2405.5
     },
     {
@@ -60,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 16.21,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -76,11 +76,11 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 34.22,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1854.0,
-      "min_price": 1854.0
+      "min_price": 1852.0
     },
     {
       "ticker": "4689.T",
@@ -92,11 +92,11 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 24.44,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 433.8,
-      "min_price": 433.8
+      "min_price": 426.6000061035156
     }
   ],
   "closed_trades": [
@@ -1333,7 +1333,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-02",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-01"
+  "last_run_date": "2026-07-02"
 }
