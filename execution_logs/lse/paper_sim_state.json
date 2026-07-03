@@ -12,10 +12,10 @@
       "take_profit": 1604.31,
       "strategy": "ADX Trend Following",
       "composite_score": 60.05,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 1439.4000244140625,
+      "max_price": 1449.199951171875,
       "min_price": 1425.699951171875
     },
     {
@@ -28,11 +28,11 @@
       "take_profit": 609.99,
       "strategy": "Stochastic Oscillator",
       "composite_score": 43.52,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 587.1500244140625,
-      "min_price": 544.0679931640625
+      "min_price": 533.4000244140625
     },
     {
       "ticker": "DCC.L",
@@ -44,11 +44,11 @@
       "take_profit": 6546.53,
       "strategy": "52-Week High Momentum",
       "composite_score": 37.45,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 6245.0,
-      "min_price": 6195.0
+      "min_price": 6185.0
     },
     {
       "ticker": "RKT.L",
@@ -60,7 +60,7 @@
       "take_profit": 5316.32,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 33.61,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 5098.0,
@@ -76,7 +76,7 @@
       "take_profit": 467.42,
       "strategy": "MACD Crossover",
       "composite_score": 32.55,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 422.6000061035156,
@@ -92,11 +92,11 @@
       "take_profit": 2055.23,
       "strategy": "VWAP Trend",
       "composite_score": 50.04,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": 1945.5,
-      "min_price": 1945.5
+      "min_price": 1931.5
     }
   ],
   "closed_trades": [
@@ -1113,7 +1113,15 @@
       "num_positions": 6,
       "total_pnl": -1995.17,
       "total_pnl_pct": -3.99
+    },
+    {
+      "date": "2026-07-03",
+      "equity": 47957.6,
+      "cash": 403.0,
+      "num_positions": 6,
+      "total_pnl": -2042.4,
+      "total_pnl_pct": -4.08
     }
   ],
-  "last_run_date": "2026-07-02"
+  "last_run_date": "2026-07-03"
 }
