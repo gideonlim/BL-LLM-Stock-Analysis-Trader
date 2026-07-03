@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-03T22:17:50",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "KVUE",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "KVUE exceeded max hold period (10 days). P&L: +8.5%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 19.81,
+      "entry_price": 18.25,
+      "pnl_pct": 8.55,
+      "timestamp": "2026-07-03T22:17:49"
+    },
+    {
+      "ticker": "MAA",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MAA up 6.1% \u2014 tightening SL from $136.36 to $136.62 (Chandelier: HH=$142.20, ATR=2.79)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 142.2,
+      "entry_price": 133.98,
+      "pnl_pct": 6.14,
+      "timestamp": "2026-07-03T22:17:49"
+    },
+    {
+      "ticker": "MAA",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "MAA exceeded max hold period (10 days). P&L: +6.1%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 142.2,
+      "entry_price": 133.98,
+      "pnl_pct": 6.14,
+      "timestamp": "2026-07-03T22:17:49"
+    }
+  ]
+}
