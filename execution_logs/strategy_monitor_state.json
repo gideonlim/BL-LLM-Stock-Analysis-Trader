@@ -3,15 +3,15 @@
     "strategy": "VWAP Trend",
     "state": "CAUTION",
     "prev_state": "CAUTION",
-    "rolling_sharpe": 0.2572,
-    "rolling_win_rate": 0.6,
+    "rolling_sharpe": 0.3207,
+    "rolling_win_rate": 0.65,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 4,
-    "mean_r": 0.173,
+    "consec_losses": 0,
+    "mean_r": 0.3025,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 108,
+    "closed_trades": 111,
     "last_transition": "2026-07-01T16:41:14",
-    "note": "rolling Sharpe 0.26 < 0.5; win rate dropped 23.3pp from baseline; 4 consecutive losses"
+    "note": "rolling Sharpe 0.32 < 0.5; win rate dropped 18.3pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
