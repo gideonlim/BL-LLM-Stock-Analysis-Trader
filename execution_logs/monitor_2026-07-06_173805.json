@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-07-06T17:38:05",
+  "positions_checked": 11,
+  "orphaned": 5,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AFG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "AFG missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$135.0, TP=$156.32",
+      "current_price": 142.11,
+      "entry_price": 142.06,
+      "pnl_pct": 0.04,
+      "timestamp": "2026-07-06T17:37:55"
+    },
+    {
+      "ticker": "HAE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "HAE missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$72.11, TP=$83.49",
+      "current_price": 75.9,
+      "entry_price": 75.8,
+      "pnl_pct": 0.13,
+      "timestamp": "2026-07-06T17:37:58"
+    },
+    {
+      "ticker": "IDA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "IDA missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$144.04, TP=$166.79",
+      "current_price": 151.625,
+      "entry_price": 151.89,
+      "pnl_pct": -0.17,
+      "timestamp": "2026-07-06T17:37:59"
+    },
+    {
+      "ticker": "NSA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NSA missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$42.84, TP=$49.6",
+      "current_price": 45.09,
+      "entry_price": 45.18,
+      "pnl_pct": -0.2,
+      "timestamp": "2026-07-06T17:38:01"
+    },
+    {
+      "ticker": "SNDK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SNDK missing stop loss leg. P&L: -1.3%",
+      "action_taken": "Reattached OCO: SL=$1640.67, TP=$1899.73",
+      "current_price": 1727.025,
+      "entry_price": 1749.71,
+      "pnl_pct": -1.3,
+      "timestamp": "2026-07-06T17:38:05"
+    }
+  ]
+}
