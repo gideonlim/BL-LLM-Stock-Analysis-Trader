@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-07-06T16:38:48",
+  "positions_checked": 10,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 4,
+  "alerts": [
+    {
+      "ticker": "KDP",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "KDP exceeded max hold period (10 days). P&L: -3.4%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 32.005,
+      "entry_price": 33.12,
+      "pnl_pct": -3.37,
+      "timestamp": "2026-07-06T16:38:42"
+    },
+    {
+      "ticker": "KVUE",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "KVUE exceeded max hold period (10 days). P&L: +6.0%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 19.345,
+      "entry_price": 18.25,
+      "pnl_pct": 6.0,
+      "timestamp": "2026-07-06T16:38:43"
+    },
+    {
+      "ticker": "MAA",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "MAA up 5.3% \u2014 tightening SL from $136.36 to $136.62 (Chandelier: HH=$142.20, ATR=2.79)",
+      "action_taken": "SL tightened to $136.62",
+      "current_price": 141.06,
+      "entry_price": 133.98,
+      "pnl_pct": 5.28,
+      "timestamp": "2026-07-06T16:38:44"
+    },
+    {
+      "ticker": "MAA",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "MAA exceeded max hold period (10 days). P&L: +5.3%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 141.06,
+      "entry_price": 133.98,
+      "pnl_pct": 5.28,
+      "timestamp": "2026-07-06T16:38:44"
+    },
+    {
+      "ticker": "VRSN",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "VRSN exceeded max hold period (10 days). P&L: +1.2%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 257.58,
+      "entry_price": 254.42,
+      "pnl_pct": 1.24,
+      "timestamp": "2026-07-06T16:38:48"
+    }
+  ]
+}
