@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-07T19:45:33",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "OKE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "OKE up 5.7% \u2014 tightening SL from $86.30 to $86.71 (Chandelier: HH=$91.23, ATR=2.26)",
+      "action_taken": "SL tightened to $86.71",
+      "current_price": 91.23,
+      "entry_price": 86.3,
+      "pnl_pct": 5.71,
+      "timestamp": "2026-07-07T19:45:31"
+    }
+  ]
+}
