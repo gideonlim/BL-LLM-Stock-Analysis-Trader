@@ -1,0 +1,120 @@
+{
+  "monitored_at": "2026-07-07T16:43:41",
+  "positions_checked": 10,
+  "orphaned": 10,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AFG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "AFG has NO protective orders (SL/TP legs missing). P&L: +0.9%, entry=$142.06, now=$143.33",
+      "action_taken": "Reattached OCO: SL=$136.16, TP=$157.66",
+      "current_price": 143.33,
+      "entry_price": 142.06,
+      "pnl_pct": 0.89,
+      "timestamp": "2026-07-07T16:43:35"
+    },
+    {
+      "ticker": "ELV",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ELV has NO protective orders (SL/TP legs missing). P&L: +6.9%, entry=$390.02, now=$417.10",
+      "action_taken": "Reattached OCO: SL=$396.25, TP=$458.81",
+      "current_price": 417.1,
+      "entry_price": 390.0245,
+      "pnl_pct": 6.94,
+      "timestamp": "2026-07-07T16:43:36"
+    },
+    {
+      "ticker": "EXC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EXC has NO protective orders (SL/TP legs missing). P&L: +1.8%, entry=$47.04, now=$47.88",
+      "action_taken": "Reattached OCO: SL=$45.49, TP=$52.67",
+      "current_price": 47.885,
+      "entry_price": 47.04,
+      "pnl_pct": 1.8,
+      "timestamp": "2026-07-07T16:43:37"
+    },
+    {
+      "ticker": "HAE",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "HAE has NO protective orders (SL/TP legs missing). P&L: -0.6%, entry=$75.80, now=$75.37",
+      "action_taken": "Reattached OCO: SL=$71.6, TP=$82.91",
+      "current_price": 75.37,
+      "entry_price": 75.8,
+      "pnl_pct": -0.57,
+      "timestamp": "2026-07-07T16:43:37"
+    },
+    {
+      "ticker": "IDA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "IDA has NO protective orders (SL/TP legs missing). P&L: +0.3%, entry=$151.89, now=$152.42",
+      "action_taken": "Reattached OCO: SL=$144.8, TP=$167.66",
+      "current_price": 152.42,
+      "entry_price": 151.89,
+      "pnl_pct": 0.35,
+      "timestamp": "2026-07-07T16:43:38"
+    },
+    {
+      "ticker": "JPM",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "JPM has NO protective orders (SL/TP legs missing). P&L: +2.1%, entry=$331.11, now=$337.93",
+      "action_taken": "Reattached OCO: SL=$321.03, TP=$371.72",
+      "current_price": 337.93,
+      "entry_price": 331.11,
+      "pnl_pct": 2.06,
+      "timestamp": "2026-07-07T16:43:38"
+    },
+    {
+      "ticker": "NSA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NSA has NO protective orders (SL/TP legs missing). P&L: +1.9%, entry=$45.18, now=$46.03",
+      "action_taken": "Reattached OCO: SL=$43.73, TP=$50.63",
+      "current_price": 46.03,
+      "entry_price": 45.18,
+      "pnl_pct": 1.88,
+      "timestamp": "2026-07-07T16:43:39"
+    },
+    {
+      "ticker": "OKE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OKE has NO protective orders (SL/TP legs missing). P&L: +3.3%, entry=$86.30, now=$89.11",
+      "action_taken": "Reattached OCO: SL=$84.65, TP=$98.02",
+      "current_price": 89.11,
+      "entry_price": 86.3,
+      "pnl_pct": 3.26,
+      "timestamp": "2026-07-07T16:43:39"
+    },
+    {
+      "ticker": "OMC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "OMC has NO protective orders (SL/TP legs missing). P&L: +4.9%, entry=$77.94, now=$81.73",
+      "action_taken": "Reattached OCO: SL=$77.64, TP=$89.9",
+      "current_price": 81.73,
+      "entry_price": 77.94,
+      "pnl_pct": 4.86,
+      "timestamp": "2026-07-07T16:43:40"
+    },
+    {
+      "ticker": "SIGI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SIGI has NO protective orders (SL/TP legs missing). P&L: +2.9%, entry=$96.52, now=$99.33",
+      "action_taken": "Reattached OCO: SL=$94.36, TP=$109.26",
+      "current_price": 99.33,
+      "entry_price": 96.52,
+      "pnl_pct": 2.91,
+      "timestamp": "2026-07-07T16:43:41"
+    }
+  ]
+}

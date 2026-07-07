@@ -23,16 +23,16 @@
   "initial_risk_dollars": 616.92,
   "initial_reward_dollars": 619.83,
   "planned_rr_ratio": 1.0,
-  "exit_price": 75.9,
-  "exit_date": "2026-07-07T16:04:31",
-  "exit_reason": "detected_closed",
+  "exit_price": 0.0,
+  "exit_date": "",
+  "exit_reason": "",
   "exit_order_id": "",
-  "exit_fill_price": 75.9,
+  "exit_fill_price": 0.0,
   "exit_slippage": 0.0,
-  "realized_pnl": 9.7,
-  "realized_pnl_pct": 0.13,
-  "r_multiple": 0.02,
-  "holding_days": 1,
+  "realized_pnl": 0.0,
+  "realized_pnl_pct": 0.0,
+  "r_multiple": 0.0,
+  "holding_days": 0,
   "max_favorable_excursion": 75.9,
   "max_adverse_excursion": 74.94,
   "mfe_pct": 0.13,
@@ -47,11 +47,15 @@
     {
       "date": "2026-07-06",
       "price": 75.9
+    },
+    {
+      "date": "2026-07-07",
+      "price": 75.37
     }
   ],
-  "status": "closed",
+  "status": "open",
   "opened_at": "2026-07-06T17:19:46",
-  "closed_at": "2026-07-07T16:04:31",
+  "closed_at": "",
   "tags": [],
   "notes": "",
   "trade_type": "swing"
