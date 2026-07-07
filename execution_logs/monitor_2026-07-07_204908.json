@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-07T20:49:08",
+  "positions_checked": 4,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "HAE",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "HAE has NO protective orders (SL/TP legs missing). P&L: -0.0%, entry=$75.23, now=$75.20",
+      "action_taken": "DRY RUN: would place OCO with SL=$71.44 and TP=$82.72",
+      "current_price": 75.2,
+      "entry_price": 75.23,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-07-07T20:49:07"
+    },
+    {
+      "ticker": "IDA",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "IDA has NO protective orders (SL/TP legs missing). P&L: -0.5%, entry=$152.31, now=$151.56",
+      "action_taken": "DRY RUN: would place OCO with SL=$143.98 and TP=$166.72",
+      "current_price": 151.56,
+      "entry_price": 152.31,
+      "pnl_pct": -0.49,
+      "timestamp": "2026-07-07T20:49:07"
+    },
+    {
+      "ticker": "SNDK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SNDK has NO protective orders (SL/TP legs missing). P&L: +1.0%, entry=$1602.30, now=$1619.04",
+      "action_taken": "DRY RUN: would place OCO with SL=$1538.09 and TP=$1780.94",
+      "current_price": 1619.04,
+      "entry_price": 1602.303333,
+      "pnl_pct": 1.04,
+      "timestamp": "2026-07-07T20:49:08"
+    }
+  ]
+}
