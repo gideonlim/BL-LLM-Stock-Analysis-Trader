@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-07T17:08:37",
+  "positions_checked": 9,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BKNG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BKNG missing stop loss leg. P&L: -0.4%",
+      "action_taken": "Reattached OCO: SL=$171.9, TP=$199.05",
+      "current_price": 180.95,
+      "entry_price": 181.7,
+      "pnl_pct": -0.41,
+      "timestamp": "2026-07-07T17:08:33"
+    },
+    {
+      "ticker": "OKE",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "OKE up 3.8% \u2014 moving SL to breakeven $86.30 (was $82.43)",
+      "action_taken": "SL moved to breakeven $86.30",
+      "current_price": 89.6,
+      "entry_price": 86.3,
+      "pnl_pct": 3.82,
+      "timestamp": "2026-07-07T17:08:35"
+    },
+    {
+      "ticker": "OMC",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "OMC up 4.5% \u2014 moving SL to breakeven $77.94 (was $73.90)",
+      "action_taken": "SL moved to breakeven $77.94",
+      "current_price": 81.42,
+      "entry_price": 77.94,
+      "pnl_pct": 4.46,
+      "timestamp": "2026-07-07T17:08:36"
+    }
+  ]
+}

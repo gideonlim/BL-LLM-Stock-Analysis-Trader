@@ -42,7 +42,15 @@
   "etd": 0.19,
   "etd_pct": 0.24,
   "edge_ratio": 8.57,
-  "sl_modifications": [],
+  "sl_modifications": [
+    {
+      "date": "2026-07-07T17:08:37",
+      "old_sl": 73.9,
+      "new_sl": 77.94,
+      "reason": "breakeven",
+      "price_at_modification": 81.42
+    }
+  ],
   "price_samples": [
     {
       "date": "2026-07-02",
