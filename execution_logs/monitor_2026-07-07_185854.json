@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-07T18:58:54",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "JPM",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "JPM up 2.5% \u2014 moving SL to breakeven $331.11 (was $319.20)",
+      "action_taken": "SL moved to breakeven $331.11",
+      "current_price": 339.41,
+      "entry_price": 331.11,
+      "pnl_pct": 2.51,
+      "timestamp": "2026-07-07T18:58:52"
+    }
+  ]
+}
