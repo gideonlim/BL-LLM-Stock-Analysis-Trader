@@ -1,39 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 415.16395179698884,
+  "cash": 408.93413389285615,
   "positions": [
-    {
-      "ticker": "HSBA.L",
-      "entry_date": "2026-06-23",
-      "entry_price": 1432.8,
-      "qty": 5.7386,
-      "notional": 8222.26,
-      "stop_loss": 1375.63,
-      "take_profit": 1604.31,
-      "strategy": "ADX Trend Following",
-      "composite_score": 60.05,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 1450.199951171875,
-      "min_price": 1425.699951171875
-    },
-    {
-      "ticker": "ENT.L",
-      "entry_date": "2026-06-23",
-      "entry_price": 548.9,
-      "qty": 14.2305,
-      "notional": 7811.14,
-      "stop_loss": 508.17,
-      "take_profit": 609.99,
-      "strategy": "Stochastic Oscillator",
-      "composite_score": 43.52,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 587.1500244140625,
-      "min_price": 527.7459716796875
-    },
     {
       "ticker": "RKT.L",
       "entry_date": "2026-06-25",
@@ -44,10 +12,10 @@
       "take_profit": 5316.32,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 33.61,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 5142.1875,
+      "max_price": 5204.0,
       "min_price": 4781.0
     },
     {
@@ -60,7 +28,7 @@
       "take_profit": 467.42,
       "strategy": "MACD Crossover",
       "composite_score": 32.55,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 422.6000061035156,
@@ -76,7 +44,7 @@
       "take_profit": 2055.23,
       "strategy": "VWAP Trend",
       "composite_score": 50.04,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": 1945.5,
@@ -92,11 +60,43 @@
       "take_profit": 2654.1,
       "strategy": "ADX Trend Following",
       "composite_score": 40.6,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 2480.0,
-      "min_price": 2480.0
+      "min_price": 2465.0
+    },
+    {
+      "ticker": "INF.L",
+      "entry_date": "2026-07-07",
+      "entry_price": 910.4,
+      "qty": 8.9836,
+      "notional": 8178.68,
+      "stop_loss": 882.18,
+      "take_profit": 952.73,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 38.72,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 910.4,
+      "min_price": 910.4
+    },
+    {
+      "ticker": "BEZ.L",
+      "entry_date": "2026-07-07",
+      "entry_price": 1289.0,
+      "qty": 6.0277,
+      "notional": 7769.75,
+      "stop_loss": 1269.66,
+      "take_profit": 1356.67,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 35.69,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 1289.0,
+      "min_price": 1289.0
     }
   ],
   "closed_trades": [
@@ -651,6 +651,30 @@
       "pnl": -120.26,
       "pnl_pct": -1.5,
       "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "HSBA.L",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-06-23",
+      "exit_date": "2026-07-07",
+      "entry_price": 1432.8,
+      "exit_price": 1460.800048828125,
+      "qty": 5.7386,
+      "pnl": 160.68,
+      "pnl_pct": 1.95,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "ENT.L",
+      "strategy": "Stochastic Oscillator",
+      "entry_date": "2026-06-23",
+      "exit_date": "2026-07-07",
+      "entry_price": 548.9,
+      "exit_price": 531.2000122070312,
+      "qty": 14.2305,
+      "pnl": -251.88,
+      "pnl_pct": -3.22,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1141,7 +1165,15 @@
       "num_positions": 6,
       "total_pnl": -2103.37,
       "total_pnl_pct": -4.21
+    },
+    {
+      "date": "2026-07-07",
+      "equity": 48131.56,
+      "cash": 408.93,
+      "num_positions": 6,
+      "total_pnl": -1868.44,
+      "total_pnl_pct": -3.74
     }
   ],
-  "last_run_date": "2026-07-06"
+  "last_run_date": "2026-07-07"
 }
