@@ -1,31 +1,31 @@
 {
   "VWAP Trend": {
     "strategy": "VWAP Trend",
-    "state": "CAUTION",
+    "state": "SUSPENDED",
     "prev_state": "CAUTION",
-    "rolling_sharpe": 0.1964,
-    "rolling_win_rate": 0.6,
+    "rolling_sharpe": 0.155,
+    "rolling_win_rate": 0.55,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 1,
-    "mean_r": 0.255,
+    "consec_losses": 0,
+    "mean_r": 0.2115,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 112,
-    "last_transition": "2026-07-01T16:41:14",
-    "note": "rolling Sharpe 0.20 < 0.5; win rate dropped 23.3pp from baseline"
+    "closed_trades": 111,
+    "last_transition": "2026-07-08T16:13:18",
+    "note": "win rate dropped 28.3pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
-    "state": "CAUTION",
+    "state": "SUSPENDED",
     "prev_state": "CAUTION",
-    "rolling_sharpe": 0.0928,
-    "rolling_win_rate": 0.3333,
+    "rolling_sharpe": -0.3868,
+    "rolling_win_rate": 0.2,
     "baseline_win_rate": 0.0,
     "consec_losses": 1,
-    "mean_r": -0.0383,
-    "strategy_drawdown_pct": 3.5,
-    "closed_trades": 6,
-    "last_transition": "2026-04-30T15:58:23",
-    "note": "rolling Sharpe 0.09 < 0.5"
+    "mean_r": -0.216,
+    "strategy_drawdown_pct": 5.69,
+    "closed_trades": 5,
+    "last_transition": "2026-07-08T16:13:18",
+    "note": "rolling Sharpe -0.39 < 0.0"
   },
   "Momentum (Rate of Change)": {
     "strategy": "Momentum (Rate of Change)",
