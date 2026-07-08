@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-08T15:43:21",
+  "positions_checked": 9,
+  "orphaned": 0,
+  "stale": 2,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ELV",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "ELV up 7.9% \u2014 tightening SL from $397.58 to $398.66 (Chandelier: HH=$420.64, ATR=10.99)",
+      "action_taken": "SL tightened to $398.66",
+      "current_price": 420.645,
+      "entry_price": 390.0245,
+      "pnl_pct": 7.85,
+      "timestamp": "2026-07-08T15:43:17"
+    },
+    {
+      "ticker": "OKE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "OKE up 6.3% \u2014 tightening SL from $86.71 to $87.30 (Chandelier: HH=$91.75, ATR=2.23)",
+      "action_taken": "SL tightened to $87.30",
+      "current_price": 91.75,
+      "entry_price": 86.3,
+      "pnl_pct": 6.32,
+      "timestamp": "2026-07-08T15:43:20"
+    }
+  ]
+}
