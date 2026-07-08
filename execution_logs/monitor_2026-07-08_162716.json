@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-08T16:27:16",
+  "positions_checked": 11,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ADSK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ADSK missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$197.74, TP=$228.97",
+      "current_price": 208.15,
+      "entry_price": 208.49,
+      "pnl_pct": -0.16,
+      "timestamp": "2026-07-08T16:27:11"
+    },
+    {
+      "ticker": "XYZ",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XYZ missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$72.11, TP=$83.5",
+      "current_price": 75.905,
+      "entry_price": 75.84,
+      "pnl_pct": 0.09,
+      "timestamp": "2026-07-08T16:27:16"
+    }
+  ]
+}
