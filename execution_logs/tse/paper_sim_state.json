@@ -12,7 +12,7 @@
       "take_profit": 2829.11,
       "strategy": "Stochastic Oscillator",
       "composite_score": 56.59,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2664.0,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 16.21,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -44,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 34.22,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1904.0,
@@ -60,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 28.47,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -76,7 +76,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 31.99,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": NaN,
@@ -92,7 +92,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 19.77,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -1409,7 +1409,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-09",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-08"
+  "last_run_date": "2026-07-09"
 }
