@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-09T16:13:40",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "ELV",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "ELV exceeded max hold period (10 days). P&L: +7.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 420.0,
+      "entry_price": 390.0245,
+      "pnl_pct": 7.69,
+      "timestamp": "2026-07-09T16:13:38"
+    },
+    {
+      "ticker": "SIGI",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "SIGI exceeded max hold period (10 days). P&L: -0.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 95.865,
+      "entry_price": 96.52,
+      "pnl_pct": -0.68,
+      "timestamp": "2026-07-09T16:13:40"
+    }
+  ]
+}
