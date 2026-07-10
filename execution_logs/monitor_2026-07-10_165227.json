@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-10T16:52:27",
+  "positions_checked": 6,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "EQH",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EQH missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$44.51, TP=$51.54",
+      "current_price": 46.855,
+      "entry_price": 46.8,
+      "pnl_pct": 0.12,
+      "timestamp": "2026-07-10T16:52:25"
+    }
+  ]
+}
