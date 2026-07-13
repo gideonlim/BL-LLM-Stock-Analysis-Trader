@@ -12,10 +12,10 @@
       "take_profit": 2055.23,
       "strategy": "VWAP Trend",
       "composite_score": 50.04,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 1955.5,
+      "max_price": 2003.0,
       "min_price": 1931.5
     },
     {
@@ -28,7 +28,7 @@
       "take_profit": 2654.1,
       "strategy": "ADX Trend Following",
       "composite_score": 40.6,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 2480.0,
@@ -44,7 +44,7 @@
       "take_profit": 952.73,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 38.72,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 910.4,
@@ -60,11 +60,11 @@
       "take_profit": 1356.67,
       "strategy": "52-Week High Momentum",
       "composite_score": 35.69,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1289.0,
-      "min_price": 1287.5
+      "min_price": 1286.5
     },
     {
       "ticker": "PRU.L",
@@ -76,10 +76,10 @@
       "take_profit": 1067.08,
       "strategy": "ADX Trend Following",
       "composite_score": 67.57,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 1034.5,
+      "max_price": 1044.5,
       "min_price": 1018.5
     },
     {
@@ -92,10 +92,10 @@
       "take_profit": 6662.72,
       "strategy": "52-Week High Momentum",
       "composite_score": 34.05,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 6245.0,
+      "max_price": 6315.0,
       "min_price": 6235.0
     }
   ],
@@ -1221,7 +1221,15 @@
       "num_positions": 6,
       "total_pnl": -2420.91,
       "total_pnl_pct": -4.84
+    },
+    {
+      "date": "2026-07-13",
+      "equity": 48061.04,
+      "cash": 408.03,
+      "num_positions": 6,
+      "total_pnl": -1938.96,
+      "total_pnl_pct": -3.88
     }
   ],
-  "last_run_date": "2026-07-10"
+  "last_run_date": "2026-07-13"
 }
