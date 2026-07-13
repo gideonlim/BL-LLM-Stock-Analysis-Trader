@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-13T22:12:49",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "XYZ",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "XYZ up 3.8% \u2014 moving SL to breakeven $75.84 (was $70.22)",
+      "action_taken": "DRY RUN: would move SL to breakeven",
+      "current_price": 78.705,
+      "entry_price": 75.84,
+      "pnl_pct": 3.78,
+      "timestamp": "2026-07-13T22:12:49"
+    }
+  ]
+}
