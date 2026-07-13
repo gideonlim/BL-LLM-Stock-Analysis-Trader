@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-13T16:06:18",
+  "positions_checked": 6,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "OKE",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "OKE up 6.8% \u2014 tightening SL from $87.52 to $87.71 (Chandelier: HH=$92.19, ATR=2.24)",
+      "action_taken": "SL tightened to $87.71",
+      "current_price": 92.19,
+      "entry_price": 86.3,
+      "pnl_pct": 6.83,
+      "timestamp": "2026-07-13T16:06:15"
+    },
+    {
+      "ticker": "OKE",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "OKE exceeded max hold period (10 days). P&L: +6.8%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 92.19,
+      "entry_price": 86.3,
+      "pnl_pct": 6.83,
+      "timestamp": "2026-07-13T16:06:16"
+    }
+  ]
+}
