@@ -9,7 +9,7 @@
     "consec_losses": 0,
     "mean_r": 0.2768,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 116,
+    "closed_trades": 115,
     "last_transition": "2026-07-08T16:13:18",
     "note": "win rate dropped 43.3pp from baseline"
   },
