@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "5406.T",
-      "entry_date": "2026-06-30",
-      "entry_price": NaN,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "SMA Crossover (10/50)",
-      "composite_score": 16.21,
-      "holding_days": 9,
-      "confidence": "LOW",
-      "confidence_score": 1,
-      "max_price": NaN,
-      "min_price": NaN
-    },
-    {
       "ticker": "8001.T",
       "entry_date": "2026-07-01",
       "entry_price": 1854.0,
@@ -28,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 34.22,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1904.0,
@@ -44,25 +28,9 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 28.47,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": NaN,
-      "min_price": NaN
-    },
-    {
-      "ticker": "9022.T",
-      "entry_date": "2026-07-07",
-      "entry_price": NaN,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "Composite Multi-Indicator",
-      "composite_score": 31.99,
-      "holding_days": 4,
-      "confidence": "HIGH",
-      "confidence_score": 5,
       "max_price": NaN,
       "min_price": NaN
     },
@@ -76,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 19.77,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -92,9 +60,25 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.26,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 0,
+      "max_price": NaN,
+      "min_price": NaN
+    },
+    {
+      "ticker": "6305.T",
+      "entry_date": "2026-07-14",
+      "entry_price": NaN,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "SMA Crossover (10/50)",
+      "composite_score": 28.52,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 2,
       "max_price": NaN,
       "min_price": NaN
     }
@@ -927,6 +911,30 @@
       "pnl": NaN,
       "pnl_pct": 0.0,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "5406.T",
+      "strategy": "SMA Crossover (10/50)",
+      "entry_date": "2026-06-30",
+      "exit_date": "2026-07-14",
+      "entry_price": NaN,
+      "exit_price": 1847.5,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "9022.T",
+      "strategy": "Composite Multi-Indicator",
+      "entry_date": "2026-07-07",
+      "exit_date": "2026-07-14",
+      "entry_price": NaN,
+      "exit_price": 3657.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -1457,7 +1465,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-14",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-13"
+  "last_run_date": "2026-07-14"
 }
