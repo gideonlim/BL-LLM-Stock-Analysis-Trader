@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "8001.T",
-      "entry_date": "2026-07-01",
-      "entry_price": 1854.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "SMA Crossover (10/50)",
-      "composite_score": 34.22,
-      "holding_days": 9,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": 1904.0,
-      "min_price": 1852.0
-    },
-    {
       "ticker": "7013.T",
       "entry_date": "2026-07-06",
       "entry_price": NaN,
@@ -28,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 28.47,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -44,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 19.77,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -60,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.26,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
@@ -76,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 28.52,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": NaN,
@@ -935,6 +919,18 @@
       "pnl": NaN,
       "pnl_pct": NaN,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "8001.T",
+      "strategy": "SMA Crossover (10/50)",
+      "entry_date": "2026-07-01",
+      "exit_date": "2026-07-15",
+      "entry_price": 1854.0,
+      "exit_price": 1904.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 2.7,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1473,7 +1469,15 @@
       "num_positions": 5,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-15",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-14"
+  "last_run_date": "2026-07-15"
 }
