@@ -27,20 +27,6 @@
     "last_transition": "2026-07-08T16:13:18",
     "note": "Insufficient trade history (3/5)"
   },
-  "Momentum (Rate of Change)": {
-    "strategy": "Momentum (Rate of Change)",
-    "state": "SUSPENDED",
-    "prev_state": "SUSPENDED",
-    "rolling_sharpe": -0.0835,
-    "rolling_win_rate": 0.6,
-    "baseline_win_rate": 1.0,
-    "consec_losses": 1,
-    "mean_r": -0.196,
-    "strategy_drawdown_pct": 5.09,
-    "closed_trades": 5,
-    "last_transition": "2026-06-24T16:34:19",
-    "note": "rolling Sharpe -0.08 < 0.0; win rate dropped 40.0pp from baseline"
-  },
   "52-Week High Momentum": {
     "strategy": "52-Week High Momentum",
     "state": "ACTIVE",
@@ -54,6 +40,20 @@
     "closed_trades": 4,
     "last_transition": "",
     "note": "Insufficient trade history (4/5)"
+  },
+  "Momentum (Rate of Change)": {
+    "strategy": "Momentum (Rate of Change)",
+    "state": "SUSPENDED",
+    "prev_state": "SUSPENDED",
+    "rolling_sharpe": 0.2711,
+    "rolling_win_rate": 0.6,
+    "baseline_win_rate": 1.0,
+    "consec_losses": 0,
+    "mean_r": 0.04,
+    "strategy_drawdown_pct": 5.09,
+    "closed_trades": 5,
+    "last_transition": "2026-06-24T16:34:19",
+    "note": "win rate dropped 40.0pp from baseline"
   },
   "Stochastic Oscillator": {
     "strategy": "Stochastic Oscillator",
