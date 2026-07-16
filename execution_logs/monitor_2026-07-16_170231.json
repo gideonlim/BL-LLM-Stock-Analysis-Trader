@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-16T17:02:31",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ADSK",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "ADSK up 3.7% \u2014 moving SL to breakeven $208.49 (was $192.97)",
+      "action_taken": "SL moved to breakeven $208.49",
+      "current_price": 216.285,
+      "entry_price": 208.49,
+      "pnl_pct": 3.74,
+      "timestamp": "2026-07-16T17:02:28"
+    }
+  ]
+}
