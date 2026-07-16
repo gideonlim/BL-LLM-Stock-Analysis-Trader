@@ -3,15 +3,43 @@
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.1833,
-    "rolling_win_rate": 0.4,
+    "rolling_sharpe": -0.045,
+    "rolling_win_rate": 0.3,
     "baseline_win_rate": 0.8333,
-    "consec_losses": 0,
-    "mean_r": 0.2768,
+    "consec_losses": 2,
+    "mean_r": 0.0974,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 115,
+    "closed_trades": 117,
     "last_transition": "2026-07-08T16:13:18",
-    "note": "win rate dropped 43.3pp from baseline"
+    "note": "rolling Sharpe -0.04 < 0.0; win rate dropped 53.3pp from baseline"
+  },
+  "Stochastic Oscillator": {
+    "strategy": "Stochastic Oscillator",
+    "state": "SUSPENDED",
+    "prev_state": "SUSPENDED",
+    "rolling_sharpe": -0.1607,
+    "rolling_win_rate": 0.3333,
+    "baseline_win_rate": 0.0,
+    "consec_losses": 1,
+    "mean_r": -0.2233,
+    "strategy_drawdown_pct": 15.39,
+    "closed_trades": 6,
+    "last_transition": "2026-05-14T16:23:36",
+    "note": "rolling Sharpe -0.16 < 0.0"
+  },
+  "Momentum (Rate of Change)": {
+    "strategy": "Momentum (Rate of Change)",
+    "state": "SUSPENDED",
+    "prev_state": "SUSPENDED",
+    "rolling_sharpe": 0.2711,
+    "rolling_win_rate": 0.6,
+    "baseline_win_rate": 1.0,
+    "consec_losses": 0,
+    "mean_r": 0.04,
+    "strategy_drawdown_pct": 5.09,
+    "closed_trades": 5,
+    "last_transition": "2026-06-24T16:34:19",
+    "note": "win rate dropped 40.0pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
@@ -41,33 +69,19 @@
     "last_transition": "",
     "note": "Insufficient trade history (4/5)"
   },
-  "Momentum (Rate of Change)": {
-    "strategy": "Momentum (Rate of Change)",
-    "state": "SUSPENDED",
-    "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.2711,
-    "rolling_win_rate": 0.6,
-    "baseline_win_rate": 1.0,
-    "consec_losses": 0,
-    "mean_r": 0.04,
-    "strategy_drawdown_pct": 5.09,
-    "closed_trades": 5,
-    "last_transition": "2026-06-24T16:34:19",
-    "note": "win rate dropped 40.0pp from baseline"
-  },
-  "Stochastic Oscillator": {
-    "strategy": "Stochastic Oscillator",
-    "state": "SUSPENDED",
-    "prev_state": "SUSPENDED",
-    "rolling_sharpe": -0.1607,
-    "rolling_win_rate": 0.3333,
+  "MACD Crossover": {
+    "strategy": "MACD Crossover",
+    "state": "ACTIVE",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": -1.0712,
+    "rolling_win_rate": 0.0,
     "baseline_win_rate": 0.0,
-    "consec_losses": 1,
-    "mean_r": -0.2233,
-    "strategy_drawdown_pct": 15.39,
-    "closed_trades": 6,
-    "last_transition": "2026-05-14T16:23:36",
-    "note": "rolling Sharpe -0.16 < 0.0"
+    "consec_losses": 2,
+    "mean_r": -0.695,
+    "strategy_drawdown_pct": 8.65,
+    "closed_trades": 2,
+    "last_transition": "",
+    "note": "Insufficient trade history (2/5)"
   },
   "SMA Crossover (10/50)": {
     "strategy": "SMA Crossover (10/50)",
@@ -82,19 +96,5 @@
     "closed_trades": 1,
     "last_transition": "",
     "note": "Insufficient trade history (1/5)"
-  },
-  "MACD Crossover": {
-    "strategy": "MACD Crossover",
-    "state": "ACTIVE",
-    "prev_state": "ACTIVE",
-    "rolling_sharpe": -1.0712,
-    "rolling_win_rate": 0.0,
-    "baseline_win_rate": 0.0,
-    "consec_losses": 2,
-    "mean_r": -0.695,
-    "strategy_drawdown_pct": 8.65,
-    "closed_trades": 2,
-    "last_transition": "",
-    "note": "Insufficient trade history (2/5)"
   }
 }
