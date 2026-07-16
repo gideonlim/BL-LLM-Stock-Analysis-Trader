@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-16T15:18:51",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "AFG",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "AFG exceeded max hold period (10 days). P&L: -2.0%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 139.155,
+      "entry_price": 142.06,
+      "pnl_pct": -2.04,
+      "timestamp": "2026-07-16T15:18:48"
+    },
+    {
+      "ticker": "EQH",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "EQH up 6.5% \u2014 tightening SL from $46.80 to $47.09 (Chandelier: HH=$49.84, ATR=1.37)",
+      "action_taken": "SL tightened to $47.09",
+      "current_price": 49.84,
+      "entry_price": 46.8,
+      "pnl_pct": 6.5,
+      "timestamp": "2026-07-16T15:18:49"
+    },
+    {
+      "ticker": "NSA",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "NSA exceeded max hold period (10 days). P&L: -0.6%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 44.925,
+      "entry_price": 45.18,
+      "pnl_pct": -0.56,
+      "timestamp": "2026-07-16T15:18:50"
+    }
+  ]
+}
