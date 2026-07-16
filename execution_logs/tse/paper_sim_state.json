@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 28.47,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 19.77,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -44,27 +44,43 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.26,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
       "min_price": NaN
     },
     {
-      "ticker": "6305.T",
-      "entry_date": "2026-07-14",
-      "entry_price": NaN,
+      "ticker": "6504.T",
+      "entry_date": "2026-07-16",
+      "entry_price": 12950.0,
       "qty": NaN,
       "notional": NaN,
       "stop_loss": NaN,
       "take_profit": NaN,
-      "strategy": "SMA Crossover (10/50)",
-      "composite_score": 28.52,
-      "holding_days": 1,
-      "confidence": "MEDIUM",
-      "confidence_score": 2,
-      "max_price": NaN,
-      "min_price": NaN
+      "strategy": "ADX Trend Following",
+      "composite_score": 42.44,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 12950.0,
+      "min_price": 12950.0
+    },
+    {
+      "ticker": "6479.T",
+      "entry_date": "2026-07-16",
+      "entry_price": 4185.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "ADX Trend Following",
+      "composite_score": 36.68,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 4185.0,
+      "min_price": 4185.0
     }
   ],
   "closed_trades": [
@@ -931,6 +947,18 @@
       "pnl": NaN,
       "pnl_pct": 2.7,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "6305.T",
+      "strategy": "SMA Crossover (10/50)",
+      "entry_date": "2026-07-14",
+      "exit_date": "2026-07-16",
+      "entry_price": NaN,
+      "exit_price": 5249.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -1477,7 +1505,15 @@
       "num_positions": 4,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-16",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-15"
+  "last_run_date": "2026-07-16"
 }
