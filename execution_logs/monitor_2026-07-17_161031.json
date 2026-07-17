@@ -1,0 +1,87 @@
+{
+  "monitored_at": "2026-07-17T16:10:31",
+  "positions_checked": 10,
+  "orphaned": 7,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BLK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BLK missing stop loss leg. P&L: +0.2%",
+      "action_taken": "Reattached OCO: SL=$1019.37, TP=$1180.32",
+      "current_price": 1073.02,
+      "entry_price": 1071.11,
+      "pnl_pct": 0.18,
+      "timestamp": "2026-07-17T16:10:20"
+    },
+    {
+      "ticker": "CHD",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CHD missing stop loss leg. P&L: -0.8%",
+      "action_taken": "Reattached OCO: SL=$93.54, TP=$108.31",
+      "current_price": 98.465,
+      "entry_price": 99.24,
+      "pnl_pct": -0.78,
+      "timestamp": "2026-07-17T16:10:21"
+    },
+    {
+      "ticker": "GNTX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GNTX missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$23.2, TP=$26.86",
+      "current_price": 24.42,
+      "entry_price": 24.47,
+      "pnl_pct": -0.2,
+      "timestamp": "2026-07-17T16:10:23"
+    },
+    {
+      "ticker": "SSB",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "SSB missing stop loss leg. P&L: -0.4%",
+      "action_taken": "Reattached OCO: SL=$97.82, TP=$113.27",
+      "current_price": 102.97,
+      "entry_price": 103.37,
+      "pnl_pct": -0.39,
+      "timestamp": "2026-07-17T16:10:24"
+    },
+    {
+      "ticker": "TPR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "TPR missing stop loss leg. P&L: +0.5%",
+      "action_taken": "Reattached OCO: SL=$136.74, TP=$158.33",
+      "current_price": 143.94,
+      "entry_price": 143.26,
+      "pnl_pct": 0.47,
+      "timestamp": "2026-07-17T16:10:28"
+    },
+    {
+      "ticker": "WCC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "WCC missing stop loss leg. P&L: +1.1%",
+      "action_taken": "Reattached OCO: SL=$312.25, TP=$361.55",
+      "current_price": 328.68,
+      "entry_price": 325.07,
+      "pnl_pct": 1.11,
+      "timestamp": "2026-07-17T16:10:29"
+    },
+    {
+      "ticker": "WFC",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "WFC missing stop loss leg. P&L: -0.5%",
+      "action_taken": "Reattached OCO: SL=$83.69, TP=$96.91",
+      "current_price": 88.1,
+      "entry_price": 88.58,
+      "pnl_pct": -0.54,
+      "timestamp": "2026-07-17T16:10:30"
+    }
+  ]
+}
