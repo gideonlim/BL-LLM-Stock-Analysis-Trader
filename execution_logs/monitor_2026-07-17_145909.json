@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-17T14:59:09",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "EQH",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "EQH up 5.6% \u2014 tightening SL from $47.09 to $47.12 (Chandelier: HH=$49.84, ATR=1.36)",
+      "action_taken": "SL tightened to $47.12",
+      "current_price": 49.41,
+      "entry_price": 46.8,
+      "pnl_pct": 5.58,
+      "timestamp": "2026-07-17T14:59:08"
+    }
+  ]
+}
