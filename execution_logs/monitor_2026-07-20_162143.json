@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-20T16:21:43",
+  "positions_checked": 8,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "GNTX",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-07-24) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 24.155,
+      "entry_price": 24.47,
+      "pnl_pct": -1.29,
+      "timestamp": "2026-07-20T16:21:41"
+    },
+    {
+      "ticker": "KKR",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "KKR missing stop loss leg. P&L: -0.3%",
+      "action_taken": "Reattached OCO: SL=$93.1, TP=$107.79",
+      "current_price": 97.995,
+      "entry_price": 98.257857,
+      "pnl_pct": -0.27,
+      "timestamp": "2026-07-20T16:21:42"
+    }
+  ]
+}
