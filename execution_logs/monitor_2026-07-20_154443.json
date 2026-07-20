@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-20T15:44:43",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "GNTX",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-07-24) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 24.195,
+      "entry_price": 24.47,
+      "pnl_pct": -1.12,
+      "timestamp": "2026-07-20T15:44:39"
+    },
+    {
+      "ticker": "SSB",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 3d (2026-07-23) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 102.39,
+      "entry_price": 103.37,
+      "pnl_pct": -0.95,
+      "timestamp": "2026-07-20T15:44:40"
+    }
+  ]
+}
