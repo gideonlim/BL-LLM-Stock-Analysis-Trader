@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-21T16:19:09",
+  "positions_checked": 8,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "NVDA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "NVDA missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$195.51, TP=$226.39",
+      "current_price": 205.805,
+      "entry_price": 206.1,
+      "pnl_pct": -0.14,
+      "timestamp": "2026-07-21T16:19:05"
+    },
+    {
+      "ticker": "PII",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "PII missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$70.0, TP=$81.05",
+      "current_price": 73.68,
+      "entry_price": 73.61,
+      "pnl_pct": 0.1,
+      "timestamp": "2026-07-21T16:19:07"
+    },
+    {
+      "ticker": "SSB",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-07-23) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 101.74,
+      "entry_price": 103.37,
+      "pnl_pct": -1.58,
+      "timestamp": "2026-07-21T16:19:08"
+    }
+  ]
+}
