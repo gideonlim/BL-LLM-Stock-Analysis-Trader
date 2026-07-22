@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "9766.T",
-      "entry_date": "2026-07-08",
-      "entry_price": NaN,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "ADX Trend Following",
-      "composite_score": 19.77,
-      "holding_days": 9,
-      "confidence": "LOW",
-      "confidence_score": 1,
-      "max_price": NaN,
-      "min_price": NaN
-    },
-    {
       "ticker": "6702.T",
       "entry_date": "2026-07-13",
       "entry_price": NaN,
@@ -28,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.26,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
@@ -44,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 42.44,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 12950.0,
@@ -60,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 36.68,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 4185.0,
@@ -76,10 +60,10 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.61,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 70880.0,
+      "max_price": 71960.0,
       "min_price": 70880.0
     },
     {
@@ -92,11 +76,11 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 36.52,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 4189.0,
-      "min_price": 4189.0
+      "min_price": 4187.0
     }
   ],
   "closed_trades": [
@@ -1011,6 +995,18 @@
       "pnl": NaN,
       "pnl_pct": 0.0,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "9766.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-07-08",
+      "exit_date": "2026-07-22",
+      "entry_price": NaN,
+      "exit_price": 18500.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1589,7 +1585,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-22",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-21"
+  "last_run_date": "2026-07-22"
 }
