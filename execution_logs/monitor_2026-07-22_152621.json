@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-22T15:26:21",
+  "positions_checked": 8,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "PII",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-07-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 72.875,
+      "entry_price": 73.61,
+      "pnl_pct": -1.0,
+      "timestamp": "2026-07-22T15:26:20"
+    },
+    {
+      "ticker": "SSB",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-07-23) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 101.67,
+      "entry_price": 103.37,
+      "pnl_pct": -1.64,
+      "timestamp": "2026-07-22T15:26:20"
+    }
+  ]
+}
