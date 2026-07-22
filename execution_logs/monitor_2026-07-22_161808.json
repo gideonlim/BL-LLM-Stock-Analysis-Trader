@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-07-22T16:18:08",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "NVDA",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "NVDA up 3.9% \u2014 moving SL to breakeven $206.10 (was $195.04)",
+      "action_taken": "SL moved to breakeven $206.10",
+      "current_price": 214.17,
+      "entry_price": 206.1,
+      "pnl_pct": 3.92,
+      "timestamp": "2026-07-22T16:18:05"
+    },
+    {
+      "ticker": "PII",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-07-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 73.5,
+      "entry_price": 73.61,
+      "pnl_pct": -0.15,
+      "timestamp": "2026-07-22T16:18:06"
+    },
+    {
+      "ticker": "SSB",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-07-23) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 101.715,
+      "entry_price": 103.37,
+      "pnl_pct": -1.6,
+      "timestamp": "2026-07-22T16:18:07"
+    }
+  ]
+}
