@@ -9,23 +9,23 @@
     "consec_losses": 2,
     "mean_r": 0.0974,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 113,
+    "closed_trades": 111,
     "last_transition": "2026-07-08T16:13:18",
     "note": "rolling Sharpe -0.04 < 0.0; win rate dropped 53.3pp from baseline"
   },
   "Momentum (Rate of Change)": {
     "strategy": "Momentum (Rate of Change)",
-    "state": "CAUTION",
-    "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.4104,
-    "rolling_win_rate": 0.6667,
+    "state": "SUSPENDED",
+    "prev_state": "CAUTION",
+    "rolling_sharpe": 0.195,
+    "rolling_win_rate": 0.5714,
     "baseline_win_rate": 1.0,
-    "consec_losses": 0,
-    "mean_r": 0.215,
-    "strategy_drawdown_pct": 5.09,
-    "closed_trades": 6,
-    "last_transition": "2026-07-22T15:54:13",
-    "note": "rolling Sharpe 0.41 < 0.5; win rate dropped 33.3pp from baseline"
+    "consec_losses": 1,
+    "mean_r": 0.0529,
+    "strategy_drawdown_pct": 5.19,
+    "closed_trades": 7,
+    "last_transition": "2026-07-23T16:04:51",
+    "note": "win rate dropped 42.9pp from baseline"
   },
   "Stochastic Oscillator": {
     "strategy": "Stochastic Oscillator",
@@ -40,6 +40,20 @@
     "closed_trades": 6,
     "last_transition": "2026-05-14T16:23:36",
     "note": "rolling Sharpe -0.16 < 0.0"
+  },
+  "ADX Trend Following": {
+    "strategy": "ADX Trend Following",
+    "state": "CAUTION",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": -1.3084,
+    "rolling_win_rate": 0.2,
+    "baseline_win_rate": 0.0,
+    "consec_losses": 0,
+    "mean_r": -0.4125,
+    "strategy_drawdown_pct": 9.66,
+    "closed_trades": 5,
+    "last_transition": "2026-07-23T16:04:51",
+    "note": "rolling Sharpe -1.31 < 0.5"
   },
   "MACD Crossover": {
     "strategy": "MACD Crossover",
@@ -67,20 +81,6 @@
     "strategy_drawdown_pct": 16.46,
     "closed_trades": 3,
     "last_transition": "",
-    "note": "Insufficient trade history (3/5)"
-  },
-  "ADX Trend Following": {
-    "strategy": "ADX Trend Following",
-    "state": "ACTIVE",
-    "prev_state": "ACTIVE",
-    "rolling_sharpe": -1.7656,
-    "rolling_win_rate": 0.0,
-    "baseline_win_rate": 0.0,
-    "consec_losses": 3,
-    "mean_r": -0.3333,
-    "strategy_drawdown_pct": 6.35,
-    "closed_trades": 3,
-    "last_transition": "2026-07-08T16:13:18",
     "note": "Insufficient trade history (3/5)"
   },
   "SMA Crossover (10/50)": {
