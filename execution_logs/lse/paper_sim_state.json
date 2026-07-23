@@ -1,23 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 408.95564639639724,
+  "cash": 412.42468231982,
   "positions": [
-    {
-      "ticker": "DCC.L",
-      "entry_date": "2026-07-09",
-      "entry_price": 6235.0,
-      "qty": 1.2434,
-      "notional": 7752.5,
-      "stop_loss": 6112.79,
-      "take_profit": 6662.72,
-      "strategy": "52-Week High Momentum",
-      "composite_score": 34.05,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 6370.0,
-      "min_price": 6235.0
-    },
     {
       "ticker": "RKT.L",
       "entry_date": "2026-07-14",
@@ -28,7 +12,7 @@
       "take_profit": 5553.72,
       "strategy": "VWAP Trend",
       "composite_score": 41.97,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 5096.0,
@@ -44,7 +28,7 @@
       "take_profit": 618.34,
       "strategy": "52-Week High Momentum",
       "composite_score": 31.99,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 588.0,
@@ -60,11 +44,11 @@
       "take_profit": 232.05,
       "strategy": "Stochastic Oscillator",
       "composite_score": 52.47,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 217.3531036376953,
-      "min_price": 213.0
+      "min_price": 212.60000610351562
     },
     {
       "ticker": "III.L",
@@ -76,10 +60,10 @@
       "take_profit": 2746.26,
       "strategy": "VWAP Trend",
       "composite_score": 41.88,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 2553.0,
+      "max_price": 2637.0,
       "min_price": 2469.0
     },
     {
@@ -92,11 +76,27 @@
       "take_profit": 1138.56,
       "strategy": "VWAP Trend",
       "composite_score": 40.84,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1069.4000244140625,
       "min_price": 1051.5
+    },
+    {
+      "ticker": "AUTO.L",
+      "entry_date": "2026-07-23",
+      "entry_price": 490.2,
+      "qty": 15.9855,
+      "notional": 7836.07,
+      "stop_loss": 471.87,
+      "take_profit": 517.7,
+      "strategy": "ADX Trend Following",
+      "composite_score": 52.63,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 490.2,
+      "min_price": 490.2
     }
   ],
   "closed_trades": [
@@ -771,6 +771,18 @@
       "pnl": -6.03,
       "pnl_pct": -0.08,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "DCC.L",
+      "strategy": "52-Week High Momentum",
+      "entry_date": "2026-07-09",
+      "exit_date": "2026-07-23",
+      "entry_price": 6235.0,
+      "exit_price": 6305.0,
+      "qty": 1.2434,
+      "pnl": 87.04,
+      "pnl_pct": 1.12,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1357,7 +1369,15 @@
       "num_positions": 6,
       "total_pnl": -1708.04,
       "total_pnl_pct": -3.42
+    },
+    {
+      "date": "2026-07-23",
+      "equity": 48609.34,
+      "cash": 412.42,
+      "num_positions": 6,
+      "total_pnl": -1390.66,
+      "total_pnl_pct": -2.78
     }
   ],
-  "last_run_date": "2026-07-22"
+  "last_run_date": "2026-07-23"
 }
