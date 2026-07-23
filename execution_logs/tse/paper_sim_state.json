@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.26,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": NaN,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 42.44,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 12950.0,
@@ -44,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 36.68,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 4185.0,
@@ -60,10 +60,10 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.61,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 71960.0,
+      "max_price": 72110.0,
       "min_price": 70880.0
     },
     {
@@ -76,11 +76,11 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 36.52,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 4189.0,
-      "min_price": 4187.0
+      "min_price": 4095.0
     }
   ],
   "closed_trades": [
@@ -1593,7 +1593,15 @@
       "num_positions": 5,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-23",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 5,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-22"
+  "last_run_date": "2026-07-23"
 }
