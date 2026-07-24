@@ -33,16 +33,24 @@
   "realized_pnl_pct": 0.0,
   "r_multiple": 0.0,
   "holding_days": 0,
-  "max_favorable_excursion": 103.37,
+  "max_favorable_excursion": 106.33,
   "max_adverse_excursion": 100.34,
-  "mfe_pct": 0.0,
+  "mfe_pct": 2.86,
   "mae_pct": 2.93,
-  "mfe_date": "",
+  "mfe_date": "2026-07-24",
   "mae_date": "2026-07-23",
   "etd": 0.0,
   "etd_pct": 0.0,
   "edge_ratio": 0.0,
-  "sl_modifications": [],
+  "sl_modifications": [
+    {
+      "date": "2026-07-24T15:14:56",
+      "old_sl": 100.4,
+      "new_sl": 103.37,
+      "reason": "breakeven",
+      "price_at_modification": 106.33
+    }
+  ],
   "price_samples": [
     {
       "date": "2026-07-17",
@@ -63,6 +71,10 @@
     {
       "date": "2026-07-23",
       "price": 100.34
+    },
+    {
+      "date": "2026-07-24",
+      "price": 106.33
     }
   ],
   "status": "open",

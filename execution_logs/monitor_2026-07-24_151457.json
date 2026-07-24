@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-07-24T15:14:57",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "PII",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 3d (2026-07-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 72.505,
+      "entry_price": 73.61,
+      "pnl_pct": -1.5,
+      "timestamp": "2026-07-24T15:14:55"
+    },
+    {
+      "ticker": "SSB",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "SSB up 2.9% \u2014 moving SL to breakeven $103.37 (was $100.40)",
+      "action_taken": "SL moved to breakeven $103.37",
+      "current_price": 106.33,
+      "entry_price": 103.37,
+      "pnl_pct": 2.86,
+      "timestamp": "2026-07-24T15:14:56"
+    }
+  ]
+}
