@@ -1,0 +1,76 @@
+{
+  "monitored_at": "2026-07-27T16:00:15",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 4,
+  "alerts": [
+    {
+      "ticker": "BLK",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "BLK exceeded max hold period (10 days). P&L: -1.6%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 1053.92,
+      "entry_price": 1071.11,
+      "pnl_pct": -1.6,
+      "timestamp": "2026-07-27T16:00:11"
+    },
+    {
+      "ticker": "CHD",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 4d (2026-07-31) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 98.89,
+      "entry_price": 99.24,
+      "pnl_pct": -0.35,
+      "timestamp": "2026-07-27T16:00:12"
+    },
+    {
+      "ticker": "CHD",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "CHD exceeded max hold period (10 days). P&L: -0.4%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 98.89,
+      "entry_price": 99.24,
+      "pnl_pct": -0.35,
+      "timestamp": "2026-07-27T16:00:12"
+    },
+    {
+      "ticker": "SSB",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "SSB exceeded max hold period (10 days). P&L: +2.2%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 105.63,
+      "entry_price": 103.37,
+      "pnl_pct": 2.19,
+      "timestamp": "2026-07-27T16:00:13"
+    },
+    {
+      "ticker": "WCC",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 3d (2026-07-30) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 327.03,
+      "entry_price": 325.07,
+      "pnl_pct": 0.6,
+      "timestamp": "2026-07-27T16:00:14"
+    },
+    {
+      "ticker": "WCC",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "WCC exceeded max hold period (10 days). P&L: +0.6%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 327.03,
+      "entry_price": 325.07,
+      "pnl_pct": 0.6,
+      "timestamp": "2026-07-27T16:00:14"
+    }
+  ]
+}
