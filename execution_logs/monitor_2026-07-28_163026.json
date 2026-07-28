@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-07-28T16:30:26",
+  "positions_checked": 2,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "XYZ",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XYZ missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$78.56, TP=$90.96",
+      "current_price": 82.69,
+      "entry_price": 82.74,
+      "pnl_pct": -0.06,
+      "timestamp": "2026-07-28T16:30:25"
+    }
+  ]
+}
