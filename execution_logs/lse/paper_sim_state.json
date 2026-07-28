@@ -1,23 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 445.1144323159915,
+  "cash": 423.33662205790006,
   "positions": [
-    {
-      "ticker": "RKT.L",
-      "entry_date": "2026-07-14",
-      "entry_price": 4972.0,
-      "qty": 1.5922,
-      "notional": 7916.53,
-      "stop_loss": 4584.18,
-      "take_profit": 5553.72,
-      "strategy": "VWAP Trend",
-      "composite_score": 41.97,
-      "holding_days": 9,
-      "confidence": "LOW",
-      "confidence_score": 0,
-      "max_price": 5096.0,
-      "min_price": 4933.0
-    },
     {
       "ticker": "SDR.L",
       "entry_date": "2026-07-16",
@@ -28,10 +12,10 @@
       "take_profit": 618.34,
       "strategy": "52-Week High Momentum",
       "composite_score": 31.99,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 588.6688842773438,
+      "max_price": 588.8350219726562,
       "min_price": 587.5
     },
     {
@@ -44,10 +28,10 @@
       "take_profit": 232.05,
       "strategy": "Stochastic Oscillator",
       "composite_score": 52.47,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 218.1999969482422,
+      "max_price": 221.8000030517578,
       "min_price": 212.60000610351562
     },
     {
@@ -60,27 +44,11 @@
       "take_profit": 1138.56,
       "strategy": "VWAP Trend",
       "composite_score": 40.84,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1091.0,
       "min_price": 1050.5
-    },
-    {
-      "ticker": "AUTO.L",
-      "entry_date": "2026-07-23",
-      "entry_price": 490.2,
-      "qty": 15.9855,
-      "notional": 7836.07,
-      "stop_loss": 471.87,
-      "take_profit": 517.7,
-      "strategy": "ADX Trend Following",
-      "composite_score": 52.63,
-      "holding_days": 2,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 501.79998779296875,
-      "min_price": 484.1000061035156
     },
     {
       "ticker": "WEIR.L",
@@ -92,11 +60,43 @@
       "take_profit": 2771.48,
       "strategy": "ADX Trend Following",
       "composite_score": 57.49,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 2656.0,
-      "min_price": 2606.0
+      "min_price": 2574.0
+    },
+    {
+      "ticker": "ICG.L",
+      "entry_date": "2026-07-28",
+      "entry_price": 1935.0,
+      "qty": 4.3756,
+      "notional": 8466.73,
+      "stop_loss": 1848.13,
+      "take_profit": 2062.8,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 38.13,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 1935.0,
+      "min_price": 1935.0
+    },
+    {
+      "ticker": "BEZ.L",
+      "entry_date": "2026-07-28",
+      "entry_price": 1293.5,
+      "qty": 6.2183,
+      "notional": 8043.4,
+      "stop_loss": 1274.1,
+      "take_profit": 1361.41,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 35.87,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 1293.5,
+      "min_price": 1293.5
     }
   ],
   "closed_trades": [
@@ -795,6 +795,30 @@
       "pnl": 597.44,
       "pnl_pct": 7.57,
       "exit_reason": "take_profit"
+    },
+    {
+      "ticker": "RKT.L",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-07-14",
+      "exit_date": "2026-07-28",
+      "entry_price": 4972.0,
+      "exit_price": 5158.0,
+      "qty": 1.5922,
+      "pnl": 296.15,
+      "pnl_pct": 3.74,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "AUTO.L",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-07-23",
+      "exit_date": "2026-07-28",
+      "entry_price": 490.2,
+      "exit_price": 517.7,
+      "qty": 15.9855,
+      "pnl": 439.6,
+      "pnl_pct": 5.61,
+      "exit_reason": "take_profit"
     }
   ],
   "equity_history": [
@@ -1405,7 +1429,15 @@
       "num_positions": 6,
       "total_pnl": -142.35,
       "total_pnl_pct": -0.28
+    },
+    {
+      "date": "2026-07-28",
+      "equity": 50243.01,
+      "cash": 423.34,
+      "num_positions": 6,
+      "total_pnl": 243.01,
+      "total_pnl_pct": 0.49
     }
   ],
-  "last_run_date": "2026-07-27"
+  "last_run_date": "2026-07-28"
 }
