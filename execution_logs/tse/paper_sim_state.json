@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "6504.T",
-      "entry_date": "2026-07-16",
-      "entry_price": 12950.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "ADX Trend Following",
-      "composite_score": 42.44,
-      "holding_days": 8,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 12985.0,
-      "min_price": 12110.0
-    },
-    {
       "ticker": "6479.T",
       "entry_date": "2026-07-16",
       "entry_price": 4185.0,
@@ -28,11 +12,11 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 36.68,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 4185.0,
-      "min_price": 3821.0
+      "min_price": 3668.0
     },
     {
       "ticker": "6861.T",
@@ -44,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.61,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 74170.0,
@@ -60,9 +44,25 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 27.88,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 1,
+      "max_price": NaN,
+      "min_price": NaN
+    },
+    {
+      "ticker": "8002.T",
+      "entry_date": "2026-07-29",
+      "entry_price": NaN,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": NaN,
+      "take_profit": NaN,
+      "strategy": "Composite Multi-Indicator",
+      "composite_score": 37.18,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
       "max_price": NaN,
       "min_price": NaN
     }
@@ -1039,6 +1039,18 @@
       "pnl": NaN,
       "pnl_pct": NaN,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "6504.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-07-16",
+      "exit_date": "2026-07-29",
+      "entry_price": 12950.0,
+      "exit_price": 12420.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -4.09,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -1657,7 +1669,15 @@
       "num_positions": 4,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-29",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 4,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-28"
+  "last_run_date": "2026-07-29"
 }
