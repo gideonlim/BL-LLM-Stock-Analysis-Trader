@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-07-29T16:18:29",
+  "positions_checked": 5,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BKNG",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BKNG missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$191.42, TP=$221.64",
+      "current_price": 201.495,
+      "entry_price": 201.51,
+      "pnl_pct": -0.01,
+      "timestamp": "2026-07-29T16:18:24"
+    },
+    {
+      "ticker": "RLI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "RLI missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$62.25, TP=$72.08",
+      "current_price": 65.53,
+      "entry_price": 65.6,
+      "pnl_pct": -0.11,
+      "timestamp": "2026-07-29T16:18:25"
+    },
+    {
+      "ticker": "UMBF",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "UMBF missing stop loss leg. P&L: +0.0%",
+      "action_taken": "Reattached OCO: SL=$140.05, TP=$162.16",
+      "current_price": 147.42,
+      "entry_price": 147.42,
+      "pnl_pct": 0.0,
+      "timestamp": "2026-07-29T16:18:27"
+    },
+    {
+      "ticker": "VLTO",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "VLTO missing stop loss leg. P&L: -0.7%",
+      "action_taken": "Reattached OCO: SL=$93.85, TP=$108.67",
+      "current_price": 98.79,
+      "entry_price": 99.44,
+      "pnl_pct": -0.65,
+      "timestamp": "2026-07-29T16:18:28"
+    }
+  ]
+}
