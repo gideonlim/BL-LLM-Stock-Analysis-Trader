@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "6479.T",
-      "entry_date": "2026-07-16",
-      "entry_price": 4185.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "ADX Trend Following",
-      "composite_score": 36.68,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 4185.0,
-      "min_price": 3668.0
-    },
-    {
       "ticker": "6861.T",
       "entry_date": "2026-07-21",
       "entry_price": 70880.0,
@@ -28,10 +12,10 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.61,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 74170.0,
+      "max_price": 77590.0,
       "min_price": 70880.0
     },
     {
@@ -44,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 27.88,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -60,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 37.18,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -1051,6 +1035,18 @@
       "pnl": NaN,
       "pnl_pct": -4.09,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "6479.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-07-16",
+      "exit_date": "2026-07-30",
+      "entry_price": 4185.0,
+      "exit_price": 3545.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -15.29,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1677,7 +1673,15 @@
       "num_positions": 4,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-07-30",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-29"
+  "last_run_date": "2026-07-30"
 }
