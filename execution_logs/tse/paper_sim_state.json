@@ -12,10 +12,10 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 43.61,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 77590.0,
+      "max_price": 81150.0,
       "min_price": 70880.0
     },
     {
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 27.88,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -44,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 37.18,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -1681,7 +1681,15 @@
       "num_positions": 3,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-08-02",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-07-30"
+  "last_run_date": "2026-08-02"
 }
