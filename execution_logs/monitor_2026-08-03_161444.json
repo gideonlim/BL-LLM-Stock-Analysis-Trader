@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-08-03T16:14:44",
+  "positions_checked": 1,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "XYZ",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-08-05) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 81.375,
+      "entry_price": 82.74,
+      "pnl_pct": -1.65,
+      "timestamp": "2026-08-03T16:14:44"
+    }
+  ]
+}
