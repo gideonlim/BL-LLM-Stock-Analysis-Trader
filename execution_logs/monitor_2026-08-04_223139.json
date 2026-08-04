@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-08-04T22:31:39",
+  "positions_checked": 1,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "XYZ",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-08-05) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 84.685,
+      "entry_price": 82.74,
+      "pnl_pct": 2.35,
+      "timestamp": "2026-08-04T22:31:39"
+    },
+    {
+      "ticker": "XYZ",
+      "type": "earnings_stop_tighten",
+      "severity": "warning",
+      "message": "XYZ earnings in 1d (2026-08-05) \u2014 tightening SL from $83.53 to $83.71 to lock in gains (+2.4%)",
+      "action_taken": "DRY RUN: would tighten SL to $83.71",
+      "current_price": 84.685,
+      "entry_price": 82.74,
+      "pnl_pct": 2.35,
+      "timestamp": "2026-08-04T22:31:39"
+    }
+  ]
+}
