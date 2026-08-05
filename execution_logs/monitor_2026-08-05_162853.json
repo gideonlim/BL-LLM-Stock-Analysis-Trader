@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-08-05T16:28:53",
+  "positions_checked": 2,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ADSK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ADSK missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$224.61, TP=$260.07",
+      "current_price": 236.43,
+      "entry_price": 236.7,
+      "pnl_pct": -0.11,
+      "timestamp": "2026-08-05T16:28:52"
+    }
+  ]
+}
