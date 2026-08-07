@@ -1,23 +1,7 @@
 {
   "starting_equity": 50000.0,
-  "cash": 443.9442708725728,
+  "cash": 9167.228870872574,
   "positions": [
-    {
-      "ticker": "WEIR.L",
-      "entry_date": "2026-07-24",
-      "entry_price": 2606.0,
-      "qty": 3.2453,
-      "notional": 8457.17,
-      "stop_loss": 2495.77,
-      "take_profit": 2771.48,
-      "strategy": "ADX Trend Following",
-      "composite_score": 57.49,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 2744.0,
-      "min_price": 2574.0
-    },
     {
       "ticker": "ICG.L",
       "entry_date": "2026-07-28",
@@ -28,10 +12,10 @@
       "take_profit": 2062.8,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 38.13,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 2036.0,
+      "max_price": 2048.0,
       "min_price": 1901.0
     },
     {
@@ -44,11 +28,11 @@
       "take_profit": 1361.41,
       "strategy": "52-Week High Momentum",
       "composite_score": 35.87,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1293.5,
-      "min_price": 1290.5
+      "min_price": 1290.0
     },
     {
       "ticker": "RKT.L",
@@ -60,7 +44,7 @@
       "take_profit": 5910.56,
       "strategy": "VWAP Trend",
       "composite_score": 55.69,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 5434.0,
@@ -76,7 +60,7 @@
       "take_profit": 11635.86,
       "strategy": "VWAP Trend",
       "composite_score": 74.42,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 8932.0,
@@ -92,7 +76,7 @@
       "take_profit": 3657.19,
       "strategy": "ADX Trend Following",
       "composite_score": 43.82,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 3320.0,
@@ -855,6 +839,18 @@
       "pnl": 668.72,
       "pnl_pct": 7.53,
       "exit_reason": "take_profit"
+    },
+    {
+      "ticker": "WEIR.L",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-07-24",
+      "exit_date": "2026-08-07",
+      "entry_price": 2606.0,
+      "exit_price": 2688.0,
+      "qty": 3.2453,
+      "pnl": 266.11,
+      "pnl_pct": 3.15,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1529,7 +1525,15 @@
       "num_positions": 6,
       "total_pnl": 1584.32,
       "total_pnl_pct": 3.17
+    },
+    {
+      "date": "2026-08-07",
+      "equity": 51477.09,
+      "cash": 9167.23,
+      "num_positions": 5,
+      "total_pnl": 1477.09,
+      "total_pnl_pct": 2.95
     }
   ],
-  "last_run_date": "2026-08-06"
+  "last_run_date": "2026-08-07"
 }
