@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 27.88,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": NaN,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 37.18,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -1717,7 +1717,15 @@
       "num_positions": 2,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-08-09",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 2,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-08-06"
+  "last_run_date": "2026-08-09"
 }
