@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "8697.T",
-      "entry_date": "2026-07-28",
-      "entry_price": NaN,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": NaN,
-      "take_profit": NaN,
-      "strategy": "Composite Multi-Indicator",
-      "composite_score": 27.88,
-      "holding_days": 9,
-      "confidence": "LOW",
-      "confidence_score": 1,
-      "max_price": NaN,
-      "min_price": NaN
-    },
-    {
       "ticker": "8002.T",
       "entry_date": "2026-07-29",
       "entry_price": NaN,
@@ -28,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 37.18,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -1043,6 +1027,18 @@
       "pnl": NaN,
       "pnl_pct": 13.73,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "8697.T",
+      "strategy": "Composite Multi-Indicator",
+      "entry_date": "2026-07-28",
+      "exit_date": "2026-08-11",
+      "entry_price": NaN,
+      "exit_price": 2260.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": NaN,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -1733,7 +1729,15 @@
       "num_positions": 2,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-08-11",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 1,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-08-10"
+  "last_run_date": "2026-08-11"
 }
