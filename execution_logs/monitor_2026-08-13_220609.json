@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-08-13T22:06:09",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ADSK",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "ADSK up 9.0% \u2014 tightening SL from $237.66 to $237.71 (Chandelier: HH=$258.01, ATR=10.15)",
+      "action_taken": "DRY RUN: would tighten SL",
+      "current_price": 258.01,
+      "entry_price": 236.7,
+      "pnl_pct": 9.0,
+      "timestamp": "2026-08-13T22:06:08"
+    }
+  ]
+}
