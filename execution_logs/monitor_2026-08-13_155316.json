@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-08-13T15:53:16",
+  "positions_checked": 3,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "EXPD",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EXPD missing stop loss leg. P&L: -0.4%",
+      "action_taken": "Reattached OCO: SL=$175.49, TP=$203.2",
+      "current_price": 184.73,
+      "entry_price": 185.45,
+      "pnl_pct": -0.39,
+      "timestamp": "2026-08-13T15:53:15"
+    }
+  ]
+}
