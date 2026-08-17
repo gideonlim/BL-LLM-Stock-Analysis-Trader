@@ -3,15 +3,15 @@
     "strategy": "Momentum (Rate of Change)",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.1654,
-    "rolling_win_rate": 0.5,
+    "rolling_sharpe": 0.2406,
+    "rolling_win_rate": 0.5556,
     "baseline_win_rate": 1.0,
-    "consec_losses": 2,
-    "mean_r": 0.03,
+    "consec_losses": 0,
+    "mean_r": 0.0756,
     "strategy_drawdown_pct": 5.9,
-    "closed_trades": 8,
+    "closed_trades": 9,
     "last_transition": "2026-07-23T16:04:51",
-    "note": "win rate dropped 50.0pp from baseline"
+    "note": "win rate dropped 44.4pp from baseline"
   },
   "VWAP Trend": {
     "strategy": "VWAP Trend",
@@ -23,7 +23,7 @@
     "consec_losses": 6,
     "mean_r": -0.0558,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 89,
+    "closed_trades": 85,
     "last_transition": "2026-07-08T16:13:18",
     "note": "rolling Sharpe -0.16 < 0.0; win rate dropped 53.3pp from baseline; 6 consecutive losses"
   },
