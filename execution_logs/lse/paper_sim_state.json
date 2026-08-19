@@ -1568,7 +1568,15 @@
       "num_positions": 0,
       "total_pnl": 1503.35,
       "total_pnl_pct": 3.01
+    },
+    {
+      "date": "2026-08-19",
+      "equity": 51503.35,
+      "cash": 51503.35,
+      "num_positions": 0,
+      "total_pnl": 1503.35,
+      "total_pnl_pct": 3.01
     }
   ],
-  "last_run_date": "2026-08-18"
+  "last_run_date": "2026-08-19"
 }
