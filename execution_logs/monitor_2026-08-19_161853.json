@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-08-19T16:18:53",
+  "positions_checked": 2,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FCN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "FCN up 3.8% \u2014 moving SL to breakeven $150.13 (was $141.01)",
+      "action_taken": "SL moved to breakeven $150.13",
+      "current_price": 155.865,
+      "entry_price": 150.13,
+      "pnl_pct": 3.82,
+      "timestamp": "2026-08-19T16:18:53"
+    }
+  ]
+}
