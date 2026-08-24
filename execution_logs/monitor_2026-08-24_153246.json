@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-08-24T15:32:46",
+  "positions_checked": 2,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BURL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 3d (2026-08-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 327.3,
+      "entry_price": 329.478,
+      "pnl_pct": -0.66,
+      "timestamp": "2026-08-24T15:32:45"
+    },
+    {
+      "ticker": "EXPD",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EXPD missing stop loss leg. P&L: -0.4%",
+      "action_taken": "Reattached OCO: SL=$177.24, TP=$205.23",
+      "current_price": 186.57,
+      "entry_price": 187.36,
+      "pnl_pct": -0.42,
+      "timestamp": "2026-08-24T15:32:45"
+    }
+  ]
+}
