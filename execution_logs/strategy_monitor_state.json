@@ -1,4 +1,18 @@
 {
+  "Stochastic Oscillator": {
+    "strategy": "Stochastic Oscillator",
+    "state": "ACTIVE",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": 0.0,
+    "rolling_win_rate": 1.0,
+    "baseline_win_rate": 1.0,
+    "consec_losses": 0,
+    "mean_r": 0.52,
+    "strategy_drawdown_pct": 0.0,
+    "closed_trades": 1,
+    "last_transition": "",
+    "note": "Insufficient trade history (1/5)"
+  },
   "VWAP Trend": {
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
@@ -15,17 +29,17 @@
   },
   "Momentum (Rate of Change)": {
     "strategy": "Momentum (Rate of Change)",
-    "state": "CAUTION",
-    "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.4272,
-    "rolling_win_rate": 0.625,
+    "state": "SUSPENDED",
+    "prev_state": "CAUTION",
+    "rolling_sharpe": 0.4397,
+    "rolling_win_rate": 0.6667,
     "baseline_win_rate": 1.0,
     "consec_losses": 0,
-    "mean_r": 0.265,
+    "mean_r": 0.27,
     "strategy_drawdown_pct": 5.9,
-    "closed_trades": 8,
-    "last_transition": "2026-08-21T14:54:40",
-    "note": "rolling Sharpe 0.43 < 0.5; win rate dropped 37.5pp from baseline"
+    "closed_trades": 9,
+    "last_transition": "2026-08-24T15:01:34",
+    "note": "win rate dropped 33.3pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
