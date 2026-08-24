@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-08-24T17:26:48",
+  "positions_checked": 2,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BURL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 3d (2026-08-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 325.0,
+      "entry_price": 329.478,
+      "pnl_pct": -1.36,
+      "timestamp": "2026-08-24T17:26:48"
+    }
+  ]
+}
