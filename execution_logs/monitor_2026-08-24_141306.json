@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-08-24T14:13:06",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "BURL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 3d (2026-08-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 327.55,
+      "entry_price": 329.478,
+      "pnl_pct": -0.59,
+      "timestamp": "2026-08-24T14:13:03"
+    },
+    {
+      "ticker": "EXPD",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "EXPD exceeded max hold period (10 days). P&L: +1.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 188.695,
+      "entry_price": 185.45,
+      "pnl_pct": 1.75,
+      "timestamp": "2026-08-24T14:13:04"
+    },
+    {
+      "ticker": "FCN",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "FCN exceeded max hold period (10 days). P&L: +4.4%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 156.795,
+      "entry_price": 150.13,
+      "pnl_pct": 4.44,
+      "timestamp": "2026-08-24T14:13:05"
+    }
+  ]
+}
