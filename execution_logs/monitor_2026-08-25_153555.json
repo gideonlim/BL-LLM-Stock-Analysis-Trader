@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-08-25T15:35:55",
+  "positions_checked": 4,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ALK",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ALK missing stop loss leg. P&L: +0.4%",
+      "action_taken": "Reattached OCO: SL=$40.5, TP=$46.89",
+      "current_price": 42.63,
+      "entry_price": 42.44,
+      "pnl_pct": 0.45,
+      "timestamp": "2026-08-25T15:35:52"
+    },
+    {
+      "ticker": "BURL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-08-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 319.57,
+      "entry_price": 329.478,
+      "pnl_pct": -3.01,
+      "timestamp": "2026-08-25T15:35:53"
+    },
+    {
+      "ticker": "M",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "M missing stop loss leg. P&L: +0.3%",
+      "action_taken": "Reattached OCO: SL=$21.61, TP=$25.02",
+      "current_price": 22.745,
+      "entry_price": 22.68,
+      "pnl_pct": 0.29,
+      "timestamp": "2026-08-25T15:35:54"
+    }
+  ]
+}
