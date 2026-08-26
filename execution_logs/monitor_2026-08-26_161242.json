@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-08-26T16:12:42",
+  "positions_checked": 8,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AMZN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "AMZN missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$245.76, TP=$284.56",
+      "current_price": 258.69,
+      "entry_price": 258.934401,
+      "pnl_pct": -0.09,
+      "timestamp": "2026-08-26T16:12:37"
+    },
+    {
+      "ticker": "BA",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BA missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$200.59, TP=$232.27",
+      "current_price": 211.15,
+      "entry_price": 210.92,
+      "pnl_pct": 0.11,
+      "timestamp": "2026-08-26T16:12:38"
+    },
+    {
+      "ticker": "BURL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-08-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 314.835,
+      "entry_price": 329.478,
+      "pnl_pct": -4.44,
+      "timestamp": "2026-08-26T16:12:39"
+    },
+    {
+      "ticker": "GE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "GE missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$336.23, TP=$389.32",
+      "current_price": 353.93,
+      "entry_price": 354.27,
+      "pnl_pct": -0.1,
+      "timestamp": "2026-08-26T16:12:40"
+    },
+    {
+      "ticker": "INCY",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "INCY missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$122.02, TP=$141.29",
+      "current_price": 128.445,
+      "entry_price": 128.5,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-08-26T16:12:41"
+    }
+  ]
+}
