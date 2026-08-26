@@ -23,14 +23,14 @@
     "consec_losses": 6,
     "mean_r": -0.0558,
     "strategy_drawdown_pct": 45.58,
-    "closed_trades": 74,
+    "closed_trades": 73,
     "last_transition": "2026-07-08T16:13:18",
     "note": "rolling Sharpe -0.16 < 0.0; win rate dropped 53.3pp from baseline; 6 consecutive losses"
   },
   "Momentum (Rate of Change)": {
     "strategy": "Momentum (Rate of Change)",
-    "state": "CAUTION",
-    "prev_state": "SUSPENDED",
+    "state": "SUSPENDED",
+    "prev_state": "CAUTION",
     "rolling_sharpe": 0.4397,
     "rolling_win_rate": 0.6667,
     "baseline_win_rate": 1.0,
@@ -38,8 +38,8 @@
     "mean_r": 0.27,
     "strategy_drawdown_pct": 5.9,
     "closed_trades": 9,
-    "last_transition": "2026-08-25T15:06:34",
-    "note": "rolling Sharpe 0.44 < 0.5; win rate dropped 33.3pp from baseline"
+    "last_transition": "2026-08-26T15:55:29",
+    "note": "win rate dropped 33.3pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",

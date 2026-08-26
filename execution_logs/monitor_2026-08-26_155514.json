@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-08-26T15:55:14",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BURL",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 1d (2026-08-27) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 313.315,
+      "entry_price": 329.478,
+      "pnl_pct": -4.91,
+      "timestamp": "2026-08-26T15:55:12"
+    },
+    {
+      "ticker": "EXPD",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "EXPD up 2.0% \u2014 moving SL to breakeven $187.36 (was $180.26)",
+      "action_taken": "SL moved to breakeven $187.36",
+      "current_price": 191.14,
+      "entry_price": 187.36,
+      "pnl_pct": 2.02,
+      "timestamp": "2026-08-26T15:55:13"
+    }
+  ]
+}
