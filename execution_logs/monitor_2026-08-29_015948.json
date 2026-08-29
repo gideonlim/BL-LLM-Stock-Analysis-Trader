@@ -1,0 +1,76 @@
+{
+  "monitored_at": "2026-08-29T01:59:48",
+  "positions_checked": 12,
+  "orphaned": 5,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AMZN",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "AMZN up 2.9% \u2014 moving SL to breakeven $258.93 (was $247.87)",
+      "action_taken": "DRY RUN: would move SL to breakeven",
+      "current_price": 266.39,
+      "entry_price": 258.9344,
+      "pnl_pct": 2.88,
+      "timestamp": "2026-08-29T01:59:44"
+    },
+    {
+      "ticker": "FND",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FND missing stop loss leg. P&L: -1.8%",
+      "action_taken": "DRY RUN: would place OCO with SL=$50.33 and TP=$58.28",
+      "current_price": 52.98,
+      "entry_price": 53.93,
+      "pnl_pct": -1.76,
+      "timestamp": "2026-08-29T01:59:45"
+    },
+    {
+      "ticker": "HBAN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "HBAN missing stop loss leg. P&L: -0.3%",
+      "action_taken": "DRY RUN: would place OCO with SL=$16.07 and TP=$18.61",
+      "current_price": 16.92,
+      "entry_price": 16.975066,
+      "pnl_pct": -0.32,
+      "timestamp": "2026-08-29T01:59:46"
+    },
+    {
+      "ticker": "ILMN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ILMN missing stop loss leg. P&L: -3.5%",
+      "action_taken": "DRY RUN: would place OCO with SL=$204.86 and TP=$237.21",
+      "current_price": 215.645,
+      "entry_price": 223.57871,
+      "pnl_pct": -3.55,
+      "timestamp": "2026-08-29T01:59:47"
+    },
+    {
+      "ticker": "LMT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "LMT missing stop loss leg. P&L: -0.8%",
+      "action_taken": "DRY RUN: would place OCO with SL=$535.75 and TP=$620.34",
+      "current_price": 563.945,
+      "entry_price": 568.62,
+      "pnl_pct": -0.82,
+      "timestamp": "2026-08-29T01:59:47"
+    },
+    {
+      "ticker": "XPO",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XPO missing stop loss leg. P&L: -2.9%",
+      "action_taken": "DRY RUN: would place OCO with SL=$179.13 and TP=$207.42",
+      "current_price": 188.56,
+      "entry_price": 194.195556,
+      "pnl_pct": -2.9,
+      "timestamp": "2026-08-29T01:59:48"
+    }
+  ]
+}
