@@ -1,0 +1,54 @@
+{
+  "monitored_at": "2026-08-31T19:35:24",
+  "positions_checked": 9,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "FND",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "FND missing stop loss leg. P&L: -7.1%",
+      "action_taken": "Reattached OCO: SL=$47.61, TP=$55.13",
+      "current_price": 50.12,
+      "entry_price": 53.93,
+      "pnl_pct": -7.06,
+      "timestamp": "2026-08-31T19:35:20"
+    },
+    {
+      "ticker": "HBAN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "HBAN missing stop loss leg. P&L: -1.6%",
+      "action_taken": "Reattached OCO: SL=$15.86, TP=$18.36",
+      "current_price": 16.695,
+      "entry_price": 16.975066,
+      "pnl_pct": -1.65,
+      "timestamp": "2026-08-31T19:35:21"
+    },
+    {
+      "ticker": "LMT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "LMT missing stop loss leg. P&L: -1.5%",
+      "action_taken": "Reattached OCO: SL=$532.26, TP=$616.3",
+      "current_price": 560.27,
+      "entry_price": 568.62,
+      "pnl_pct": -1.47,
+      "timestamp": "2026-08-31T19:35:22"
+    },
+    {
+      "ticker": "XPO",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XPO missing stop loss leg. P&L: +0.1%",
+      "action_taken": "Reattached OCO: SL=$184.67, TP=$213.83",
+      "current_price": 194.39,
+      "entry_price": 194.195556,
+      "pnl_pct": 0.1,
+      "timestamp": "2026-08-31T19:35:23"
+    }
+  ]
+}
