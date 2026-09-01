@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-09-01T17:24:37",
+  "positions_checked": 7,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 1,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "FND",
+      "type": "emergency_loss",
+      "severity": "critical",
+      "message": "FND down -10.0% from entry ($53.93 -> $48.53) \u2014 exceeds emergency threshold (8.0%)",
+      "action_taken": "Emergency close: submitted",
+      "current_price": 48.53,
+      "entry_price": 53.93,
+      "pnl_pct": -10.01,
+      "timestamp": "2026-09-01T17:24:35"
+    }
+  ]
+}
