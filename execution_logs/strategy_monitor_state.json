@@ -1,17 +1,17 @@
 {
   "Stochastic Oscillator": {
     "strategy": "Stochastic Oscillator",
-    "state": "ACTIVE",
+    "state": "CAUTION",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": -0.5212,
-    "rolling_win_rate": 0.3333,
+    "rolling_sharpe": -1.0681,
+    "rolling_win_rate": 0.1667,
     "baseline_win_rate": 1.0,
-    "consec_losses": 2,
-    "mean_r": -0.6933,
-    "strategy_drawdown_pct": 10.96,
-    "closed_trades": 3,
-    "last_transition": "",
-    "note": "Insufficient trade history (3/5)"
+    "consec_losses": 5,
+    "mean_r": -0.7483,
+    "strategy_drawdown_pct": 30.65,
+    "closed_trades": 6,
+    "last_transition": "2026-09-01T17:51:10",
+    "note": "rolling Sharpe -1.07 < 0.5; win rate dropped 83.3pp from baseline; 5 consecutive losses"
   },
   "VWAP Trend": {
     "strategy": "VWAP Trend",
@@ -22,8 +22,8 @@
     "baseline_win_rate": 0.8333,
     "consec_losses": 6,
     "mean_r": -0.0558,
-    "strategy_drawdown_pct": 35.01,
-    "closed_trades": 69,
+    "strategy_drawdown_pct": 24.84,
+    "closed_trades": 65,
     "last_transition": "2026-07-08T16:13:18",
     "note": "rolling Sharpe -0.16 < 0.0; win rate dropped 53.3pp from baseline; 6 consecutive losses"
   },
@@ -31,15 +31,15 @@
     "strategy": "Momentum (Rate of Change)",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": 0.0935,
-    "rolling_win_rate": 0.5455,
+    "rolling_sharpe": 0.087,
+    "rolling_win_rate": 0.5,
     "baseline_win_rate": 1.0,
-    "consec_losses": 2,
-    "mean_r": -0.0009,
-    "strategy_drawdown_pct": 12.55,
-    "closed_trades": 11,
+    "consec_losses": 3,
+    "mean_r": -0.0042,
+    "strategy_drawdown_pct": 12.71,
+    "closed_trades": 12,
     "last_transition": "2026-08-28T23:34:39",
-    "note": "win rate dropped 45.5pp from baseline"
+    "note": "win rate dropped 50.0pp from baseline"
   },
   "ADX Trend Following": {
     "strategy": "ADX Trend Following",
