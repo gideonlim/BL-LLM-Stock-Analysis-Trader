@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-09-03T18:17:39",
+  "positions_checked": 5,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "INCY",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "INCY missing stop loss leg. P&L: -0.0%",
+      "action_taken": "Reattached OCO: SL=$122.26, TP=$141.57",
+      "current_price": 128.7,
+      "entry_price": 128.72,
+      "pnl_pct": -0.02,
+      "timestamp": "2026-09-03T18:17:38"
+    }
+  ]
+}

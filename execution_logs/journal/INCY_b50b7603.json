@@ -23,16 +23,16 @@
   "initial_risk_dollars": 321.42,
   "initial_reward_dollars": 949.74,
   "planned_rr_ratio": 2.95,
-  "exit_price": 121.55,
-  "exit_date": "2026-08-31T19:35:17",
-  "exit_reason": "stop_loss",
+  "exit_price": 0.0,
+  "exit_date": "",
+  "exit_reason": "",
   "exit_order_id": "",
-  "exit_fill_price": 121.55,
-  "exit_slippage": 0.47,
-  "realized_pnl": -458.7,
-  "realized_pnl_pct": -5.41,
-  "r_multiple": -1.43,
-  "holding_days": 5,
+  "exit_fill_price": 0.0,
+  "exit_slippage": 0.0,
+  "realized_pnl": 0.0,
+  "realized_pnl_pct": 0.0,
+  "r_multiple": 0.0,
+  "holding_days": 0,
   "max_favorable_excursion": 128.975,
   "max_adverse_excursion": 124.385,
   "mfe_pct": 0.37,
@@ -59,11 +59,15 @@
     {
       "date": "2026-08-29",
       "price": 124.39
+    },
+    {
+      "date": "2026-09-03",
+      "price": 128.7
     }
   ],
-  "status": "closed",
+  "status": "open",
   "opened_at": "2026-08-26T15:56:00",
-  "closed_at": "2026-08-31T19:35:17",
+  "closed_at": "",
   "tags": [],
   "notes": "",
   "trade_type": "swing"
