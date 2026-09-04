@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-09-04T16:59:37",
+  "positions_checked": 5,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "M",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "M exceeded max hold period (10 days). P&L: +0.7%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 22.85,
+      "entry_price": 22.68,
+      "pnl_pct": 0.75,
+      "timestamp": "2026-09-04T16:59:36"
+    }
+  ]
+}
