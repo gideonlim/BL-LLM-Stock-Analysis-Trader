@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-09-07T20:58:50",
+  "positions_checked": 4,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AMZN",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "AMZN exceeded max hold period (10 days). P&L: -0.2%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 258.405,
+      "entry_price": 258.9344,
+      "pnl_pct": -0.2,
+      "timestamp": "2026-09-07T20:58:48"
+    },
+    {
+      "ticker": "BA",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "BA exceeded max hold period (10 days). P&L: +0.6%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 212.195,
+      "entry_price": 210.92,
+      "pnl_pct": 0.6,
+      "timestamp": "2026-09-07T20:58:48"
+    },
+    {
+      "ticker": "HBAN",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "HBAN exceeded max hold period (10 days). P&L: +0.3%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 17.03,
+      "entry_price": 16.975066,
+      "pnl_pct": 0.32,
+      "timestamp": "2026-09-07T20:58:49"
+    }
+  ]
+}
