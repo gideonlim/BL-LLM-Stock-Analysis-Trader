@@ -12,10 +12,10 @@
       "take_profit": NaN,
       "strategy": "VWAP Trend",
       "composite_score": 65.96,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 6,
-      "max_price": 1409.0,
+      "max_price": 1422.0,
       "min_price": 1389.0
     },
     {
@@ -28,11 +28,11 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 33.44,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 2258.0,
-      "min_price": 2256.5
+      "min_price": 2069.5
     }
   ],
   "closed_trades": [
@@ -1925,7 +1925,15 @@
       "num_positions": 2,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-09-09",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 2,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-09-08"
+  "last_run_date": "2026-09-09"
 }
