@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-09-18T18:00:49",
+  "positions_checked": 1,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "EXEL",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "EXEL missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$55.24, TP=$63.97",
+      "current_price": 58.15,
+      "entry_price": 58.26,
+      "pnl_pct": -0.19,
+      "timestamp": "2026-09-18T18:00:48"
+    }
+  ]
+}
