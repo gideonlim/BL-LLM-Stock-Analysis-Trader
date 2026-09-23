@@ -1996,7 +1996,15 @@
       "num_positions": 0,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-09-23",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 0,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-09-22"
+  "last_run_date": "2026-09-23"
 }
