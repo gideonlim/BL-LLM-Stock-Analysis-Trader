@@ -1,17 +1,17 @@
 {
-  "Stochastic Oscillator": {
-    "strategy": "Stochastic Oscillator",
+  "ADX Trend Following": {
+    "strategy": "ADX Trend Following",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": -0.7782,
-    "rolling_win_rate": 0.2727,
-    "baseline_win_rate": 1.0,
-    "consec_losses": 0,
-    "mean_r": -0.5527,
-    "strategy_drawdown_pct": 37.84,
-    "closed_trades": 11,
-    "last_transition": "2026-09-02T17:56:01",
-    "note": "rolling Sharpe -0.78 < 0.0; win rate dropped 72.7pp from baseline"
+    "rolling_sharpe": -0.9051,
+    "rolling_win_rate": 0.2857,
+    "baseline_win_rate": 0.0,
+    "consec_losses": 1,
+    "mean_r": -0.3833,
+    "strategy_drawdown_pct": 12.68,
+    "closed_trades": 7,
+    "last_transition": "2026-07-28T16:17:17",
+    "note": "rolling Sharpe -0.91 < 0.0"
   },
   "Momentum (Rate of Change)": {
     "strategy": "Momentum (Rate of Change)",
@@ -27,6 +27,20 @@
     "last_transition": "2026-08-28T23:34:39",
     "note": "win rate dropped 50.0pp from baseline"
   },
+  "Stochastic Oscillator": {
+    "strategy": "Stochastic Oscillator",
+    "state": "SUSPENDED",
+    "prev_state": "SUSPENDED",
+    "rolling_sharpe": -0.7782,
+    "rolling_win_rate": 0.2727,
+    "baseline_win_rate": 1.0,
+    "consec_losses": 1,
+    "mean_r": -0.5527,
+    "strategy_drawdown_pct": 37.2,
+    "closed_trades": 11,
+    "last_transition": "2026-09-02T17:56:01",
+    "note": "rolling Sharpe -0.78 < 0.0; win rate dropped 72.7pp from baseline"
+  },
   "VWAP Trend": {
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
@@ -36,24 +50,10 @@
     "baseline_win_rate": 0.8333,
     "consec_losses": 6,
     "mean_r": -0.2579,
-    "strategy_drawdown_pct": 33.54,
-    "closed_trades": 27,
+    "strategy_drawdown_pct": 28.12,
+    "closed_trades": 23,
     "last_transition": "2026-07-08T16:13:18",
     "note": "rolling Sharpe -0.36 < 0.0; win rate dropped 63.3pp from baseline; 6 consecutive losses"
-  },
-  "MACD Crossover": {
-    "strategy": "MACD Crossover",
-    "state": "ACTIVE",
-    "prev_state": "ACTIVE",
-    "rolling_sharpe": 0.0569,
-    "rolling_win_rate": 0.5,
-    "baseline_win_rate": 0.0,
-    "consec_losses": 0,
-    "mean_r": 0.12,
-    "strategy_drawdown_pct": 1.83,
-    "closed_trades": 2,
-    "last_transition": "",
-    "note": "Insufficient trade history (2/5)"
   },
   "EMA Crossover (9/21)": {
     "strategy": "EMA Crossover (9/21)",
@@ -69,19 +69,19 @@
     "last_transition": "",
     "note": "Insufficient trade history (1/5)"
   },
-  "ADX Trend Following": {
-    "strategy": "ADX Trend Following",
-    "state": "SUSPENDED",
-    "prev_state": "SUSPENDED",
-    "rolling_sharpe": -0.9051,
-    "rolling_win_rate": 0.2857,
+  "MACD Crossover": {
+    "strategy": "MACD Crossover",
+    "state": "ACTIVE",
+    "prev_state": "ACTIVE",
+    "rolling_sharpe": 0.0569,
+    "rolling_win_rate": 0.5,
     "baseline_win_rate": 0.0,
-    "consec_losses": 2,
-    "mean_r": -0.3833,
-    "strategy_drawdown_pct": 12.68,
-    "closed_trades": 7,
-    "last_transition": "2026-07-28T16:17:17",
-    "note": "rolling Sharpe -0.91 < 0.0"
+    "consec_losses": 0,
+    "mean_r": 0.12,
+    "strategy_drawdown_pct": 1.83,
+    "closed_trades": 2,
+    "last_transition": "",
+    "note": "Insufficient trade history (2/5)"
   },
   "52-Week High Momentum": {
     "strategy": "52-Week High Momentum",
