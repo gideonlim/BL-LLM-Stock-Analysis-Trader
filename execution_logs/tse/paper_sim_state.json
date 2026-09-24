@@ -1,7 +1,56 @@
 {
   "starting_equity": 50000.0,
   "cash": NaN,
-  "positions": [],
+  "positions": [
+    {
+      "ticker": "2802.T",
+      "entry_date": "2026-09-24",
+      "entry_price": 4998.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 4807.08,
+      "take_profit": 5475.31,
+      "strategy": "VWAP Trend",
+      "composite_score": 32.22,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 2,
+      "max_price": 4998.0,
+      "min_price": 4998.0
+    },
+    {
+      "ticker": "8304.T",
+      "entry_date": "2026-09-24",
+      "entry_price": 3403.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 3276.07,
+      "take_profit": 3847.09,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 30.43,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 3403.0,
+      "min_price": 3403.0
+    },
+    {
+      "ticker": "5108.T",
+      "entry_date": "2026-09-24",
+      "entry_price": 3801.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 3683.93,
+      "take_profit": 4093.68,
+      "strategy": "Stochastic Oscillator",
+      "composite_score": 25.73,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
+      "max_price": 3801.0,
+      "min_price": 3801.0
+    }
+  ],
   "closed_trades": [
     {
       "ticker": "4324.T",
@@ -2004,7 +2053,15 @@
       "num_positions": 0,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-09-24",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-09-23"
+  "last_run_date": "2026-09-24"
 }
