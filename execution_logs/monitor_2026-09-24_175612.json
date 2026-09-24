@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-09-24T17:56:12",
+  "positions_checked": 2,
+  "orphaned": 0,
+  "stale": 1,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "UNG",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "UNG up 7.8% \u2014 moving SL to breakeven $10.79 (was $10.35)",
+      "action_taken": "SL moved to breakeven $10.79",
+      "current_price": 11.63,
+      "entry_price": 10.793269,
+      "pnl_pct": 7.75,
+      "timestamp": "2026-09-24T17:56:11"
+    },
+    {
+      "ticker": "UNG",
+      "type": "stale_bracket",
+      "severity": "info",
+      "message": "UNG up 7.8% \u2014 tightening SL from $10.79 to $11.03 (Chandelier: HH=$11.63, ATR=0.30)",
+      "action_taken": "Failed to replace SL",
+      "current_price": 11.63,
+      "entry_price": 10.793269,
+      "pnl_pct": 7.75,
+      "timestamp": "2026-09-24T17:56:12"
+    }
+  ]
+}
