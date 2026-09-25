@@ -45,15 +45,15 @@
     "strategy": "VWAP Trend",
     "state": "SUSPENDED",
     "prev_state": "SUSPENDED",
-    "rolling_sharpe": -0.3551,
-    "rolling_win_rate": 0.2,
+    "rolling_sharpe": -0.3446,
+    "rolling_win_rate": 0.1579,
     "baseline_win_rate": 0.8333,
     "consec_losses": 6,
-    "mean_r": -0.2579,
-    "strategy_drawdown_pct": 28.12,
-    "closed_trades": 22,
+    "mean_r": -0.2383,
+    "strategy_drawdown_pct": 26.18,
+    "closed_trades": 19,
     "last_transition": "2026-07-08T16:13:18",
-    "note": "rolling Sharpe -0.36 < 0.0; win rate dropped 63.3pp from baseline; 6 consecutive losses"
+    "note": "rolling Sharpe -0.34 < 0.0; win rate dropped 67.5pp from baseline; 6 consecutive losses"
   },
   "EMA Crossover (9/21)": {
     "strategy": "EMA Crossover (9/21)",
@@ -73,15 +73,15 @@
     "strategy": "MACD Crossover",
     "state": "ACTIVE",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": 0.0569,
-    "rolling_win_rate": 0.5,
+    "rolling_sharpe": 0.3719,
+    "rolling_win_rate": 0.6667,
     "baseline_win_rate": 0.0,
     "consec_losses": 0,
-    "mean_r": 0.12,
+    "mean_r": 0.2667,
     "strategy_drawdown_pct": 1.83,
-    "closed_trades": 2,
+    "closed_trades": 3,
     "last_transition": "",
-    "note": "Insufficient trade history (2/5)"
+    "note": "Insufficient trade history (3/5)"
   },
   "52-Week High Momentum": {
     "strategy": "52-Week High Momentum",
