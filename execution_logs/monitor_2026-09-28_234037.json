@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-09-28T23:40:37",
+  "positions_checked": 1,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "EXEL",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "EXEL exceeded max hold period (10 days). P&L: +0.2%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 58.35,
+      "entry_price": 58.26,
+      "pnl_pct": 0.15,
+      "timestamp": "2026-09-28T23:40:37"
+    }
+  ]
+}
