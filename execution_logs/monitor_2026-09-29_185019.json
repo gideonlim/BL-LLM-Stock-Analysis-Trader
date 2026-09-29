@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-09-29T18:50:19",
+  "positions_checked": 1,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "EXEL",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "EXEL exceeded max hold period (10 days). P&L: +1.0%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 58.87,
+      "entry_price": 58.26,
+      "pnl_pct": 1.05,
+      "timestamp": "2026-09-29T18:50:19"
+    }
+  ]
+}
