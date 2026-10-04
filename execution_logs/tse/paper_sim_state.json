@@ -12,7 +12,7 @@
       "take_profit": 5475.31,
       "strategy": "VWAP Trend",
       "composite_score": 32.22,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 5260.0,
@@ -28,11 +28,11 @@
       "take_profit": 3847.09,
       "strategy": "52-Week High Momentum",
       "composite_score": 30.43,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 3549.0,
-      "min_price": 3403.0
+      "min_price": 3389.0
     },
     {
       "ticker": "5108.T",
@@ -44,11 +44,11 @@
       "take_profit": 4093.68,
       "strategy": "Stochastic Oscillator",
       "composite_score": 25.73,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 3842.0,
-      "min_price": 3801.0
+      "min_price": 3780.0
     }
   ],
   "closed_trades": [
@@ -2101,7 +2101,15 @@
       "num_positions": 3,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-10-04",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-10-01"
+  "last_run_date": "2026-10-04"
 }
