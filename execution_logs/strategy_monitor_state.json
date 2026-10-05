@@ -55,20 +55,6 @@
     "last_transition": "",
     "note": "Insufficient trade history (1/5)"
   },
-  "VWAP Trend": {
-    "strategy": "VWAP Trend",
-    "state": "SUSPENDED",
-    "prev_state": "SUSPENDED",
-    "rolling_sharpe": -1.1604,
-    "rolling_win_rate": 0.1,
-    "baseline_win_rate": 0.8333,
-    "consec_losses": 7,
-    "mean_r": -0.649,
-    "strategy_drawdown_pct": 35.66,
-    "closed_trades": 10,
-    "last_transition": "2026-07-08T16:13:18",
-    "note": "rolling Sharpe -1.16 < 0.0; win rate dropped 73.3pp from baseline; 7 consecutive losses"
-  },
   "MACD Crossover": {
     "strategy": "MACD Crossover",
     "state": "ACTIVE",
@@ -82,6 +68,20 @@
     "closed_trades": 4,
     "last_transition": "",
     "note": "Insufficient trade history (4/5)"
+  },
+  "VWAP Trend": {
+    "strategy": "VWAP Trend",
+    "state": "SUSPENDED",
+    "prev_state": "SUSPENDED",
+    "rolling_sharpe": -2.2806,
+    "rolling_win_rate": 0.0,
+    "baseline_win_rate": 0.8333,
+    "consec_losses": 5,
+    "mean_r": -0.972,
+    "strategy_drawdown_pct": 24.36,
+    "closed_trades": 5,
+    "last_transition": "2026-07-08T16:13:18",
+    "note": "rolling Sharpe -2.28 < 0.0; win rate dropped 83.3pp from baseline; 5 consecutive losses"
   },
   "52-Week High Momentum": {
     "strategy": "52-Week High Momentum",
