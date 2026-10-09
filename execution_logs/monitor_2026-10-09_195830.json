@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-10-09T19:58:30",
+  "positions_checked": 2,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DINO",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "DINO missing stop loss leg. P&L: -0.1%",
+      "action_taken": "Reattached OCO: SL=$114.9, TP=$133.04",
+      "current_price": 120.945,
+      "entry_price": 121.02,
+      "pnl_pct": -0.06,
+      "timestamp": "2026-10-09T19:58:28"
+    },
+    {
+      "ticker": "XLE",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "XLE missing stop loss leg. P&L: -0.2%",
+      "action_taken": "Reattached OCO: SL=$61.77, TP=$71.53",
+      "current_price": 65.025,
+      "entry_price": 65.16,
+      "pnl_pct": -0.21,
+      "timestamp": "2026-10-09T19:58:29"
+    }
+  ]
+}
