@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-10-13T19:57:34",
+  "positions_checked": 2,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "DINO",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "DINO up 6.1% \u2014 moving SL to breakeven $121.02 (was $113.39)",
+      "action_taken": "SL moved to breakeven $121.02",
+      "current_price": 128.37,
+      "entry_price": 121.02,
+      "pnl_pct": 6.07,
+      "timestamp": "2026-10-13T19:57:32"
+    },
+    {
+      "ticker": "XLE",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "XLE up 3.1% \u2014 moving SL to breakeven $65.16 (was $63.24)",
+      "action_taken": "SL moved to breakeven $65.16",
+      "current_price": 67.2,
+      "entry_price": 65.16,
+      "pnl_pct": 3.13,
+      "timestamp": "2026-10-13T19:57:33"
+    }
+  ]
+}
