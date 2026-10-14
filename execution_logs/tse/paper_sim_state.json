@@ -12,7 +12,7 @@
       "take_profit": 6173.14,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.65,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 5946.0,
@@ -2169,7 +2169,15 @@
       "num_positions": 1,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-10-14",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 1,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-10-13"
+  "last_run_date": "2026-10-14"
 }
