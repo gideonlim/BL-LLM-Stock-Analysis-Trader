@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-10-16T20:21:13",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "SSB",
+      "type": "earnings_approaching",
+      "severity": "info",
+      "message": "Earnings in 5d (2026-10-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 102.18,
+      "entry_price": 102.11,
+      "pnl_pct": 0.07,
+      "timestamp": "2026-10-16T20:21:13"
+    }
+  ]
+}
