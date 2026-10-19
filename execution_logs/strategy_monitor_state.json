@@ -31,15 +31,15 @@
     "strategy": "ADX Trend Following",
     "state": "ACTIVE",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": -1.0619,
-    "rolling_win_rate": 0.3333,
+    "rolling_sharpe": -0.7018,
+    "rolling_win_rate": 0.5,
     "baseline_win_rate": 0.0,
     "consec_losses": 1,
-    "mean_r": -0.66,
-    "strategy_drawdown_pct": 8.65,
-    "closed_trades": 3,
+    "mean_r": -0.67,
+    "strategy_drawdown_pct": 5.36,
+    "closed_trades": 2,
     "last_transition": "2026-07-28T16:17:17",
-    "note": "Insufficient trade history (3/5)"
+    "note": "Insufficient trade history (2/5)"
   },
   "VWAP Trend": {
     "strategy": "VWAP Trend",
@@ -59,28 +59,28 @@
     "strategy": "52-Week High Momentum",
     "state": "ACTIVE",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": 0.0,
-    "rolling_win_rate": 0.0,
+    "rolling_sharpe": -0.1881,
+    "rolling_win_rate": 0.5,
     "baseline_win_rate": 0.0,
-    "consec_losses": 1,
-    "mean_r": -1.24,
+    "consec_losses": 0,
+    "mean_r": -0.4,
     "strategy_drawdown_pct": 4.83,
-    "closed_trades": 1,
+    "closed_trades": 2,
     "last_transition": "",
-    "note": "Insufficient trade history (1/5)"
+    "note": "Insufficient trade history (2/5)"
   },
   "MACD Crossover": {
     "strategy": "MACD Crossover",
     "state": "ACTIVE",
     "prev_state": "ACTIVE",
-    "rolling_sharpe": 1.7651,
+    "rolling_sharpe": 1.5681,
     "rolling_win_rate": 1.0,
     "baseline_win_rate": 0.0,
     "consec_losses": 0,
-    "mean_r": 0.39,
+    "mean_r": 0.7233,
     "strategy_drawdown_pct": 0.0,
-    "closed_trades": 2,
+    "closed_trades": 3,
     "last_transition": "",
-    "note": "Insufficient trade history (2/5)"
+    "note": "Insufficient trade history (3/5)"
   }
 }
