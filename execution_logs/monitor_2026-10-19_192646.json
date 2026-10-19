@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-10-19T19:26:46",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 2,
+  "alerts": [
+    {
+      "ticker": "DINO",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "DINO exceeded max hold period (10 days). P&L: +2.9%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 124.515,
+      "entry_price": 121.02,
+      "pnl_pct": 2.89,
+      "timestamp": "2026-10-19T19:26:43"
+    },
+    {
+      "ticker": "SSB",
+      "type": "earnings_approaching",
+      "severity": "warning",
+      "message": "Earnings in 2d (2026-10-21) \u2014 consider closing to avoid gap risk",
+      "action_taken": "",
+      "current_price": 101.1,
+      "entry_price": 102.11,
+      "pnl_pct": -0.99,
+      "timestamp": "2026-10-19T19:26:44"
+    },
+    {
+      "ticker": "XLE",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "XLE exceeded max hold period (10 days). P&L: +4.1%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 67.84,
+      "entry_price": 65.16,
+      "pnl_pct": 4.11,
+      "timestamp": "2026-10-19T19:26:45"
+    }
+  ]
+}
