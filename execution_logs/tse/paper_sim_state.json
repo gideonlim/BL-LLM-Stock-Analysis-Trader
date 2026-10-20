@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "5201.T",
-      "entry_date": "2026-10-07",
-      "entry_price": 5946.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 5794.38,
-      "take_profit": 6173.14,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 37.65,
-      "holding_days": 8,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 5946.0,
-      "min_price": 5805.0
-    },
-    {
       "ticker": "6857.T",
       "entry_date": "2026-10-19",
       "entry_price": 34450.0,
@@ -28,7 +12,7 @@
       "take_profit": 48919.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 40.83,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 34450.0,
@@ -44,7 +28,7 @@
       "take_profit": 1728.11,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 39.7,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1657.5,
@@ -1143,6 +1127,18 @@
       "pnl": NaN,
       "pnl_pct": 2.13,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "5201.T",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-10-07",
+      "exit_date": "2026-10-20",
+      "entry_price": 5946.0,
+      "exit_price": 5794.38,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -2.55,
+      "exit_reason": "stop_loss"
     }
   ],
   "equity_history": [
@@ -2233,7 +2229,15 @@
       "num_positions": 3,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-10-20",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 2,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-10-19"
+  "last_run_date": "2026-10-20"
 }
