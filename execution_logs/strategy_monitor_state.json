@@ -27,20 +27,6 @@
     "last_transition": "2026-09-02T17:56:01",
     "note": "rolling Sharpe -0.78 < 0.0; win rate dropped 72.7pp from baseline"
   },
-  "ADX Trend Following": {
-    "strategy": "ADX Trend Following",
-    "state": "ACTIVE",
-    "prev_state": "ACTIVE",
-    "rolling_sharpe": -0.7018,
-    "rolling_win_rate": 0.5,
-    "baseline_win_rate": 0.0,
-    "consec_losses": 1,
-    "mean_r": -0.67,
-    "strategy_drawdown_pct": 5.36,
-    "closed_trades": 2,
-    "last_transition": "2026-07-28T16:17:17",
-    "note": "Insufficient trade history (2/5)"
-  },
   "VWAP Trend": {
     "strategy": "VWAP Trend",
     "state": "ACTIVE",
