@@ -12,11 +12,11 @@
       "take_profit": 48919.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 40.83,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 34450.0,
-      "min_price": 34450.0
+      "min_price": 33870.0
     },
     {
       "ticker": "2502.T",
@@ -28,10 +28,10 @@
       "take_profit": 1728.11,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 39.7,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 1657.5,
+      "max_price": 1675.5,
       "min_price": 1657.5
     }
   ],
@@ -2237,7 +2237,15 @@
       "num_positions": 2,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-10-21",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 2,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-10-20"
+  "last_run_date": "2026-10-21"
 }
