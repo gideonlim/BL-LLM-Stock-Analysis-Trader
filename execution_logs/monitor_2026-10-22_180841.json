@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-10-22T18:08:41",
+  "positions_checked": 1,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "SSB",
+      "type": "breakeven_stop",
+      "severity": "info",
+      "message": "SSB up 2.5% \u2014 moving SL to breakeven $102.11 (was $99.58)",
+      "action_taken": "SL moved to breakeven $102.11",
+      "current_price": 104.7,
+      "entry_price": 102.11,
+      "pnl_pct": 2.54,
+      "timestamp": "2026-10-22T18:08:41"
+    }
+  ]
+}
