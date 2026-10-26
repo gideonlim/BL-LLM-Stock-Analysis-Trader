@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-10-26T19:31:30",
+  "positions_checked": 1,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 1,
+  "alerts": [
+    {
+      "ticker": "SSB",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "SSB exceeded max hold period (10 days). P&L: +3.6%",
+      "action_taken": "Time-exit close: submitted",
+      "current_price": 105.83,
+      "entry_price": 102.11,
+      "pnl_pct": 3.64,
+      "timestamp": "2026-10-26T19:31:29"
+    }
+  ]
+}
