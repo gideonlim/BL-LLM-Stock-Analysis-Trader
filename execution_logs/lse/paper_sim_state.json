@@ -1,7 +1,72 @@
 {
   "starting_equity": 50000.0,
-  "cash": 51503.35053050257,
-  "positions": [],
+  "cash": 17167.783510167523,
+  "positions": [
+    {
+      "ticker": "CCEP.L",
+      "entry_date": "2026-10-26",
+      "entry_price": 8300.0,
+      "qty": 1.0342,
+      "notional": 8583.89,
+      "stop_loss": 8117.4,
+      "take_profit": 8939.1,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 37.72,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 8300.0,
+      "min_price": 8300.0
+    },
+    {
+      "ticker": "ABF.L",
+      "entry_date": "2026-10-26",
+      "entry_price": 1959.0,
+      "qty": 4.3818,
+      "notional": 8583.89,
+      "stop_loss": 1920.8,
+      "take_profit": 2054.6,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 35.36,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 3,
+      "max_price": 1959.0,
+      "min_price": 1959.0
+    },
+    {
+      "ticker": "RTO.L",
+      "entry_date": "2026-10-26",
+      "entry_price": 341.6,
+      "qty": 25.1285,
+      "notional": 8583.89,
+      "stop_loss": 330.05,
+      "take_profit": 358.92,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 35.19,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 341.6,
+      "min_price": 341.6
+    },
+    {
+      "ticker": "LMP.L",
+      "entry_date": "2026-10-26",
+      "entry_price": 181.9,
+      "qty": 47.1902,
+      "notional": 8583.89,
+      "stop_loss": 177.65,
+      "take_profit": 188.52,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 33.72,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 2,
+      "max_price": 181.9,
+      "min_price": 181.9
+    }
+  ],
   "closed_trades": [
     {
       "ticker": "NG.L",
@@ -1952,7 +2017,15 @@
       "num_positions": 0,
       "total_pnl": 1503.35,
       "total_pnl_pct": 3.01
+    },
+    {
+      "date": "2026-10-26",
+      "equity": 51503.38,
+      "cash": 17167.78,
+      "num_positions": 4,
+      "total_pnl": 1503.38,
+      "total_pnl_pct": 3.01
     }
   ],
-  "last_run_date": "2026-10-23"
+  "last_run_date": "2026-10-26"
 }
