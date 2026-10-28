@@ -12,27 +12,11 @@
       "take_profit": 48919.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 40.83,
-      "holding_days": 6,
+      "holding_days": 7,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 34450.0,
+      "max_price": 34930.0,
       "min_price": 31070.0
-    },
-    {
-      "ticker": "2502.T",
-      "entry_date": "2026-10-19",
-      "entry_price": 1657.5,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 1622.2,
-      "take_profit": 1728.11,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 39.7,
-      "holding_days": 6,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": 1702.0,
-      "min_price": 1657.5
     },
     {
       "ticker": "2802.T",
@@ -44,10 +28,10 @@
       "take_profit": 5781.06,
       "strategy": "VWAP Trend",
       "composite_score": 40.94,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 5110.0,
+      "max_price": 5129.0,
       "min_price": 5013.0
     },
     {
@@ -60,27 +44,11 @@
       "take_profit": 5334.91,
       "strategy": "ADX Trend Following",
       "composite_score": 40.06,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 5093.0,
-      "min_price": 5077.0
-    },
-    {
-      "ticker": "2801.T",
-      "entry_date": "2026-10-26",
-      "entry_price": 1870.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 1796.32,
-      "take_profit": 2127.87,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 38.28,
-      "holding_days": 1,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 1870.0,
-      "min_price": 1819.5
+      "min_price": 5042.0
     },
     {
       "ticker": "7267.T",
@@ -92,11 +60,43 @@
       "take_profit": 1940.76,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.17,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 1798.5,
-      "min_price": 1788.5
+      "min_price": 1762.5
+    },
+    {
+      "ticker": "7832.T",
+      "entry_date": "2026-10-28",
+      "entry_price": 5916.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 5613.69,
+      "take_profit": 6974.37,
+      "strategy": "VWAP Trend",
+      "composite_score": 65.58,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 6,
+      "max_price": 5916.0,
+      "min_price": 5916.0
+    },
+    {
+      "ticker": "6770.T",
+      "entry_date": "2026-10-28",
+      "entry_price": 2077.5,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 1990.24,
+      "take_profit": 2252.01,
+      "strategy": "Stochastic Oscillator",
+      "composite_score": 30.51,
+      "holding_days": 0,
+      "confidence": "LOW",
+      "confidence_score": 0,
+      "max_price": 2077.5,
+      "min_price": 2077.5
     }
   ],
   "closed_trades": [
@@ -1227,6 +1227,30 @@
       "pnl": NaN,
       "pnl_pct": 0.89,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "2502.T",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-10-19",
+      "exit_date": "2026-10-28",
+      "entry_price": 1657.5,
+      "exit_price": 1622.2,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -2.13,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "2801.T",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-10-26",
+      "exit_date": "2026-10-28",
+      "entry_price": 1870.0,
+      "exit_price": 1796.32,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -3.94,
+      "exit_reason": "stop_loss"
     }
   ],
   "equity_history": [
@@ -2365,7 +2389,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-10-28",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-10-27"
+  "last_run_date": "2026-10-28"
 }
