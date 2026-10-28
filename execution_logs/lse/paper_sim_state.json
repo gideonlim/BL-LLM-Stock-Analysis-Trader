@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 429.19458775418843,
+  "cash": 443.02486938770926,
   "positions": [
     {
       "ticker": "CCEP.L",
@@ -12,7 +12,7 @@
       "take_profit": 8939.1,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.72,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 8395.0,
@@ -28,11 +28,11 @@
       "take_profit": 2054.6,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 35.36,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1959.0,
-      "min_price": 1958.5
+      "min_price": 1921.5
     },
     {
       "ticker": "RTO.L",
@@ -44,7 +44,7 @@
       "take_profit": 358.92,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 35.19,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 347.3999938964844,
@@ -60,27 +60,11 @@
       "take_profit": 188.52,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 33.72,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 2,
-      "max_price": 182.5,
+      "max_price": 184.02999877929688,
       "min_price": 181.9
-    },
-    {
-      "ticker": "LSEG.L",
-      "entry_date": "2026-10-27",
-      "entry_price": 9338.0,
-      "qty": 0.9192,
-      "notional": 8583.89,
-      "stop_loss": 8891.64,
-      "take_profit": 10007.53,
-      "strategy": "VWAP Trend",
-      "composite_score": 53.16,
-      "holding_days": 0,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 9338.0,
-      "min_price": 9338.0
     },
     {
       "ticker": "GLEN.L",
@@ -92,11 +76,27 @@
       "take_profit": 646.9,
       "strategy": "Stochastic Oscillator",
       "composite_score": 51.51,
+      "holding_days": 1,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 545.5,
+      "min_price": 539.3
+    },
+    {
+      "ticker": "ALW.L",
+      "entry_date": "2026-10-28",
+      "entry_price": 1371.51,
+      "qty": 6.1374,
+      "notional": 8417.47,
+      "stop_loss": 1350.94,
+      "take_profit": 1443.51,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 28.79,
       "holding_days": 0,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 539.3,
-      "min_price": 539.3
+      "max_price": 1371.51,
+      "min_price": 1371.51
     }
   ],
   "closed_trades": [
@@ -927,6 +927,18 @@
       "pnl": 24.63,
       "pnl_pct": 0.29,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "LSEG.L",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-10-27",
+      "exit_date": "2026-10-28",
+      "entry_price": 9338.0,
+      "exit_price": 9172.0,
+      "qty": 0.9192,
+      "pnl": -152.59,
+      "pnl_pct": -1.78,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -2065,7 +2077,15 @@
       "num_positions": 6,
       "total_pnl": 1774.61,
       "total_pnl_pct": 3.55
+    },
+    {
+      "date": "2026-10-28",
+      "equity": 51428.82,
+      "cash": 443.02,
+      "num_positions": 6,
+      "total_pnl": 1428.82,
+      "total_pnl_pct": 2.86
     }
   ],
-  "last_run_date": "2026-10-27"
+  "last_run_date": "2026-10-28"
 }
