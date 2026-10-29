@@ -12,10 +12,10 @@
       "take_profit": 48919.0,
       "strategy": "Stochastic Oscillator",
       "composite_score": 40.83,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 34930.0,
+      "max_price": 37030.0,
       "min_price": 31070.0
     },
     {
@@ -28,10 +28,10 @@
       "take_profit": 5781.06,
       "strategy": "VWAP Trend",
       "composite_score": 40.94,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 5129.0,
+      "max_price": 5138.0,
       "min_price": 5013.0
     },
     {
@@ -44,11 +44,11 @@
       "take_profit": 5334.91,
       "strategy": "ADX Trend Following",
       "composite_score": 40.06,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 5093.0,
-      "min_price": 5042.0
+      "min_price": 4998.0
     },
     {
       "ticker": "7267.T",
@@ -60,7 +60,7 @@
       "take_profit": 1940.76,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.17,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 1798.5,
@@ -76,10 +76,10 @@
       "take_profit": 6974.37,
       "strategy": "VWAP Trend",
       "composite_score": 65.58,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 6,
-      "max_price": 5916.0,
+      "max_price": 5939.0,
       "min_price": 5916.0
     },
     {
@@ -92,11 +92,11 @@
       "take_profit": 2252.01,
       "strategy": "Stochastic Oscillator",
       "composite_score": 30.51,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 0,
       "max_price": 2077.5,
-      "min_price": 2077.5
+      "min_price": 2052.5
     }
   ],
   "closed_trades": [
@@ -2397,7 +2397,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-10-29",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-10-28"
+  "last_run_date": "2026-10-29"
 }
