@@ -12,10 +12,10 @@
       "take_profit": 8939.1,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.72,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 8465.0,
+      "max_price": 8485.0,
       "min_price": 8300.0
     },
     {
@@ -28,10 +28,10 @@
       "take_profit": 358.92,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 35.19,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 347.3999938964844,
+      "max_price": 350.79998779296875,
       "min_price": 341.6
     },
     {
@@ -44,7 +44,7 @@
       "take_profit": 188.52,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 33.72,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 185.3000030517578,
@@ -60,11 +60,11 @@
       "take_profit": 646.9,
       "strategy": "Stochastic Oscillator",
       "composite_score": 51.51,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 545.5,
-      "min_price": 536.0999755859375
+      "min_price": 519.9910278320312
     },
     {
       "ticker": "ALW.L",
@@ -76,11 +76,11 @@
       "take_profit": 1443.51,
       "strategy": "52-Week High Momentum",
       "composite_score": 28.79,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1372.0,
-      "min_price": 1371.51
+      "min_price": 1355.3499755859375
     },
     {
       "ticker": "BTRW.L",
@@ -92,10 +92,10 @@
       "take_profit": 372.42,
       "strategy": "VWAP Trend",
       "composite_score": 70.23,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 322.5,
+      "max_price": 324.70001220703125,
       "min_price": 322.5
     }
   ],
@@ -2105,7 +2105,15 @@
       "num_positions": 6,
       "total_pnl": 1541.96,
       "total_pnl_pct": 3.08
+    },
+    {
+      "date": "2026-10-30",
+      "equity": 51416.85,
+      "cash": 442.98,
+      "num_positions": 6,
+      "total_pnl": 1416.85,
+      "total_pnl_pct": 2.83
     }
   ],
-  "last_run_date": "2026-10-29"
+  "last_run_date": "2026-10-30"
 }
