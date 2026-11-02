@@ -3,38 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "6857.T",
-      "entry_date": "2026-10-19",
-      "entry_price": 34450.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 30316.0,
-      "take_profit": 48919.0,
-      "strategy": "Stochastic Oscillator",
-      "composite_score": 40.83,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 37030.0,
-      "min_price": 31070.0
-    },
-    {
-      "ticker": "8002.T",
-      "entry_date": "2026-10-26",
-      "entry_price": 5077.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 4904.89,
-      "take_profit": 5334.91,
-      "strategy": "ADX Trend Following",
-      "composite_score": 40.06,
-      "holding_days": 4,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 5093.0,
-      "min_price": 4929.0
-    },
-    {
       "ticker": "7267.T",
       "entry_date": "2026-10-26",
       "entry_price": 1798.5,
@@ -44,43 +12,11 @@
       "take_profit": 1940.76,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.17,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 1798.5,
+      "max_price": 1799.0,
       "min_price": 1762.5
-    },
-    {
-      "ticker": "7832.T",
-      "entry_date": "2026-10-28",
-      "entry_price": 5916.0,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 5613.69,
-      "take_profit": 6974.37,
-      "strategy": "VWAP Trend",
-      "composite_score": 65.58,
-      "holding_days": 2,
-      "confidence": "HIGH",
-      "confidence_score": 6,
-      "max_price": 6211.0,
-      "min_price": 5916.0
-    },
-    {
-      "ticker": "6770.T",
-      "entry_date": "2026-10-28",
-      "entry_price": 2077.5,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 1990.24,
-      "take_profit": 2252.01,
-      "strategy": "Stochastic Oscillator",
-      "composite_score": 30.51,
-      "holding_days": 2,
-      "confidence": "LOW",
-      "confidence_score": 0,
-      "max_price": 2085.0,
-      "min_price": 2052.5
     },
     {
       "ticker": "4519.T",
@@ -92,11 +28,27 @@
       "take_profit": 7232.0,
       "strategy": "VWAP Trend",
       "composite_score": 60.97,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 6822.0,
+      "max_price": 6843.0,
       "min_price": 6822.0
+    },
+    {
+      "ticker": "6971.T",
+      "entry_date": "2026-11-02",
+      "entry_price": 3269.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 3051.28,
+      "take_profit": 3704.43,
+      "strategy": "VWAP Trend",
+      "composite_score": 19.8,
+      "holding_days": 0,
+      "confidence": "LOW",
+      "confidence_score": 0,
+      "max_price": 3269.0,
+      "min_price": 3269.0
     }
   ],
   "closed_trades": [
@@ -1263,6 +1215,54 @@
       "pnl": NaN,
       "pnl_pct": 1.07,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "6857.T",
+      "strategy": "Stochastic Oscillator",
+      "entry_date": "2026-10-19",
+      "exit_date": "2026-11-02",
+      "entry_price": 34450.0,
+      "exit_price": 35770.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 3.83,
+      "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "8002.T",
+      "strategy": "ADX Trend Following",
+      "entry_date": "2026-10-26",
+      "exit_date": "2026-11-02",
+      "entry_price": 5077.0,
+      "exit_price": 4904.89,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -3.39,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "6770.T",
+      "strategy": "Stochastic Oscillator",
+      "entry_date": "2026-10-28",
+      "exit_date": "2026-11-02",
+      "entry_price": 2077.5,
+      "exit_price": 1990.24,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": -4.2,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "7832.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-10-28",
+      "exit_date": "2026-11-02",
+      "entry_price": 5916.0,
+      "exit_price": 6208.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 4.94,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -2425,7 +2425,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-11-02",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 3,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-11-01"
+  "last_run_date": "2026-11-02"
 }
