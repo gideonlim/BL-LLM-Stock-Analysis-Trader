@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 442.9765054693853,
+  "cash": 434.86102759534333,
   "positions": [
     {
       "ticker": "CCEP.L",
@@ -12,59 +12,11 @@
       "take_profit": 8939.1,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.72,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 8585.0,
+      "max_price": 8685.0,
       "min_price": 8300.0
-    },
-    {
-      "ticker": "RTO.L",
-      "entry_date": "2026-10-26",
-      "entry_price": 341.6,
-      "qty": 25.1285,
-      "notional": 8583.89,
-      "stop_loss": 330.05,
-      "take_profit": 358.92,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 35.19,
-      "holding_days": 7,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 358.8999938964844,
-      "min_price": 341.6
-    },
-    {
-      "ticker": "LMP.L",
-      "entry_date": "2026-10-26",
-      "entry_price": 181.9,
-      "qty": 47.1902,
-      "notional": 8583.89,
-      "stop_loss": 177.65,
-      "take_profit": 188.52,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 33.72,
-      "holding_days": 7,
-      "confidence": "MEDIUM",
-      "confidence_score": 2,
-      "max_price": 188.1999969482422,
-      "min_price": 181.9
-    },
-    {
-      "ticker": "GLEN.L",
-      "entry_date": "2026-10-27",
-      "entry_price": 539.3,
-      "qty": 15.1209,
-      "notional": 8154.7,
-      "stop_loss": 503.62,
-      "take_profit": 646.9,
-      "strategy": "Stochastic Oscillator",
-      "composite_score": 51.51,
-      "holding_days": 6,
-      "confidence": "HIGH",
-      "confidence_score": 4,
-      "max_price": 545.5,
-      "min_price": 506.0
     },
     {
       "ticker": "ALW.L",
@@ -76,7 +28,7 @@
       "take_profit": 1443.51,
       "strategy": "52-Week High Momentum",
       "composite_score": 28.79,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 1372.0,
@@ -92,11 +44,59 @@
       "take_profit": 372.42,
       "strategy": "VWAP Trend",
       "composite_score": 70.23,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 335.20001220703125,
       "min_price": 322.5
+    },
+    {
+      "ticker": "NG.L",
+      "entry_date": "2026-11-05",
+      "entry_price": 1294.5,
+      "qty": 6.7186,
+      "notional": 8697.22,
+      "stop_loss": 1264.67,
+      "take_profit": 1338.44,
+      "strategy": "Momentum (Rate of Change)",
+      "composite_score": 35.6,
+      "holding_days": 0,
+      "confidence": "LOW",
+      "confidence_score": 1,
+      "max_price": 1294.5,
+      "min_price": 1294.5
+    },
+    {
+      "ticker": "ITRK.L",
+      "entry_date": "2026-11-05",
+      "entry_price": 5935.0,
+      "qty": 1.4654,
+      "notional": 8697.22,
+      "stop_loss": 5845.98,
+      "take_profit": 6202.07,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 35.42,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 5935.0,
+      "min_price": 5935.0
+    },
+    {
+      "ticker": "EZJ.L",
+      "entry_date": "2026-11-05",
+      "entry_price": 689.0,
+      "qty": 11.9918,
+      "notional": 8262.36,
+      "stop_loss": 678.47,
+      "take_profit": 719.8,
+      "strategy": "52-Week High Momentum",
+      "composite_score": 32.49,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 4,
+      "max_price": 689.0,
+      "min_price": 689.0
     }
   ],
   "closed_trades": [
@@ -951,6 +951,42 @@
       "pnl": -167.38,
       "pnl_pct": -1.95,
       "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "RTO.L",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-10-26",
+      "exit_date": "2026-11-05",
+      "entry_price": 341.6,
+      "exit_price": 358.92,
+      "qty": 25.1285,
+      "pnl": 435.23,
+      "pnl_pct": 5.07,
+      "exit_reason": "take_profit"
+    },
+    {
+      "ticker": "LMP.L",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-10-26",
+      "exit_date": "2026-11-05",
+      "entry_price": 181.9,
+      "exit_price": 188.52,
+      "qty": 47.1902,
+      "pnl": 312.4,
+      "pnl_pct": 3.64,
+      "exit_reason": "take_profit"
+    },
+    {
+      "ticker": "GLEN.L",
+      "strategy": "Stochastic Oscillator",
+      "entry_date": "2026-10-27",
+      "exit_date": "2026-11-05",
+      "entry_price": 539.3,
+      "exit_price": 511.42999267578125,
+      "qty": 15.1209,
+      "pnl": -421.42,
+      "pnl_pct": -5.17,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -2137,7 +2173,15 @@
       "num_positions": 6,
       "total_pnl": 1812.91,
       "total_pnl_pct": 3.63
+    },
+    {
+      "date": "2026-11-05",
+      "equity": 52126.85,
+      "cash": 434.86,
+      "num_positions": 6,
+      "total_pnl": 2126.85,
+      "total_pnl_pct": 4.25
     }
   ],
-  "last_run_date": "2026-11-04"
+  "last_run_date": "2026-11-05"
 }
