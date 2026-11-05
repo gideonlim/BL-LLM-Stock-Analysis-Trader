@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-11-05T21:23:26",
+  "positions_checked": 1,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "TT",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "TT missing stop loss leg. P&L: -4.4%",
+      "action_taken": "DRY RUN: would place OCO with SL=$372.97 and TP=$431.86",
+      "current_price": 392.6,
+      "entry_price": 410.562223,
+      "pnl_pct": -4.38,
+      "timestamp": "2026-11-05T21:23:26"
+    }
+  ]
+}
