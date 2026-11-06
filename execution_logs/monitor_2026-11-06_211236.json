@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-11-06T21:12:36",
+  "positions_checked": 2,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BAX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "BAX missing stop loss leg. P&L: +0.0%",
+      "action_taken": "DRY RUN: would place OCO with SL=$24.49 and TP=$28.36",
+      "current_price": 25.78,
+      "entry_price": 25.78,
+      "pnl_pct": 0.0,
+      "timestamp": "2026-11-06T21:12:36"
+    }
+  ]
+}
