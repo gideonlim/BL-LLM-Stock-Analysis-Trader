@@ -3,22 +3,6 @@
   "cash": NaN,
   "positions": [
     {
-      "ticker": "7267.T",
-      "entry_date": "2026-10-26",
-      "entry_price": 1798.5,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 1757.85,
-      "take_profit": 1940.76,
-      "strategy": "Momentum (Rate of Change)",
-      "composite_score": 37.17,
-      "holding_days": 9,
-      "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 1831.0,
-      "min_price": 1762.5
-    },
-    {
       "ticker": "4519.T",
       "entry_date": "2026-11-01",
       "entry_price": 6822.0,
@@ -28,10 +12,10 @@
       "take_profit": 7232.0,
       "strategy": "VWAP Trend",
       "composite_score": 60.97,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 6895.0,
+      "max_price": 7185.0,
       "min_price": 6806.0
     },
     {
@@ -44,10 +28,10 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 50.18,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 2693.5,
+      "max_price": 2735.5,
       "min_price": 2668.0
     },
     {
@@ -60,10 +44,10 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 35.25,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 2394.0,
+      "max_price": 2396.5,
       "min_price": 2292.0
     },
     {
@@ -76,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 32.71,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 6213.0,
@@ -92,11 +76,27 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 33.12,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": NaN,
       "min_price": NaN
+    },
+    {
+      "ticker": "2413.T",
+      "entry_date": "2026-11-09",
+      "entry_price": 1898.5,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 1803.39,
+      "take_profit": 2088.73,
+      "strategy": "EMA Crossover (9/21)",
+      "composite_score": 57.26,
+      "holding_days": 0,
+      "confidence": "MEDIUM",
+      "confidence_score": 2,
+      "max_price": 1898.5,
+      "min_price": 1898.5
     }
   ],
   "closed_trades": [
@@ -1323,6 +1323,18 @@
       "pnl": NaN,
       "pnl_pct": -6.66,
       "exit_reason": "stop_loss"
+    },
+    {
+      "ticker": "7267.T",
+      "strategy": "Momentum (Rate of Change)",
+      "entry_date": "2026-10-26",
+      "exit_date": "2026-11-09",
+      "entry_price": 1798.5,
+      "exit_price": 1883.5,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 4.73,
+      "exit_reason": "max_hold"
     }
   ],
   "equity_history": [
@@ -2525,7 +2537,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-11-09",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-11-08"
+  "last_run_date": "2026-11-09"
 }
