@@ -12,7 +12,7 @@
       "take_profit": 372.42,
       "strategy": "VWAP Trend",
       "composite_score": 70.23,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 335.5,
@@ -28,11 +28,11 @@
       "take_profit": 6202.07,
       "strategy": "52-Week High Momentum",
       "composite_score": 35.42,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 5945.0,
-      "min_price": 5935.0
+      "min_price": 5930.0
     },
     {
       "ticker": "EZJ.L",
@@ -44,7 +44,7 @@
       "take_profit": 719.8,
       "strategy": "52-Week High Momentum",
       "composite_score": 32.49,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 689.0,
@@ -60,10 +60,10 @@
       "take_profit": 6643.5,
       "strategy": "52-Week High Momentum",
       "composite_score": 23.4,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 6450.0,
+      "max_price": 6455.0,
       "min_price": 6450.0
     },
     {
@@ -76,10 +76,10 @@
       "take_profit": 4630.72,
       "strategy": "VWAP Trend",
       "composite_score": 19.7,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 4216.837890625,
+      "max_price": 4258.0,
       "min_price": 4094.0
     },
     {
@@ -92,10 +92,10 @@
       "take_profit": 2343.61,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 18.51,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "LOW",
       "confidence_score": 1,
-      "max_price": 2162.0,
+      "max_price": 2183.0,
       "min_price": 2162.0
     }
   ],
@@ -2233,7 +2233,15 @@
       "num_positions": 6,
       "total_pnl": 2118.92,
       "total_pnl_pct": 4.24
+    },
+    {
+      "date": "2026-11-10",
+      "equity": 52197.26,
+      "cash": 469.6,
+      "num_positions": 6,
+      "total_pnl": 2197.26,
+      "total_pnl_pct": 4.39
     }
   ],
-  "last_run_date": "2026-11-09"
+  "last_run_date": "2026-11-10"
 }
