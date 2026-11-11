@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-11-11T23:13:22",
+  "positions_checked": 3,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "CTRE",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "CTRE has NO protective orders (SL/TP legs missing). P&L: -0.2%, entry=$38.71, now=$38.61",
+      "action_taken": "DRY RUN: would place OCO with SL=$36.68 and TP=$42.47",
+      "current_price": 38.61,
+      "entry_price": 38.705841,
+      "pnl_pct": -0.25,
+      "timestamp": "2026-11-11T23:13:22"
+    }
+  ]
+}
