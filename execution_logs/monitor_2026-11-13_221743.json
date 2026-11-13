@@ -1,0 +1,21 @@
+{
+  "monitored_at": "2026-11-13T22:17:43",
+  "positions_checked": 4,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "PM",
+      "type": "orphaned",
+      "severity": "critical",
+      "message": "PM has NO protective orders (SL/TP legs missing). P&L: -0.2%, entry=$199.24, now=$198.92",
+      "action_taken": "DRY RUN: would place OCO with SL=$188.97 and TP=$218.81",
+      "current_price": 198.92,
+      "entry_price": 199.24,
+      "pnl_pct": -0.16,
+      "timestamp": "2026-11-13T22:17:43"
+    }
+  ]
+}
