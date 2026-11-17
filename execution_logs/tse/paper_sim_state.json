@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 35.25,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "LOW",
       "confidence_score": 1,
       "max_price": 2471.0,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 32.71,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 6235.0,
@@ -44,7 +44,7 @@
       "take_profit": NaN,
       "strategy": "Composite Multi-Indicator",
       "composite_score": 33.12,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": NaN,
@@ -60,7 +60,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 29.25,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -76,11 +76,11 @@
       "take_profit": 780.24,
       "strategy": "Stochastic Oscillator",
       "composite_score": 53.32,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 6,
       "max_price": 581.1,
-      "min_price": 572.7000122070312
+      "min_price": 570.0
     },
     {
       "ticker": "8697.T",
@@ -92,11 +92,11 @@
       "take_profit": 2426.62,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 37.66,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 2216.5,
-      "min_price": 2195.0
+      "min_price": 2166.5
     }
   ],
   "closed_trades": [
@@ -2621,7 +2621,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-11-17",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-11-16"
+  "last_run_date": "2026-11-17"
 }
