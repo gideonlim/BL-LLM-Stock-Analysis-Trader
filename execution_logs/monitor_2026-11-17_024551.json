@@ -1,0 +1,32 @@
+{
+  "monitored_at": "2026-11-17T02:45:51",
+  "positions_checked": 3,
+  "orphaned": 0,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BAX",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "BAX exceeded max hold period (10 days). P&L: -0.9%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 25.55,
+      "entry_price": 25.78,
+      "pnl_pct": -0.89,
+      "timestamp": "2026-11-17T02:45:51"
+    },
+    {
+      "ticker": "TT",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "TT exceeded max hold period (10 days). P&L: -0.6%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 407.98,
+      "entry_price": 410.562222,
+      "pnl_pct": -0.63,
+      "timestamp": "2026-11-17T02:45:51"
+    }
+  ]
+}
