@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-11-20T01:38:49",
+  "positions_checked": 4,
+  "orphaned": 1,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "BAX",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "BAX exceeded max hold period (10 days). P&L: -1.6%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 25.38,
+      "entry_price": 25.78,
+      "pnl_pct": -1.55,
+      "timestamp": "2026-11-20T01:38:48"
+    },
+    {
+      "ticker": "ELAN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ELAN missing stop loss leg. P&L: -1.8%",
+      "action_taken": "DRY RUN: would place OCO with SL=$24.99 and TP=$28.94",
+      "current_price": 26.31,
+      "entry_price": 26.8,
+      "pnl_pct": -1.83,
+      "timestamp": "2026-11-20T01:38:49"
+    },
+    {
+      "ticker": "TT",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "TT exceeded max hold period (10 days). P&L: -2.1%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 401.92,
+      "entry_price": 410.562222,
+      "pnl_pct": -2.1,
+      "timestamp": "2026-11-20T01:38:49"
+    }
+  ]
+}
