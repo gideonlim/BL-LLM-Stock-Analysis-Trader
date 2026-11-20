@@ -1,0 +1,43 @@
+{
+  "monitored_at": "2026-11-20T22:01:45",
+  "positions_checked": 4,
+  "orphaned": 2,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "ELAN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ELAN missing stop loss leg. P&L: -3.9%",
+      "action_taken": "DRY RUN: would place OCO with SL=$24.46 and TP=$28.33",
+      "current_price": 25.75,
+      "entry_price": 26.8,
+      "pnl_pct": -3.92,
+      "timestamp": "2026-11-20T22:01:44"
+    },
+    {
+      "ticker": "MP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MP missing stop loss leg. P&L: -6.4%",
+      "action_taken": "DRY RUN: would place OCO with SL=$32.24 and TP=$37.33",
+      "current_price": 33.94,
+      "entry_price": 36.27,
+      "pnl_pct": -6.42,
+      "timestamp": "2026-11-20T22:01:45"
+    },
+    {
+      "ticker": "TT",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "TT exceeded max hold period (10 days). P&L: -5.9%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 386.52,
+      "entry_price": 410.562222,
+      "pnl_pct": -5.86,
+      "timestamp": "2026-11-20T22:01:45"
+    }
+  ]
+}
