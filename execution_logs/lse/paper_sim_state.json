@@ -12,11 +12,11 @@
       "take_profit": 3628.22,
       "strategy": "VWAP Trend",
       "composite_score": 42.49,
-      "holding_days": 7,
+      "holding_days": 8,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2983.0,
-      "min_price": 2823.0
+      "min_price": 2819.0
     },
     {
       "ticker": "CTEC.L",
@@ -28,7 +28,7 @@
       "take_profit": 324.36,
       "strategy": "MACD Crossover",
       "composite_score": 48.88,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 270.8,
@@ -44,7 +44,7 @@
       "take_profit": 4288.48,
       "strategy": "Bollinger Band Mean Reversion",
       "composite_score": 37.76,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 3338.0,
@@ -60,7 +60,7 @@
       "take_profit": 3279.15,
       "strategy": "Z-Score Mean Reversion",
       "composite_score": 36.38,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 2796.0,
@@ -76,7 +76,7 @@
       "take_profit": 6257.11,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.59,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 5945.0,
@@ -92,11 +92,11 @@
       "take_profit": 4673.53,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.36,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 4418.0,
-      "min_price": 4418.0
+      "min_price": 4382.0
     }
   ],
   "closed_trades": [
@@ -2413,7 +2413,15 @@
       "num_positions": 6,
       "total_pnl": -353.87,
       "total_pnl_pct": -0.71
+    },
+    {
+      "date": "2026-11-23",
+      "equity": 50499.36,
+      "cash": 431.62,
+      "num_positions": 6,
+      "total_pnl": 499.36,
+      "total_pnl_pct": 1.0
     }
   ],
-  "last_run_date": "2026-11-20"
+  "last_run_date": "2026-11-23"
 }
