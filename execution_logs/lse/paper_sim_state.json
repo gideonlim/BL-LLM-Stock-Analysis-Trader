@@ -12,7 +12,7 @@
       "take_profit": 3628.22,
       "strategy": "VWAP Trend",
       "composite_score": 42.49,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 2983.0,
@@ -28,10 +28,10 @@
       "take_profit": 324.36,
       "strategy": "MACD Crossover",
       "composite_score": 48.88,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 270.8,
+      "max_price": 273.79998779296875,
       "min_price": 263.3999938964844
     },
     {
@@ -44,11 +44,11 @@
       "take_profit": 4288.48,
       "strategy": "Bollinger Band Mean Reversion",
       "composite_score": 37.76,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 3338.0,
-      "min_price": 3177.0
+      "min_price": 3141.0
     },
     {
       "ticker": "ANTO.L",
@@ -60,11 +60,11 @@
       "take_profit": 3279.15,
       "strategy": "Z-Score Mean Reversion",
       "composite_score": 36.38,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 2796.0,
-      "min_price": 2649.0
+      "min_price": 2546.0
     },
     {
       "ticker": "ITRK.L",
@@ -76,7 +76,7 @@
       "take_profit": 6257.11,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.59,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 5945.0,
@@ -92,10 +92,10 @@
       "take_profit": 4673.53,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.36,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "MEDIUM",
       "confidence_score": 3,
-      "max_price": 4418.0,
+      "max_price": 4453.0,
       "min_price": 4382.0
     }
   ],
@@ -2421,7 +2421,15 @@
       "num_positions": 6,
       "total_pnl": 499.36,
       "total_pnl_pct": 1.0
+    },
+    {
+      "date": "2026-11-24",
+      "equity": 49996.67,
+      "cash": 431.62,
+      "num_positions": 6,
+      "total_pnl": -3.33,
+      "total_pnl_pct": -0.01
     }
   ],
-  "last_run_date": "2026-11-23"
+  "last_run_date": "2026-11-24"
 }
