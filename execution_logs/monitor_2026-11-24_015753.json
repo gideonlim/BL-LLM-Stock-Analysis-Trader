@@ -1,0 +1,65 @@
+{
+  "monitored_at": "2026-11-24T01:57:53",
+  "positions_checked": 5,
+  "orphaned": 3,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AAPL",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "AAPL exceeded max hold period (10 days). P&L: -2.5%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 349.74,
+      "entry_price": 358.73,
+      "pnl_pct": -2.51,
+      "timestamp": "2026-11-24T01:57:51"
+    },
+    {
+      "ticker": "CI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CI missing stop loss leg. P&L: -0.0%",
+      "action_taken": "DRY RUN: would place OCO with SL=$256.84 and TP=$297.4",
+      "current_price": 270.36,
+      "entry_price": 270.455937,
+      "pnl_pct": -0.04,
+      "timestamp": "2026-11-24T01:57:52"
+    },
+    {
+      "ticker": "ELAN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ELAN missing stop loss leg. P&L: -1.5%",
+      "action_taken": "DRY RUN: would place OCO with SL=$25.07 and TP=$29.02",
+      "current_price": 26.385,
+      "entry_price": 26.8,
+      "pnl_pct": -1.55,
+      "timestamp": "2026-11-24T01:57:52"
+    },
+    {
+      "ticker": "MP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MP missing stop loss leg. P&L: -2.1%",
+      "action_taken": "DRY RUN: would place OCO with SL=$33.75 and TP=$39.08",
+      "current_price": 35.525,
+      "entry_price": 36.27,
+      "pnl_pct": -2.05,
+      "timestamp": "2026-11-24T01:57:52"
+    },
+    {
+      "ticker": "TT",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "TT exceeded max hold period (10 days). P&L: -0.5%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 408.42,
+      "entry_price": 410.562222,
+      "pnl_pct": -0.52,
+      "timestamp": "2026-11-24T01:57:53"
+    }
+  ]
+}
