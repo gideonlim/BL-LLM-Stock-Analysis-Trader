@@ -12,7 +12,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 29.25,
-      "holding_days": 8,
+      "holding_days": 9,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": NaN,
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 36.65,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 3356.0,
@@ -44,27 +44,11 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 35.58,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 2313.0,
+      "max_price": 2318.5,
       "min_price": 2181.0
-    },
-    {
-      "ticker": "8304.T",
-      "entry_date": "2026-11-22",
-      "entry_price": 2948.5,
-      "qty": NaN,
-      "notional": NaN,
-      "stop_loss": 2791.05,
-      "take_profit": 3263.4,
-      "strategy": "VWAP Trend",
-      "composite_score": 44.69,
-      "holding_days": 0,
-      "confidence": "MEDIUM",
-      "confidence_score": 3,
-      "max_price": 2948.5,
-      "min_price": 2948.5
     },
     {
       "ticker": "1812.T",
@@ -76,10 +60,10 @@
       "take_profit": 5016.62,
       "strategy": "Bollinger Band Mean Reversion",
       "composite_score": 39.36,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 4399.0,
+      "max_price": 4465.0,
       "min_price": 4399.0
     },
     {
@@ -92,11 +76,27 @@
       "take_profit": 2042.68,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 39.02,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1784.0,
-      "min_price": 1784.0
+      "min_price": 1756.0
+    },
+    {
+      "ticker": "8001.T",
+      "entry_date": "2026-11-24",
+      "entry_price": 2247.0,
+      "qty": NaN,
+      "notional": NaN,
+      "stop_loss": 2095.1,
+      "take_profit": 2702.69,
+      "strategy": "ADX Trend Following",
+      "composite_score": 46.26,
+      "holding_days": 0,
+      "confidence": "HIGH",
+      "confidence_score": 5,
+      "max_price": 2247.0,
+      "min_price": 2247.0
     }
   ],
   "closed_trades": [
@@ -1443,6 +1443,18 @@
       "pnl": NaN,
       "pnl_pct": -1.63,
       "exit_reason": "exit_signal"
+    },
+    {
+      "ticker": "8304.T",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-11-22",
+      "exit_date": "2026-11-24",
+      "entry_price": 2948.5,
+      "exit_price": 3017.0,
+      "qty": NaN,
+      "pnl": NaN,
+      "pnl_pct": 2.32,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -2725,7 +2737,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-11-24",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-11-22"
+  "last_run_date": "2026-11-24"
 }
