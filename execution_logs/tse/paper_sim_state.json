@@ -12,10 +12,10 @@
       "take_profit": NaN,
       "strategy": "ADX Trend Following",
       "composite_score": 36.65,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 3463.0,
+      "max_price": 3535.0,
       "min_price": 3141.0
     },
     {
@@ -28,7 +28,7 @@
       "take_profit": NaN,
       "strategy": "SMA Crossover (10/50)",
       "composite_score": 35.58,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 5,
       "max_price": 2318.5,
@@ -44,7 +44,7 @@
       "take_profit": 5016.62,
       "strategy": "Bollinger Band Mean Reversion",
       "composite_score": 39.36,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 4634.0,
@@ -60,7 +60,7 @@
       "take_profit": 2042.68,
       "strategy": "Momentum (Rate of Change)",
       "composite_score": 39.02,
-      "holding_days": 2,
+      "holding_days": 3,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 1834.5,
@@ -76,10 +76,10 @@
       "take_profit": 2702.69,
       "strategy": "ADX Trend Following",
       "composite_score": 46.26,
-      "holding_days": 1,
+      "holding_days": 2,
       "confidence": "HIGH",
       "confidence_score": 5,
-      "max_price": 2268.0,
+      "max_price": 2273.0,
       "min_price": 2247.0
     },
     {
@@ -92,11 +92,11 @@
       "take_profit": 2433.53,
       "strategy": "MACD Crossover",
       "composite_score": 83.33,
-      "holding_days": 0,
+      "holding_days": 1,
       "confidence": "HIGH",
       "confidence_score": 6,
       "max_price": 1881.5,
-      "min_price": 1881.5
+      "min_price": 1847.5
     }
   ],
   "closed_trades": [
@@ -2765,7 +2765,15 @@
       "num_positions": 6,
       "total_pnl": NaN,
       "total_pnl_pct": NaN
+    },
+    {
+      "date": "2026-11-26",
+      "equity": NaN,
+      "cash": NaN,
+      "num_positions": 6,
+      "total_pnl": NaN,
+      "total_pnl_pct": NaN
     }
   ],
-  "last_run_date": "2026-11-25"
+  "last_run_date": "2026-11-26"
 }
