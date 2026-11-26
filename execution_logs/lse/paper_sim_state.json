@@ -1,6 +1,6 @@
 {
   "starting_equity": 50000.0,
-  "cash": 454.4979104631311,
+  "cash": 457.6234655231565,
   "positions": [
     {
       "ticker": "CTEC.L",
@@ -12,10 +12,10 @@
       "take_profit": 324.36,
       "strategy": "MACD Crossover",
       "composite_score": 48.88,
-      "holding_days": 5,
+      "holding_days": 6,
       "confidence": "HIGH",
       "confidence_score": 4,
-      "max_price": 274.20001220703125,
+      "max_price": 275.79998779296875,
       "min_price": 263.3999938964844
     },
     {
@@ -28,7 +28,7 @@
       "take_profit": 4288.48,
       "strategy": "Bollinger Band Mean Reversion",
       "composite_score": 37.76,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 3338.0,
@@ -44,7 +44,7 @@
       "take_profit": 3279.15,
       "strategy": "Z-Score Mean Reversion",
       "composite_score": 36.38,
-      "holding_days": 4,
+      "holding_days": 5,
       "confidence": "MEDIUM",
       "confidence_score": 2,
       "max_price": 2796.0,
@@ -60,11 +60,11 @@
       "take_profit": 6257.11,
       "strategy": "52-Week High Momentum",
       "composite_score": 33.59,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "HIGH",
       "confidence_score": 4,
       "max_price": 5945.0,
-      "min_price": 5905.0
+      "min_price": 5900.0
     },
     {
       "ticker": "BATS.L",
@@ -76,27 +76,27 @@
       "take_profit": 4673.53,
       "strategy": "Stochastic Oscillator",
       "composite_score": 32.36,
-      "holding_days": 3,
+      "holding_days": 4,
       "confidence": "MEDIUM",
       "confidence_score": 3,
       "max_price": 4556.0,
       "min_price": 4382.0
     },
     {
-      "ticker": "DGE.L",
-      "entry_date": "2026-11-25",
-      "entry_price": 1934.0,
-      "qty": 4.4651,
-      "notional": 8635.46,
-      "stop_loss": 1877.53,
-      "take_profit": 2103.42,
-      "strategy": "VWAP Trend",
-      "composite_score": 73.54,
+      "ticker": "LGEN.L",
+      "entry_date": "2026-11-26",
+      "entry_price": 296.0,
+      "qty": 29.3745,
+      "notional": 8694.85,
+      "stop_loss": 290.02,
+      "take_profit": 316.93,
+      "strategy": "Stochastic Oscillator",
+      "composite_score": 52.3,
       "holding_days": 0,
       "confidence": "HIGH",
-      "confidence_score": 5,
-      "max_price": 1934.0,
-      "min_price": 1934.0
+      "confidence_score": 4,
+      "max_price": 296.0,
+      "min_price": 296.0
     }
   ],
   "closed_trades": [
@@ -1143,6 +1143,18 @@
       "pnl": 49.06,
       "pnl_pct": 0.57,
       "exit_reason": "max_hold"
+    },
+    {
+      "ticker": "DGE.L",
+      "strategy": "VWAP Trend",
+      "entry_date": "2026-11-25",
+      "exit_date": "2026-11-26",
+      "entry_price": 1934.0,
+      "exit_price": 1948.0,
+      "qty": 4.4651,
+      "pnl": 62.51,
+      "pnl_pct": 0.72,
+      "exit_reason": "exit_signal"
     }
   ],
   "equity_history": [
@@ -2449,7 +2461,15 @@
       "num_positions": 6,
       "total_pnl": 42.25,
       "total_pnl_pct": 0.08
+    },
+    {
+      "date": "2026-11-26",
+      "equity": 50666.39,
+      "cash": 457.62,
+      "num_positions": 6,
+      "total_pnl": 666.39,
+      "total_pnl_pct": 1.33
     }
   ],
-  "last_run_date": "2026-11-25"
+  "last_run_date": "2026-11-26"
 }
