@@ -1,0 +1,76 @@
+{
+  "monitored_at": "2026-11-26T02:01:47",
+  "positions_checked": 6,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AAPL",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "AAPL exceeded max hold period (10 days). P&L: -1.0%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 355.14,
+      "entry_price": 358.73,
+      "pnl_pct": -1.0,
+      "timestamp": "2026-11-26T02:01:43"
+    },
+    {
+      "ticker": "CI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CI missing stop loss leg. P&L: +0.4%",
+      "action_taken": "DRY RUN: would place OCO with SL=$257.96 and TP=$298.69",
+      "current_price": 271.54,
+      "entry_price": 270.455938,
+      "pnl_pct": 0.4,
+      "timestamp": "2026-11-26T02:01:44"
+    },
+    {
+      "ticker": "CSX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CSX missing stop loss leg. P&L: +3.9%",
+      "action_taken": "DRY RUN: would place OCO with SL=$48.62 and TP=$56.3",
+      "current_price": 51.18,
+      "entry_price": 49.253234,
+      "pnl_pct": 3.91,
+      "timestamp": "2026-11-26T02:01:45"
+    },
+    {
+      "ticker": "ELAN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ELAN missing stop loss leg. P&L: -2.1%",
+      "action_taken": "DRY RUN: would place OCO with SL=$24.93 and TP=$28.86",
+      "current_price": 26.24,
+      "entry_price": 26.8,
+      "pnl_pct": -2.09,
+      "timestamp": "2026-11-26T02:01:45"
+    },
+    {
+      "ticker": "MP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MP missing stop loss leg. P&L: -2.7%",
+      "action_taken": "DRY RUN: would place OCO with SL=$33.53 and TP=$38.83",
+      "current_price": 35.3,
+      "entry_price": 36.27,
+      "pnl_pct": -2.67,
+      "timestamp": "2026-11-26T02:01:46"
+    },
+    {
+      "ticker": "TT",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "TT exceeded max hold period (10 days). P&L: -1.7%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 403.38,
+      "entry_price": 410.562222,
+      "pnl_pct": -1.75,
+      "timestamp": "2026-11-26T02:01:47"
+    }
+  ]
+}
