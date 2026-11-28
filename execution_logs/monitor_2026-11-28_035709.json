@@ -1,0 +1,87 @@
+{
+  "monitored_at": "2026-11-28T03:57:09",
+  "positions_checked": 6,
+  "orphaned": 4,
+  "stale": 0,
+  "emergency": 0,
+  "actions_taken": 0,
+  "alerts": [
+    {
+      "ticker": "AAPL",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "AAPL exceeded max hold period (10 days). P&L: -0.0%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 358.68,
+      "entry_price": 358.73,
+      "pnl_pct": -0.01,
+      "timestamp": "2026-11-28T03:57:07"
+    },
+    {
+      "ticker": "CI",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CI missing stop loss leg. P&L: +0.7%",
+      "action_taken": "DRY RUN: would place OCO with SL=$258.7 and TP=$299.55",
+      "current_price": 272.315,
+      "entry_price": 270.455938,
+      "pnl_pct": 0.69,
+      "timestamp": "2026-11-28T03:57:08"
+    },
+    {
+      "ticker": "CSX",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "CSX missing stop loss leg. P&L: +4.4%",
+      "action_taken": "DRY RUN: would place OCO with SL=$48.84 and TP=$56.55",
+      "current_price": 51.41,
+      "entry_price": 49.253234,
+      "pnl_pct": 4.38,
+      "timestamp": "2026-11-28T03:57:08"
+    },
+    {
+      "ticker": "ELAN",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "ELAN missing stop loss leg. P&L: -2.4%",
+      "action_taken": "DRY RUN: would place OCO with SL=$24.86 and TP=$28.79",
+      "current_price": 26.17,
+      "entry_price": 26.8,
+      "pnl_pct": -2.35,
+      "timestamp": "2026-11-28T03:57:08"
+    },
+    {
+      "ticker": "ELAN",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "ELAN exceeded max hold period (10 days). P&L: -2.4%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 26.17,
+      "entry_price": 26.8,
+      "pnl_pct": -2.35,
+      "timestamp": "2026-11-28T03:57:08"
+    },
+    {
+      "ticker": "MP",
+      "type": "orphaned",
+      "severity": "warning",
+      "message": "MP missing stop loss leg. P&L: -1.3%",
+      "action_taken": "DRY RUN: would place OCO with SL=$34.0 and TP=$39.37",
+      "current_price": 35.79,
+      "entry_price": 36.27,
+      "pnl_pct": -1.32,
+      "timestamp": "2026-11-28T03:57:09"
+    },
+    {
+      "ticker": "TT",
+      "type": "time_exit",
+      "severity": "warning",
+      "message": "TT exceeded max hold period (10 days). P&L: -1.0%",
+      "action_taken": "DRY RUN: would close stale position",
+      "current_price": 406.335,
+      "entry_price": 410.562222,
+      "pnl_pct": -1.03,
+      "timestamp": "2026-11-28T03:57:09"
+    }
+  ]
+}
